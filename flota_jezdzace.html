@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTD Serwis - Flota Pojazdów (System ERP)</title>
+    
+    <!-- Biblioteki Zewnętrzne -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           KONFIGURACJA UI I MOTYWU
+           ========================================= */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent-blue: #0284c7;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+
+            --dark-panel: #0f1419;
+            --dark-input: #1a1f26;
+            --dark-border: #2a3136;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* =========================================
+           SIDEBAR (ZGODNIE Z POLECENIEM - BEZ ZMIAN)
+           ========================================= */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.15); }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .sidebar-header { padding: 35px 25px; font-size: 24px; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px; }
+        .sidebar-header span { color: var(--accent-blue); }
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 12px 25px; margin: 2px 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 14px; transition: 0.2s; cursor: pointer; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: var(--sidebar-hover); color: white; }
+        .nav-item.active { background-color: rgba(2, 132, 199, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; }
+        .submenu { background-color: rgba(0,0,0,0.2); margin-bottom: 5px; padding: 5px 0; display: none; }
+        .submenu-label { padding: 12px 25px 5px 55px; font-size: 10px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 1px; }
+        .submenu-item { padding: 8px 25px 8px 55px; display: block; color: #94a3b8; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
+        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
+        .submenu-item.active { color: white; font-weight: 700; border-left-color: var(--accent-blue); }
+
+        /* =========================================
+           TOPBAR & WRAPPER (BEZ ZMIAN)
+           ========================================= */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 0 40px; height: 80px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; }
+        .search-bar { background: #f1f5f9; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; width: 350px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 500; }
+        .content-area { padding: 40px; overflow-y: auto; flex: 1; position: relative; }
+        .view-panel { display: none; }
+        .view-panel.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* UI ELEMENTS */
+        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 30px; overflow: hidden; }
+        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 13px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
+        .card-body { padding: 30px; }
+
+        /* REJESTRACJA TAG */
+        .reg-badge { background: #1e293b; color: #fff; padding: 4px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-weight: 800; font-size: 15px; letter-spacing: 1px; display: inline-block; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        /* TABELA REJESTRU (BEZ ZMIAN) */
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 18px 25px; background: #f8fafc; color: var(--text-muted); font-size: 11px; font-weight: 800; text-transform: uppercase; text-align: left; border-bottom: 2px solid var(--border-color); }
+        td { padding: 18px 25px; border-bottom: 1px solid var(--border-color); font-size: 14px; vertical-align: middle; }
+        tr:hover td { background-color: #f8fafc; cursor: pointer; }
+        .status-badge { padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; display: inline-block; }
+        .st-wolny { background: #d1fae5; color: #065f46; }
+        .st-wynajety { background: #fff7ed; color: #9a3412; }
+
+        /* BUTTONY (BEZ ZMIAN) */
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-small { padding: 6px 12px; font-size: 11px; }
+
+        /* =========================================
+           KARTA POJAZDU - POTĘŻNY INTERFEJS (NOWE)
+           ========================================= */
+        .plate-real {
+            display: inline-flex; align-items: center; background: white; border: 3px solid #111; border-radius: 6px; 
+            padding: 4px 15px 4px 45px; position: relative; font-family: 'Inter', sans-serif; font-weight: 800; 
+            font-size: 32px; letter-spacing: 2px; box-shadow: 0 6px 12px rgba(0,0,0,0.1); color: #111; text-transform: uppercase;
+        }
+        .plate-real::before {
+            content: 'PL'; position: absolute; left: 0; top: 0; bottom: 0; width: 35px; background: #003399;
+            color: white; font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; 
+            padding-bottom: 6px; border-radius: 3px 0 0 3px; font-weight: 900;
+        }
+
+        .odometer-banner { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 30px; border-radius: 20px;
+            display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .odometer-main { font-size: 56px; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: 6px; text-shadow: 0 0 15px rgba(56,189,248,0.5); }
+        .odometer-label { color: #38bdf8; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; display: block; margin-bottom: 5px;}
+
+        /* Tabularna nawigacja wewnątrz Karty Pojazdu */
+        .card-nav { display: flex; gap: 5px; border-bottom: 1px solid var(--border-color); margin-bottom: 25px; background: white; padding: 10px 10px 0 10px; border-radius: 12px 12px 0 0; overflow-x: auto; }
+        .card-nav-btn { padding: 12px 20px; border: none; background: none; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; text-transform: uppercase; transition: 0.2s; white-space: nowrap; }
+        .card-nav-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); background: rgba(2, 132, 199, 0.05); }
+
+        .card-section { display: none; }
+        .card-section.active { display: block; animation: slideIn 0.3s ease; }
+
+        /* Grid i Bloki informacyjne (Karta) */
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .info-block { background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .info-block-header { font-size: 12px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+
+        .data-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 13.5px; border-bottom: 1px dashed #f1f5f9; padding-bottom: 8px; }
+        .data-label { color: var(--text-muted); font-weight: 600; flex-shrink: 0; width: 45%; }
+        .data-value { font-weight: 700; color: var(--text-main); text-align: right; word-break: break-word; }
+
+        /* Timeline / Oś Czasu */
+        .card-timeline { position: relative; padding-left: 30px; border-left: 2px solid var(--border-color); margin-left: 10px; margin-top: 20px; }
+        .card-tl-item { background: #f8fafc; border: 1px solid var(--border-color); padding: 15px; border-radius: 10px; margin-bottom: 15px; position: relative; }
+        .card-tl-item::before { content: ''; position: absolute; left: -39px; top: 18px; width: 14px; height: 14px; background: white; border: 3px solid var(--accent-blue); border-radius: 50%; }
+        
+        .card-tl-cat { font-size: 10px; font-weight: 900; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; margin-bottom: 8px; display: inline-block; }
+        .cat-serwis { background: #d1fae5; color: #065f46; }
+        .cat-naprawa { background: #fef3c7; color: #92400e; }
+        .cat-szkoda { background: #fee2e2; color: #991b1b; }
+        .cat-inne { background: #e2e8f0; color: #475569; }
+
+        /* Badges w Karcie */
+        .badge-alert { background: #fee2e2; color: #ef4444; border: 1px solid #ef4444; font-weight: 800; padding: 4px 8px; border-radius: 6px; font-size: 11px; animation: pulse 2s infinite; display: inline-block; }
+        .badge-ok { background: #d1fae5; color: #10b981; border: 1px solid #10b981; font-weight: 800; padding: 4px 8px; border-radius: 6px; font-size: 11px; display: inline-block; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+        /* Inline Edit */
+        #view-details [contenteditable="true"] { background-color: #fffbeb; border: 1px dashed #fbbf24; padding: 2px 6px; border-radius: 4px; outline: none; cursor: text; transition: 0.2s; }
+        #view-details [contenteditable="true"]:focus { background-color: white; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+        /* Lista Wyposażenia */
+        .eq-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .eq-item { font-size: 13px; font-weight: 600; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+        .eq-yes { color: var(--success); }
+        .eq-no { color: var(--border-color); }
+
+        /* =========================================
+           KREATOR ERP (ZAKŁADKI) - BEZ ZMIAN
+           ========================================= */
+        .form-erp-card { background: var(--dark-panel); padding: 45px; border-radius: 24px; box-shadow: 0 30px 60px rgba(0,0,0,0.5); border: 1px solid #2a3136; color: #e2e8f0; }
+        .tab-switcher { display: flex; gap: 8px; border-bottom: 1px solid #2a3136; margin-bottom: 40px; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { padding: 15px 20px; border: none; background: none; color: #64748b; font-size: 12px; font-weight: 800; cursor: pointer; text-transform: uppercase; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .tab-btn.active { color: #4a9eff; border-bottom-color: #4a9eff; }
+        .form-tab-content { display: none; }
+        .form-tab-content.active { display: block; animation: slideIn 0.3s ease; }
+        
+        /* NOWE: SZTYWNE SIATKI ZAPOBIEGAJĄCE ROZJEŻDŻANIU SIĘ FORMULARZA */
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px; }
+        .form-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 25px; }
+        .form-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 25px; }
+        @media (max-width: 1024px) { .form-row-3, .form-row-4 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .form-row-2, .form-row-3, .form-row-4 { grid-template-columns: 1fr; } }
+
+        .form-group { display: flex; flex-direction: column; gap: 10px; }
+        .form-erp-card label { font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .form-erp-card input, .form-erp-card select, .form-erp-card textarea { background: #1a1f26; border: 1px solid #2a3136; color: white; padding: 16px; border-radius: 12px; width: 100%; font-size: 15px; transition: 0.3s; }
+        .form-erp-card input:focus, .form-erp-card select:focus, .form-erp-card textarea:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2); outline: none; }
+        
+        /* Niestandardowy Select */
+        .form-erp-card select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; padding-right: 2.5rem; }
+
+        .info-box-form { background-color: #1a2530; border-left: 3px solid #4a9eff; padding: 15px; margin-bottom: 25px; border-radius: 4px; font-size: 13px; color: #a0b0c0; }
+        .required::after { content: ' *'; color: #ff6b6b; }
+        .radio-inline-group { display: flex; gap: 20px; align-items: center; padding-top: 5px; }
+        .radio-inline-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 600; color: #fff; }
+        .radio-inline-item input { width: 18px !important; height: 18px !important; accent-color: #4a9eff; cursor: pointer; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 15px; background: #1a1f26; padding: 25px; border-radius: 12px; border: 1px solid #2a3136; }
+        .checkbox-item { display: flex; align-items: center; gap: 10px; cursor: pointer; color: #e2e8f0; font-size: 13.5px; font-weight: 500; transition: 0.2s;}
+        .checkbox-item:hover { color: #4a9eff; }
+        .checkbox-item input { width: 18px !important; height: 18px !important; accent-color: #4a9eff; cursor: pointer; }
+        .conditional-section { display: none; margin-top: 15px; padding: 25px; background: rgba(74, 158, 255, 0.03); border: 1px dashed #2a3136; border-radius: 12px; }
+        .conditional-section.active { display: block; animation: slideDown 0.3s ease; }
+
+        /* MODALE ZDARZEŃ I LICZNIKA */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-card { background: white; width: 680px; border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.5); overflow: hidden; }
+        .modal-header { padding: 25px 35px; background: #fcfcfd; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 35px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR KOMPLETNY -->
+    <div class="sidebar">
+        <div class="sidebar-header"><span>DTD</span> Serwis</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+            
+            <div class="nav-item active has-submenu" onclick="toggleSubmenu('submenu-samochody')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car"></i> Samochody</div>
+                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px; transform: rotate(180deg);"></i>
+            </div>
+            <div class="submenu" id="submenu-samochody" style="display: block;">
+                <div class="submenu-label">Najmy</div>
+                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+                <div class="submenu-label">Flota własna</div>
+                <a href="flota_jezdzace.html" class="submenu-item active">Pojazdy jeżdżące</a>
+                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+            </div>
+
+            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> Oględziny</a>
+            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+            <a href="magazyn.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i części</a>
+            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+            </div>
+            <div class="submenu" id="submenu-naprawy">
+                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            </div>
+
+            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator dokumentów</a>
+        </div>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <div class="topbar">
+            <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Szukaj VIN, nr rej..."></div>
+            <div class="user-info">
+                <i class="fa-regular fa-bell" style="font-size:20px; cursor:pointer; color:var(--text-muted); margin-right:20px;"></i>
+                <span style="font-weight:700;">admin@dtdserwis.pl</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- WIDOK 1: REJESTR AKTYWNEJ FLOTY -->
+            <div id="view-list" class="view-panel active">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-car-side" style="color:var(--accent-blue)"></i> Zarządzanie Flotą Aktywną</div>
+                    <button class="btn btn-primary" onclick="toggleViews('view-form')"><i class="fa-solid fa-plus-circle"></i> Dodaj Pojazd do Bazy</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nr Rejestracyjny</th>
+                                <th>Marka i Model</th>
+                                <th>Status Operacyjny</th>
+                                <th>Licznik (km)</th>
+                                <th>OC ważne do</th>
+                                <th>Nast. Przegląd</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr onclick="showVehicleDetails('WA 12345')">
+                                <td><span class="reg-badge">WA 12345</span><br><small class="text-muted" style="font-family:monospace;">VIN: JTD1234567890ABCD</small></td>
+                                <td><strong>Toyota Yaris Comfort</strong><br><small class="text-muted">Segment B | Hybryda</small></td>
+                                <td><span class="status-badge st-wolny">Wolny / Dostępny</span></td>
+                                <td style="font-weight:900; color:var(--accent-blue); font-size:16px;">145 200</td>
+                                <td>20.11.2026</td>
+                                <td><span style="color:var(--danger); font-weight:800;">05.03.2024</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WIDOK 2: NOWA KARTA POJAZDU (7 ZAKŁADEK I PEŁNE DANE) -->
+            <div id="view-details" class="view-panel">
+                
+                <!-- Karta: Header -->
+                <div class="header-actions">
+                    <div style="display:flex; align-items:center; gap:20px;">
+                        <div class="plate-real" id="det-reg-plate">WA 12345</div>
+                        <div>
+                            <div class="page-title" style="margin-bottom:2px;">Toyota Yaris Comfort</div>
+                            <div style="font-size:12px; font-weight:700; color:var(--text-muted)">VIN: <span id="det-vin-span" style="font-family:monospace; letter-spacing:1px; color:var(--accent-blue)">JTD1234567890ABCD</span></div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-arrow-left"></i> Powrót do listy</button>
+                        <button class="btn btn-primary" id="editBtn" onclick="toggleEditMode()"><i class="fa-solid fa-pen-to-square"></i> Tryb Edycji</button>
+                    </div>
+                </div>
+
+                <!-- Karta: Baner Licznika i Statusu -->
+                <div class="odometer-banner">
+                    <div>
+                        <span class="odometer-label">Bieżący stan drogomierza</span>
+                        <div class="odometer-digital" id="det-odometer">145 200</div>
+                        <div style="font-size:12px; color:#94a3b8; margin-top:8px;">Ostatni odczyt: <span id="det-odometer-date">28.02.2026</span> | Motogodziny: <span class="info-edit">1240.5 h</span></div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="badge-ok" style="font-size:13px; padding:6px 16px; margin-bottom:15px;"><i class="fa-solid fa-circle-check"></i> Status: AKTYWNY</span>
+                        <br>
+                        <button class="btn btn-primary" onclick="openMileageModal()"><i class="fa-solid fa-gauge-high"></i> Aktualizuj Przebieg</button>
+                    </div>
+                </div>
+
+                <!-- Karta: Nawigacja 7 Kategorii -->
+                <div class="card-nav">
+                    <button class="card-nav-btn active" onclick="switchVehicleCardTab('podstawowe', this)">Dane podstawowe</button>
+                    <button class="card-nav-btn" onclick="switchVehicleCardTab('techniczne', this)">Techniczne</button>
+                    <button class="card-nav-btn" onclick="switchVehicleCardTab('finanse', this)">Finanse & Podatki</button>
+                    <button class="card-nav-btn" onclick="switchVehicleCardTab('ubezpieczenie', this)">Ubezpieczenie</button>
+                    <button class="card-nav-btn" onclick="switchVehicleCardTab('wyposazenie', this)">Wyposażenie</button>
+                    <button class="card-nav-btn" onclick="switchVehicleCardTab('dokumenty', this)">Dokumenty</button>
+                    <button class="card-nav-btn" onclick="switchVehicleCardTab('eksploatacja', this)">Eksploatacja & Historia</button>
+                </div>
+
+                <!-- Karta: Zawartość Kategorii -->
+                <div id="v-card-content">
+                    
+                    <!-- Kat 1: DANE PODSTAWOWE -->
+                    <div id="vc-podstawowe" class="card-section active">
+                        <div class="info-grid">
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-car"></i> Identyfikacja Pojazdu</div>
+                                <div class="data-row"><div class="data-label">Marka i Model:</div><div class="data-value info-edit">Toyota Yaris</div></div>
+                                <div class="data-row"><div class="data-label">Numer VIN:</div><div class="data-value info-edit" style="font-family:monospace; color:var(--accent-blue)">JTD1234567890ABCD</div></div>
+                                <div class="data-row"><div class="data-label">Segment / Klasa:</div><div class="data-value info-edit">Klasa B</div></div>
+                                <div class="data-row"><div class="data-label">Wersja / Typ:</div><div class="data-value info-edit">1.5 Hybrid Comfort IV Gen</div></div>
+                                <div class="data-row"><div class="data-label">Rok produkcji:</div><div class="data-value info-edit">2021</div></div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-building-user"></i> Rejestracja i Własność</div>
+                                <div class="data-row"><div class="data-label">Data 1. rejestracji:</div><div class="data-value info-edit">15.01.2021</div></div>
+                                <div class="data-row"><div class="data-label">Kraj 1. rejestracji:</div><div class="data-value info-edit">Polska</div></div>
+                                <div class="data-row"><div class="data-label">Właściciel prawny:</div><div class="data-value info-edit">mLeasing S.A.</div></div>
+                                <div class="data-row"><div class="data-label">Użytkownik floty:</div><div class="data-value info-edit">Oddział Warszawa</div></div>
+                                <div class="data-row"><div class="data-label">Współwłasność:</div><div class="data-value info-edit">NIE</div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kat 2: TECHNICZNE -->
+                    <div id="vc-techniczne" class="card-section">
+                        <div class="info-grid">
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-engine"></i> Parametry Silnika i Napędu</div>
+                                <div class="data-row"><div class="data-label">Rodzaj paliwa:</div><div class="data-value info-edit">Hybryda (HEV)</div></div>
+                                <div class="data-row"><div class="data-label">Instalacja LPG:</div><div class="data-value info-edit">Brak</div></div>
+                                <div class="data-row"><div class="data-label">Pojemność silnika:</div><div class="data-value info-edit">1490 cm³</div></div>
+                                <div class="data-row"><div class="data-label">Moc:</div><div class="data-value info-edit">85 kW / 116 KM</div></div>
+                                <div class="data-row"><div class="data-label">Skrzynia biegów:</div><div class="data-value info-edit">Automatyczna (e-CVT)</div></div>
+                                <div class="data-row"><div class="data-label">Rodzaj napędu:</div><div class="data-value info-edit">Przedni (FWD)</div></div>
+                                <div class="data-row"><div class="data-label">Norma emisji spalin:</div><div class="data-value info-edit">Euro 6d</div></div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-weight-scale"></i> Nadwozie i Masy</div>
+                                <div class="data-row"><div class="data-label">Typ nadwozia:</div><div class="data-value info-edit">Hatchback</div></div>
+                                <div class="data-row"><div class="data-label">Liczba drzwi:</div><div class="data-value info-edit">5</div></div>
+                                <div class="data-row"><div class="data-label">Kolor nadwozia:</div><div class="data-value info-edit">Biała Perła</div></div>
+                                <div class="data-row"><div class="data-label">DMC (Masa całk.):</div><div class="data-value info-edit">1615 kg</div></div>
+                                <div class="data-row"><div class="data-label">Ładowność:</div><div class="data-value info-edit">530 kg</div></div>
+                                <div class="data-row"><div class="data-label">Rozmiar opon:</div><div class="data-value info-edit">205/55 R16</div></div>
+                                <div class="data-row"><div class="data-label">Rozmiar felg:</div><div class="data-value info-edit">16" Aluminiowe</div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kat 3: FINANSE -->
+                    <div id="vc-finanse" class="card-section">
+                        <div class="info-grid">
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia i VAT</div>
+                                <div class="data-row"><div class="data-label">Forma użytkowania:</div><div class="data-value info-edit">Leasing</div></div>
+                                <div class="data-row"><div class="data-label">Status firmowy:</div><div class="data-value info-edit">TAK</div></div>
+                                <div class="data-row"><div class="data-label">Odliczenie VAT:</div><div class="data-value info-edit">50% (Mieszany)</div></div>
+                                <div class="data-row"><div class="data-label">Ewidencja przebiegu:</div><div class="data-value info-edit">NIE</div></div>
+                                <div class="data-row"><div class="data-label">Cennik wewn. (doba):</div><div class="data-value info-edit" style="color:var(--accent-blue)">140,00 PLN Netto</div></div>
+                                <div class="data-row"><div class="data-label">Domyślny limit km:</div><div class="data-value info-edit">Bez limitu</div></div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-handshake"></i> Zakup i Umowa Leasingowa</div>
+                                <div class="data-row"><div class="data-label">Data zakupu/startu:</div><div class="data-value info-edit">15.01.2021</div></div>
+                                <div class="data-row"><div class="data-label">Cena brutto:</div><div class="data-value info-edit">95 000,00 PLN</div></div>
+                                <div class="data-row"><div class="data-label">Dostawca (NIP):</div><div class="data-value info-edit">Toyota Okęcie (521321456)</div></div>
+                                <div style="border-top:1px solid var(--border-light); margin:10px 0;"></div>
+                                <div class="data-row"><div class="data-label">Finansujący:</div><div class="data-value info-edit">mBank Leasing (NIP: 5260215088)</div></div>
+                                <div class="data-row"><div class="data-label">Numer umowy:</div><div class="data-value info-edit">L/DTD/2021/05</div></div>
+                                <div class="data-row"><div class="data-label">Rata miesięczna:</div><div class="data-value info-edit">1 245,00 PLN Netto</div></div>
+                                <div class="data-row"><div class="data-label">Koniec umowy:</div><div class="data-value info-edit">15.01.2026</div></div>
+                                <div class="data-row"><div class="data-label">Limit km roczny:</div><div class="data-value info-edit">30 000 km</div></div>
+                                <div class="data-row"><div class="data-label">Kwota wykupu:</div><div class="data-value info-edit">15 000,00 PLN</div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kat 4: UBEZPIECZENIE -->
+                    <div id="vc-ubezpieczenie" class="card-section">
+                        <div class="info-grid">
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-shield-halved"></i> Polisa OC</div>
+                                <div class="data-row"><div class="data-label">Ubezpieczyciel:</div><div class="data-value info-edit">PZU S.A.</div></div>
+                                <div class="data-row"><div class="data-label">Numer polisy:</div><div class="data-value info-edit">99887712345</div></div>
+                                <div class="data-row"><div class="data-label">Ważność od:</div><div class="data-value info-edit">20.11.2025</div></div>
+                                <div class="data-row"><div class="data-label">Ważność do:</div><div class="data-value info-edit">20.11.2026</div></div>
+                                <div class="data-row"><div class="data-label">Status polisy:</div><div class="data-value"><span class="badge-ok">AKTYWNA</span></div></div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-shield-heart"></i> Polisa AC / NNW</div>
+                                <div class="data-row"><div class="data-label">Status AC:</div><div class="data-value"><span class="badge-ok">AKTYWNE</span></div></div>
+                                <div class="data-row"><div class="data-label">Numer polisy AC:</div><div class="data-value info-edit">99887712345-AC</div></div>
+                                <div class="data-row"><div class="data-label">Zakres ważności:</div><div class="data-value info-edit">20.11.2025 - 20.11.2026</div></div>
+                                <div class="data-row"><div class="data-label">Suma ubezp. AC:</div><div class="data-value info-edit">78 000,00 PLN</div></div>
+                                <div class="data-row"><div class="data-label">Udział własny:</div><div class="data-value info-edit">500,00 PLN (Franczyza)</div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kat 5: WYPOSAŻENIE -->
+                    <div id="vc-wyposazenie" class="card-section">
+                        <div class="info-block">
+                            <div class="info-block-header"><i class="fa-solid fa-list-check"></i> Wyposażenie Dodatkowe</div>
+                            <div class="eq-list">
+                                <div class="eq-item"><i class="fa-solid fa-circle-check eq-yes"></i> Klimatyzacja</div>
+                                <div class="eq-item"><i class="fa-solid fa-circle-check eq-yes"></i> Radio BT / CarPlay</div>
+                                <div class="eq-item"><i class="fa-regular fa-circle eq-no"></i> Hak holowniczy</div>
+                                <div class="eq-item"><i class="fa-regular fa-circle eq-no"></i> Relingi dachowe</div>
+                                <div class="eq-item"><i class="fa-solid fa-circle-check eq-yes"></i> Zestaw naprawczy koła</div>
+                                <div class="eq-item"><i class="fa-regular fa-circle eq-no"></i> Fotelik dziecięcy</div>
+                                <div class="eq-item"><i class="fa-solid fa-circle-check eq-yes"></i> Alarm / Immobilizer</div>
+                                <div class="eq-item"><i class="fa-solid fa-circle-check eq-yes"></i> Kamera cofania</div>
+                                <div class="eq-item"><i class="fa-solid fa-circle-check eq-yes"></i> Radar / ACC</div>
+                                <div class="eq-item"><i class="fa-solid fa-circle-check eq-yes"></i> Reflektory LED</div>
+                                <div class="eq-item"><i class="fa-solid fa-circle-check eq-yes"></i> Grzane siedzenia</div>
+                                <div class="eq-item"><i class="fa-regular fa-circle eq-no"></i> Dach panoramiczny</div>
+                                <div class="eq-item"><i class="fa-regular fa-circle eq-no"></i> Tapicerka skórzana</div>
+                            </div>
+                            <div style="margin-top:25px; padding-top:15px; border-top:1px solid var(--border-light);">
+                                <strong style="font-size:12px; color:var(--text-muted); text-transform:uppercase;">Zabudowa specjalistyczna:</strong>
+                                <div class="info-edit" style="font-size:14px; margin-top:5px; color:var(--text-dark);">Pojazd seryjny. Brak dodatkowej zabudowy specjalistycznej typu winda czy izoterma.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kat 6: DOKUMENTY -->
+                    <div id="vc-dokumenty" class="card-section">
+                        <div class="info-grid">
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-calendar-check"></i> Badania i Specjalistyczne</div>
+                                <div class="data-row"><div class="data-label">Badanie Techniczne:</div><div class="data-value"><span class="badge-alert">05.03.2024 (PRZETERMINOWANE!)</span></div></div>
+                                <div class="data-row"><div class="data-label">Legalizacja Tacho:</div><div class="data-value info-edit">Nie dotyczy</div></div>
+                                <div class="data-row"><div class="data-label">Certyfikat ADR:</div><div class="data-value info-edit">Brak uprawnień</div></div>
+                                <div class="data-row"><div class="data-label">Ważność gaśnicy:</div><div class="data-value info-edit">15.06.2024</div></div>
+                                <div class="data-row" style="margin-top:15px;"><div class="data-label">Miejsce Dowodu Rej.:</div><div class="data-value info-edit" style="color:var(--accent-blue)">Biuro Warszawa - Szafka Flota</div></div>
+                            </div>
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-folder-open"></i> Repozytorium Dokumentów (Pliki)</div>
+                                <div style="background:#f8fafc; border:2px dashed #cbd5e1; padding:20px; text-align:center; border-radius:12px; margin-bottom:15px;">
+                                    <input type="file" id="cardFileAdd" multiple style="display:none;" onchange="handleCardFileUpload(this)">
+                                    <button class="btn btn-secondary btn-small" onclick="document.getElementById('cardFileAdd').click()"><i class="fa-solid fa-cloud-arrow-up"></i> Dodaj Skan/PDF</button>
+                                </div>
+                                <div id="cardFileList">
+                                    <div style="display:flex; justify-content:space-between; background:var(--bg-body); padding:10px 15px; border-radius:8px; border:1px solid var(--border-light); font-size:12.5px; font-weight:600;">
+                                        <span><i class="fa-solid fa-file-pdf" style="color:var(--danger)"></i> Polisa_OC_2026.pdf</span>
+                                        <a href="#" style="color:var(--accent-blue)">Otwórz</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kat 7: EKSPLOATACJA I HISTORIA -->
+                    <div id="vc-eksploatacja" class="card-section">
+                        <div class="info-grid" style="grid-template-columns: 1fr 2fr;">
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-satellite-dish"></i> Logistyka i Telematyka</div>
+                                <div class="data-row"><div class="data-label">Status operacyjny:</div><div class="data-value"><span class="badge-ok">Aktywny</span></div></div>
+                                <div class="data-row"><div class="data-label">Lokalizacja bazowa:</div><div class="data-value info-edit">Warszawa - Centrum</div></div>
+                                <div class="data-row"><div class="data-label">Stały kierowca:</div><div class="data-value info-edit">Jan Kowalski</div></div>
+                                <div style="border-top:1px solid var(--border-light); margin:15px 0;"></div>
+                                <div class="data-row"><div class="data-label">Urządzenie GPS:</div><div class="data-value info-edit">TAK</div></div>
+                                <div class="data-row"><div class="data-label">IMEI GPS:</div><div class="data-value info-edit" style="font-family:monospace">358249000123</div></div>
+                                <div class="data-row"><div class="data-label">Operator GPS:</div><div class="data-value info-edit">Teltonika</div></div>
+                                <div class="data-row"><div class="data-label">Karta SIM:</div><div class="data-value info-edit">600-700-800</div></div>
+                                <div class="data-row"><div class="data-label">Instalacja / Raport:</div><div class="data-value info-edit">10.02.2021 / CAN-bus + ECO</div></div>
+                            </div>
+
+                            <div class="info-block">
+                                <div class="info-block-header"><i class="fa-solid fa-clock-rotate-left"></i> Dziennik Zdarzeń i Interakcje (Timeline)</div>
+                                <div style="display:flex; gap:10px; margin-bottom:20px;">
+                                    <button class="btn btn-success btn-small" onclick="openEventModal('service')"><i class="fa-solid fa-oil-can"></i> Dodaj Serwis</button>
+                                    <button class="btn btn-warning btn-small" onclick="openEventModal('repair')"><i class="fa-solid fa-wrench"></i> Dodaj Naprawę</button>
+                                    <button class="btn btn-danger btn-small" onclick="openEventModal('damage')"><i class="fa-solid fa-car-burst"></i> Zgłoś Szkodę</button>
+                                    <button class="btn btn-secondary btn-small" onclick="openEventModal('other')">+ Inne (Opony/Płyny)</button>
+                                </div>
+                                <div class="card-timeline" id="vehicleTimeline">
+                                    <div class="card-tl-item">
+                                        <span class="card-tl-cat cat-serwis">Serwis</span>
+                                        <div style="font-weight:700; font-size:14px; color:var(--text-dark);">Przegląd po 140 000 km <span style="float:right; font-size:11px; color:var(--text-muted); font-weight:600;">05.01.2024</span></div>
+                                        <div style="font-size:12.5px; color:var(--text-muted); margin-top:6px;">Wymiana oleju silnikowego, filtrów, klocków hamulcowych przód. Serwis wykonany w autoryzowanej stacji ASO Toyota.</div>
+                                        <div style="margin-top:10px; font-weight:800; color:var(--danger); font-size:13px; border-top:1px solid #f1f5f9; padding-top:8px;">Koszt: 1 120,00 PLN</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- WIDOK 3: KREATOR DODAWANIA (Nienaruszony - 10 zakładek) -->
+            <div id="view-form" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title" style="color:var(--text-dark)"><i class="fa-solid fa-plus-circle"></i> Kreator Pojazdu Flotowego</div>
+                    <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-xmark"></i> Anuluj</button>
+                </div>
+                <div class="form-erp-card">
+                    <div class="tab-switcher">
+                        <button class="tab-btn active" onclick="switchFormTab('podstawowe', this)">1. Podstawowe</button>
+                        <button class="tab-btn" onclick="switchFormTab('wlasciciel', this)">2. Właściciel</button>
+                        <button class="tab-btn" onclick="switchFormTab('techniczne', this)">3. Techniczne</button>
+                        <button class="tab-btn" onclick="switchFormTab('finanse-vat', this)">4. Finanse & VAT</button>
+                        <button class="tab-btn" onclick="switchFormTab('zakup-leasing', this)">5. Zakup/Leasing</button>
+                        <button class="tab-btn" onclick="switchFormTab('ubezpieczenie', this)">6. Ubezpieczenie</button>
+                        <button class="tab-btn" onclick="switchFormTab('wyposazenie', this)">7. Wyposażenie</button>
+                        <button class="tab-btn" onclick="switchFormTab('compliance', this)">8. Compliance</button>
+                        <button class="tab-btn" onclick="switchFormTab('eksploatacja', this)">9. Eksploatacja</button>
+                        <button class="tab-btn" onclick="switchFormTab('telemetria', this)">10. Telemetria</button>
+                    </div>
+                    <form id="fleetErpForm">
+                        
+                        <!-- TAB 1: PODSTAWOWE -->
+                        <div class="form-tab-content active" id="form-podstawowe">
+                            <div class="section-title"><span class="section-number">1</span> Dane Podstawowe Pojazdu</div>
+                            <div class="info-box-form">Identyfikacja pojazdu w CEPIK i wewnętrznej bazie ERP DTD.</div>
+                            
+                            <div class="form-row-3">
+                                <div class="form-group"><label class="required">VIN (numer nadwozia)</label><input type="text" name="f_vin" required maxlength="17" placeholder="17 znaków, np. WAUZZZ..." style="text-transform:uppercase;"></div>
+                                <div class="form-group"><label class="required">Nr rejestracyjny</label><input type="text" name="f_reg" required style="text-transform:uppercase;" placeholder="np. WA 12345"></div>
+                                <div class="form-group"><label class="required">Kategoria Pojazdu</label>
+                                    <select required>
+                                        <option value="m1">Osobowy (M1)</option>
+                                        <option value="n1">Ciężarowy do 3.5t (N1)</option>
+                                        <option value="n2">Ciężarowy pow. 3.5t (N2/N3)</option>
+                                        <option value="l">Motocykl / Skuter (L)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row-3">
+                                <div class="form-group"><label class="required">Marka</label><input type="text" name="f_brand" required placeholder="np. Toyota"></div>
+                                <div class="form-group"><label class="required">Model</label><input type="text" name="f_model" required placeholder="np. Yaris"></div>
+                                <div class="form-group"><label>Wersja / Typ / Generacja</label><input type="text" name="f_version" placeholder="np. 1.5 Hybrid Comfort IV"></div>
+                            </div>
+                            <div class="form-row-3">
+                                <div class="form-group"><label class="required">Rok produkcji</label><input type="number" name="f_year" required placeholder="RRRR"></div>
+                                <div class="form-group"><label class="required">Data 1. rejestracji</label><input type="date" required></div>
+                                <div class="form-group"><label>Kraj 1. rejestracji</label><input type="text" value="Polska"></div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: WŁAŚCICIEL -->
+                        <div class="form-tab-content" id="form-wlasciciel">
+                            <div class="section-title"><span class="section-number">2</span> Właściciel i Status Posiadania</div>
+                            <div class="info-box-form">Przyporządkowanie prawne i odpowiedzialność osobista.</div>
+                            
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label class="required">Forma użytkowania</label>
+                                    <select name="f_use_type" required>
+                                        <option value="">-- Wybierz formę --</option>
+                                        <option value="wlasnosc">Własność firmy</option>
+                                        <option value="leasing">Leasing operacyjny</option>
+                                        <option value="wynajem">Wynajem Długoterminowy</option>
+                                        <option value="najem">Najem Krótkoterminowy</option>
+                                        <option value="uzyczenie">Użyczenie / Komis</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Osoba odpowiedzialna (Opiekun auta)</label>
+                                    <input type="text" placeholder="Imię i nazwisko pracownika (opcjonalnie)">
+                                </div>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group"><label class="required">Właściciel prawny pojazdu</label><input type="text" required placeholder="np. mBank Leasing S.A."></div>
+                                <div class="form-group"><label>NIP Właściciela</label><input type="text" placeholder="Tylko cyfry"></div>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group"><label>Użytkownik floty (Oddział / Dział)</label><input type="text" placeholder="np. Dział Logistyki Warszawa"></div>
+                                <div class="form-group">
+                                    <label>Czy pojazd stanowi współwłasność?</label>
+                                    <div class="radio-inline-group">
+                                        <label class="radio-inline-item"><input type="radio" name="f_co" value="nie" checked> Nie</label>
+                                        <label class="radio-inline-item"><input type="radio" name="f_co" value="tak"> Tak</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: TECHNICZNE -->
+                        <div class="form-tab-content" id="form-techniczne">
+                            <div class="section-title"><span class="section-number">3</span> Dane Techniczne</div>
+                            <div class="info-box-form">Kluczowe parametry mechaniczne i masowe (Zgodnie ze świadectwem homologacji).</div>
+                            
+                            <div class="form-row-3">
+                                <div class="form-group">
+                                    <label class="required">Nadwozie</label>
+                                    <select required>
+                                        <option value="">-- Wybierz --</option>
+                                        <option value="sedan">Sedan</option><option value="kombi">Kombi</option><option value="suv">SUV</option><option value="van">Van</option><option value="furgon">Furgon</option><option value="pickup">Pickup</option><option value="hatchback">Hatchback</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Rodzaj paliwa główny</label>
+                                    <select required>
+                                        <option value="pb">Benzyna (PB)</option><option value="on">Olej napędowy (ON)</option><option value="hev">Hybryda (HEV)</option><option value="phev">Hybryda Plug-in (PHEV)</option><option value="ev">Elektryczny (EV)</option><option value="lpg">LPG</option><option value="cng">CNG</option>
+                                    </select>
+                                </div>
+                                <div class="form-group"><label>Norma emisji spalin</label><select><option value="e4">Euro 4</option><option value="e5">Euro 5</option><option value="e6">Euro 6</option><option value="e6d" selected>Euro 6d</option></select></div>
+                            </div>
+                            <div class="form-row-3">
+                                <div class="form-group"><label>Pojemność silnika (cm³)</label><input type="number" placeholder="np. 1998"></div>
+                                <div class="form-group"><label>Moc (kW)</label><input type="number" placeholder="np. 110"></div>
+                                <div class="form-group"><label class="required">Moc (KM)</label><input type="number" required placeholder="np. 150"></div>
+                            </div>
+                            <div class="form-row-3">
+                                <div class="form-group">
+                                    <label class="required">Skrzynia biegów</label>
+                                    <select required><option value="m5">Manual 5b</option><option value="m6">Manual 6b</option><option value="auto">Automatyczna (Klasyczna)</option><option value="cvt">Bezstopniowa (CVT)</option><option value="dct">Dwusprzęgłowa (DSG/DCT)</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Napęd</label>
+                                    <select required><option value="fwd">Na przednie koła (FWD)</option><option value="rwd">Na tylne koła (RWD)</option><option value="4x4">Dołączany (4x4)</option><option value="awd">Stały (AWD)</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Wpis "HAK" w dowodzie?</label>
+                                    <div class="radio-inline-group">
+                                        <label class="radio-inline-item"><input type="radio" name="f_tech_hak" value="nie" checked> Nie</label>
+                                        <label class="radio-inline-item"><input type="radio" name="f_tech_hak" value="tak"> Tak</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row-4">
+                                <div class="form-group"><label class="required">DMC (kg)</label><input type="number" required></div>
+                                <div class="form-group"><label>Masa własna (kg)</label><input type="number"></div>
+                                <div class="form-group"><label>Ładowność (kg)</label><input type="number"></div>
+                                <div class="form-group"><label class="required">Liczba miejsc</label><input type="number" required value="5"></div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 4: FINANSE & VAT -->
+                        <div class="form-tab-content" id="form-finanse-vat">
+                            <div class="section-title"><span class="section-number">4</span> Finanse & Rozliczenia VAT</div>
+                            <div class="info-box-form">Kluczowe dane do księgowości oraz rozliczeń likwidacji szkód (wpływa na kwotę brutto/netto).</div>
+                            
+                            <div class="form-row-3">
+                                <div class="form-group">
+                                    <label class="required">Pojazd firmowy w US?</label>
+                                    <select required><option value="nie">Nie (Prywatny)</option><option value="tak" selected>Tak (Firmowy)</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Prawo do odliczenia VAT</label>
+                                    <select required><option value="0">Brak - 0%</option><option value="50" selected>Mieszany - 50%</option><option value="100">Pełny - 100%</option></select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Ewidencja przebiegu US (Kilometrówka)?</label>
+                                    <div class="radio-inline-group">
+                                        <label class="radio-inline-item"><input type="radio" name="f_log" value="nie" checked> Nie</label>
+                                        <label class="radio-inline-item"><input type="radio" name="f_log" value="tak"> Tak</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group"><label>Wartość początkowa pojazdu (Netto PLN)</label><input type="number" step="0.01" placeholder="Wartość z FV zakupu"></div>
+                                <div class="form-group"><label class="required">Domyślna stawka wynajmu wewn. (Netto PLN/doba)</label><input type="number" step="0.01" required placeholder="np. 140.00"></div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 5: ZAKUP / LEASING -->
+                        <div class="form-tab-content" id="form-zakup-leasing">
+                            <div class="section-title"><span class="section-number">5</span> Zakup, Leasing i Zobowiązania</div>
+                            
+                            <div class="form-row-3">
+                                <div class="form-group"><label class="required">Data dokumentu zakupu/startu</label><input type="date" required></div>
+                                <div class="form-group"><label class="required">Kwota zakupu (Brutto PLN)</label><input type="number" step="0.01" required></div>
+                                <div class="form-group"><label>Dostawca / Salon dealerski</label><input type="text"></div>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                                <label class="required">Czy pojazd posiada aktywną umowę Leasingu / Najmu zewn.?</label>
+                                <div class="radio-inline-group">
+                                    <label class="radio-inline-item"><input type="radio" name="f_leas_opt" value="nie" checked onchange="toggleFormSection('leas-det', this.value === 'tak')"> Nie</label>
+                                    <label class="radio-inline-item"><input type="radio" name="f_leas_opt" value="tak" onchange="toggleFormSection('leas-det', this.value === 'tak')"> Tak</label>
+                                </div>
+                            </div>
+
+                            <div id="leas-det" class="conditional-section">
+                                <div class="form-row-3">
+                                    <div class="form-group"><label class="required">Nazwa Leasingodawcy</label><input type="text" placeholder="np. mBank Leasing"></div>
+                                    <div class="form-group"><label>NIP Leasingodawcy</label><input type="text" placeholder="Tylko cyfry"></div>
+                                    <div class="form-group"><label class="required">Numer umowy leasingowej</label><input type="text"></div>
+                                </div>
+                                <div class="form-row-4">
+                                    <div class="form-group"><label class="required">Rata miesięczna (Netto PLN)</label><input type="number" step="0.01"></div>
+                                    <div class="form-group"><label class="required">Data końca umowy</label><input type="date"></div>
+                                    <div class="form-group"><label>Roczny limit (km)</label><input type="number"></div>
+                                    <div class="form-group"><label>Kwota wykupu (Netto PLN)</label><input type="number" step="0.01"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 6: UBEZPIECZENIE -->
+                        <div class="form-tab-content" id="form-ubezpieczenie">
+                            <div class="section-title"><span class="section-number">6</span> Ubezpieczenia OC, AC, NNW</div>
+                            
+                            <h3 style="font-size:14px; margin-bottom:15px; color:var(--text-main);">Obowiązkowe Ubezpieczenie OC</h3>
+                            <div class="form-row-4">
+                                <div class="form-group"><label class="required">Ubezpieczyciel OC</label><input type="text" required placeholder="np. PZU S.A."></div>
+                                <div class="form-group"><label class="required">Numer polisy OC</label><input type="text" required></div>
+                                <div class="form-group"><label class="required">Ważność OC (Od)</label><input type="date" required></div>
+                                <div class="form-group"><label class="required">Ważność OC (Do)</label><input type="date" required></div>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                                <label class="required">Czy pojazd posiada aktywną polisę Autocasco (AC)?</label>
+                                <div class="radio-inline-group">
+                                    <label class="radio-inline-item"><input type="radio" name="f_ac_opt" value="nie" checked onchange="toggleFormSection('ac-det', this.value === 'tak')"> Nie</label>
+                                    <label class="radio-inline-item"><input type="radio" name="f_ac_opt" value="tak" onchange="toggleFormSection('ac-det', this.value === 'tak')"> Tak</label>
+                                </div>
+                            </div>
+
+                            <div id="ac-det" class="conditional-section">
+                                <div class="form-row-4">
+                                    <div class="form-group"><label class="required">Ubezpieczyciel AC</label><input type="text"></div>
+                                    <div class="form-group"><label class="required">Nr polisy AC</label><input type="text"></div>
+                                    <div class="form-group"><label class="required">Ważność AC (Od)</label><input type="date"></div>
+                                    <div class="form-group"><label class="required">Ważność AC (Do)</label><input type="date"></div>
+                                </div>
+                                <div class="form-row-3">
+                                    <div class="form-group"><label class="required">Suma Ubezpieczenia (PLN)</label><input type="number" step="0.01"></div>
+                                    <div class="form-group"><label>Udział własny / Franczyza (PLN)</label><input type="number" step="0.01"></div>
+                                    <div class="form-group"><label>Assistance (Wariant)</label><input type="text" placeholder="np. Złoty / Premium"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 7: WYPOSAŻENIE -->
+                        <div class="form-tab-content" id="form-wyposazenie">
+                            <div class="section-title"><span class="section-number">7</span> Wyposażenie i Atrybuty Cechowe</div>
+                            
+                            <div class="form-row-4">
+                                <div class="form-group"><label class="required">Kolor nadwozia</label><input type="text" required placeholder="np. Srebrny Metalik"></div>
+                                <div class="form-group"><label class="required">Liczba drzwi</label><input type="number" value="5" required></div>
+                                <div class="form-group"><label>Opony fabryczne (Rozmiar)</label><input type="text" placeholder="np. 205/55 R16"></div>
+                                <div class="form-group"><label>Rodzaj felg</label><input type="text" placeholder="np. Aluminiowe 16 cali"></div>
+                            </div>
+
+                            <div class="form-group" style="margin-top:20px;">
+                                <label>Zaznacz istotne elementy wyposażenia (Kluczowe dla wycen w systemach Audatex/Eurotax):</label>
+                                <div class="checkbox-grid">
+                                    <label class="checkbox-item"><input type="checkbox"> Hak holowniczy montowany fabr.</label>
+                                    <label class="checkbox-item"><input type="checkbox"> Relingi dachowe</label>
+                                    <label class="checkbox-item"><input type="checkbox"> Alarm fabryczny / Immobilizer</label>
+                                    <label class="checkbox-item"><input type="checkbox"> Kamera cofania / 360</label>
+                                    <label class="checkbox-item"><input type="checkbox"> Radar (Tempomat aktywny ACC)</label>
+                                    <label class="checkbox-item"><input type="checkbox"> Reflektory LED / Matrix</label>
+                                    <label class="checkbox-item"><input type="checkbox"> Podgrzewane siedzenia przednie</label>
+                                    <label class="checkbox-item"><input type="checkbox"> Szyberdach / Dach panoramiczny</label>
+                                    <label class="checkbox-item"><input type="checkbox"> Skórzana tapicerka (lub Alcantara)</label>
+                                    <label class="checkbox-item"><input type="checkbox"> Apple CarPlay / Android Auto</label>
+                                    <label class="checkbox-item"><input type="checkbox"> Czujniki parkowania (P+T)</label>
+                                    <label class="checkbox-item"><input type="checkbox"> System ISOFIX</label>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top:25px;">
+                                <label>Zabudowa specjalistyczna / Modyfikacje (Karetki, Izotermy, Windy)</label>
+                                <textarea rows="3" placeholder="Opisz dokładnie np. Winda Dhollandia 500kg, Izoterma Carrier..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- TAB 8: COMPLIANCE -->
+                        <div class="form-tab-content" id="form-compliance">
+                            <div class="section-title"><span class="section-number">8</span> Compliance, Bezpieczeństwo i Homologacje</div>
+                            
+                            <div class="form-row-3">
+                                <div class="form-group"><label>Data ostatniego badania technicznego</label><input type="date"></div>
+                                <div class="form-group"><label class="required">Badanie techniczne WAŻNE DO</label><input type="date" required></div>
+                                <div class="form-group"><label>Legalizacja Tachografu (Ciężarowe) do</label><input type="date"></div>
+                            </div>
+                            <div class="form-row-3">
+                                <div class="form-group"><label>Data ważności gaśnicy pokładowej</label><input type="date"></div>
+                                <div class="form-group"><label>Data ważności legalizacji butli LPG</label><input type="date"></div>
+                                <div class="form-group">
+                                    <label class="required">Pojazd posiada uprawnienia ADR?</label>
+                                    <select required><option value="nie">NIE</option><option value="tak">TAK</option></select>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label>Dodatkowe certyfikaty / Wyposażenie BHP na stanie (np. Trójkąt, Apteczka, Kamizelki)</label>
+                                <textarea rows="2" placeholder="Wpisz listę sprzętu bezpieczeństwa dostępnego w pojeździe..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- TAB 9: EKSPLOATACJA -->
+                        <div class="form-tab-content" id="form-eksploatacja">
+                            <div class="section-title"><span class="section-number">9</span> Operacyjne Dane Eksploatacyjne</div>
+                            
+                            <div class="form-row-3">
+                                <div class="form-group"><label class="required">Początkowy wprowadzany przebieg (km)</label><input type="number" required></div>
+                                <div class="form-group"><label class="required">Data odczytu powyższego przebiegu</label><input type="date" required></div>
+                                <div class="form-group"><label>Odczyt Motogodzin (jeśli dotyczy maszyny)</label><input type="number" step="0.1"></div>
+                            </div>
+                            <div class="form-row-4">
+                                <div class="form-group">
+                                    <label class="required">Bieżący Status Pojazdu</label>
+                                    <select required><option value="aktywny">Aktywny (W trasie/Najmie)</option><option value="wolny" selected>Wolny (Na bazie)</option><option value="warsztat">W naprawie (Serwis)</option><option value="rezerwa">Rezerwowy</option><option value="wycofany">Wycofany z użytkowania</option></select>
+                                </div>
+                                <div class="form-group"><label>Lokalizacja Bazowa</label><input type="text" placeholder="np. Plac Warszawa Główna"></div>
+                                <div class="form-group"><label>Przypisany stały kierowca</label><input type="text" placeholder="Jeśli pojazd przypisany 1:1"></div>
+                                <div class="form-group"><label>Numer Karty Paliwowej (PIN/ID)</label><input type="text"></div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 10: TELEMETRIA -->
+                        <div class="form-tab-content" id="form-telemetria">
+                            <div class="section-title"><span class="section-number">10</span> Telematyka i Monitoring GPS</div>
+                            
+                            <div class="form-group">
+                                <label class="required">Czy w pojeździe zamontowano system trackingu GPS?</label>
+                                <div class="radio-inline-group">
+                                    <label class="radio-inline-item"><input type="radio" name="f_gps_opt" value="nie" checked onchange="toggleFormSection('tel-det', this.value === 'tak')"> Nie</label>
+                                    <label class="radio-inline-item"><input type="radio" name="f_gps_opt" value="tak" onchange="toggleFormSection('tel-det', this.value === 'tak')"> Tak</label>
+                                </div>
+                            </div>
+
+                            <div id="tel-det" class="conditional-section">
+                                <div class="form-row-3">
+                                    <div class="form-group"><label class="required">IMEI / ID Urządzenia</label><input type="text"></div>
+                                    <div class="form-group"><label class="required">Operator systemu (Dostawca)</label><input type="text" placeholder="np. Teltonika, Verizon"></div>
+                                    <div class="form-group"><label>Numer karty SIM</label><input type="text"></div>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group"><label>Data fizycznej instalacji urządzenia</label><input type="date"></div>
+                                    <div class="form-group"><label>Typ i zakres raportowania CAN</label><input type="text" placeholder="np. Tylko trasy, Podłączenie pod pływak paliwa i RPM"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top:40px; width:100%; justify-content:center; padding:20px; font-size:16px;">ZATWIERDŹ PRAWNIE I ZAPISZ POJAZD W SYSTEMIE DTD</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL: DZIENNIK ZDARZEŃ -->
+    <div class="modal-overlay" id="eventModal">
+        <div class="modal-card">
+            <div class="modal-header"><h3 id="modalTitle" style="color:var(--accent-blue); font-weight:800;">Zdarzenie w Historii</h3><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="document.getElementById('eventModal').style.display='none'"></i></div>
+            <div class="modal-body">
+                <form id="eventForm">
+                    <div class="form-row-2">
+                        <div class="form-group"><label class="required" style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Data zdarzenia</label><input type="date" id="m_date" required style="padding:12px; border-radius:8px; border:1px solid var(--border-color); width:100%;"></div>
+                        <div class="form-group"><label class="required" style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Tytuł / Zakres</label><input type="text" id="m_title" required style="padding:12px; border-radius:8px; border:1px solid var(--border-color); width:100%;"></div>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="form-group"><label style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Koszt Netto (PLN)</label><input type="number" id="m_netto" oninput="calcGross()" style="padding:12px; border-radius:8px; border:1px solid var(--border-color); width:100%;"></div>
+                        <div class="form-group"><label style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">VAT %</label><input type="number" id="m_vat" value="23" oninput="calcGross()" style="padding:12px; border-radius:8px; border:1px solid var(--border-color); width:100%;"></div>
+                        <div class="form-group"><label style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Brutto (PLN)</label><input type="number" id="m_brutto" readonly style="background:#f1f5f9; padding:12px; border-radius:8px; border:1px solid var(--border-color); width:100%; font-weight:700;"></div>
+                    </div>
+                    <div class="form-group" style="margin-top:15px;"><label style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Notatka (Faktura, warsztat)</label><textarea id="m_note" rows="3" style="padding:12px; border-radius:8px; border:1px solid var(--border-color); width:100%; font-family:inherit;"></textarea></div>
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:30px;"><button type="button" class="btn btn-secondary" onclick="document.getElementById('eventModal').style.display='none'">Anuluj</button><button type="submit" class="btn btn-primary">Zapisz w Dzienniku</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AKTUALIZACJA LICZNIKA -->
+    <div class="modal-overlay" id="mileageModal">
+        <div class="modal-card" style="max-width: 450px;">
+            <div class="modal-header"><h3 style="color:var(--accent-blue); font-weight:800;"><i class="fa-solid fa-gauge-high"></i> Aktualizacja Licznika</h3><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="document.getElementById('mileageModal').style.display='none'"></i></div>
+            <div class="modal-body">
+                <form id="mileageForm">
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label class="required" style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Nowy stan drogomierza (km)</label>
+                        <input type="number" id="new_km" required style="padding:14px; border-radius:8px; border:1px solid var(--accent-blue); width:100%; font-size:18px; font-weight:800; font-family:monospace; color:var(--accent-blue);">
+                    </div>
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label class="required" style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Data odczytu</label>
+                        <input type="date" id="new_km_date" required style="padding:12px; border-radius:8px; border:1px solid var(--border-color); width:100%;">
+                    </div>
+                    <div class="form-group" style="margin-bottom:25px;">
+                        <label class="required" style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Powód aktualizacji</label>
+                        <input type="text" id="new_km_reason" required placeholder="np. Zakończenie najmu klienta, Oględziny..." style="padding:12px; border-radius:8px; border:1px solid var(--border-color); width:100%;">
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('mileageModal').style.display='none'">Anuluj</button>
+                        <button type="submit" class="btn btn-primary" style="background:var(--success);"><i class="fa-solid fa-check"></i> Zatwierdź Przebieg</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- NAWIGACJA GŁÓWNA ---
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const isHidden = submenu.style.display === "none" || submenu.style.display === "";
+            submenu.style.display = isHidden ? "block" : "none";
+            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
+            if(icon) icon.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        }
+
+        function toggleViews(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- ZARZĄDZANIE KARTĄ POJAZDU (7 ZAKŁADEK) ---
+        function switchVehicleCardTab(id, btn) {
+            document.querySelectorAll('.card-nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.card-section').forEach(s => s.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('vc-' + id).classList.add('active');
+        }
+
+        function showVehicleDetails(reg) {
+            toggleViews('view-details');
+        }
+
+        let isEditMode = false;
+        function toggleEditMode() {
+            const btn = document.getElementById('editBtn');
+            const fields = document.querySelectorAll('#view-details .info-edit');
+            isEditMode = !isEditMode;
+            fields.forEach(f => f.setAttribute('contenteditable', isEditMode));
+            
+            if(isEditMode) {
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Zapisz Akta';
+                btn.style.background = 'var(--success)';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Tryb Edycji';
+                btn.style.background = 'var(--accent-blue)';
+                alert("Zmiany zostały zsynchronizowane z chmurą ERP DTD Serwis.");
+            }
+        }
+
+        // --- ZARZĄDZANIE KREATOREM FORMULARZA (10 ZAKŁADEK) ---
+        function switchFormTab(id, btn) {
+            const target = document.getElementById('form-' + id);
+            if(!target) return;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.form-tab-content').forEach(s => s.classList.remove('active'));
+            btn.classList.add('active');
+            target.classList.add('active');
+        }
+
+        function toggleFormSection(id, isVisible) {
+            const el = document.getElementById(id);
+            if(el) el.classList.toggle('active', isVisible);
+        }
+
+        // --- DZIENNIK ZDARZEŃ I LICZNIK (MODALE) ---
+        let currentEvType = 'service';
+        function openEventModal(type) {
+            currentEvType = type;
+            const titles = { service: 'Nowy Wpis Serwisowy', repair: 'Rejestracja Naprawy', damage: 'Zgłoszenie Szkody', other: 'Wpis Inne (Eksploatacja)' };
+            document.getElementById('modalTitle').innerText = titles[type];
+            document.getElementById('m_date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('eventModal').style.display = 'flex';
+        }
+        
+        function closeModal() { 
+            document.getElementById('eventModal').style.display = 'none'; 
+            document.getElementById('eventForm').reset(); 
+        }
+        
+        function calcGross() {
+            const net = parseFloat(document.getElementById('m_netto').value || 0);
+            const vat = parseFloat(document.getElementById('m_vat').value || 0);
+            document.getElementById('m_brutto').value = (net * (1 + vat/100)).toFixed(2);
+        }
+
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const date = document.getElementById('m_date').value;
+            const title = document.getElementById('m_title').value;
+            const brutto = document.getElementById('m_brutto').value;
+            const note = document.getElementById('m_note').value;
+            
+            const tl = document.getElementById('vehicleTimeline');
+            const div = document.createElement('div');
+            div.className = `card-tl-item`;
+            
+            let catClass = 'cat-inne'; let catName = 'Inne';
+            if(currentEvType === 'service') { catClass = 'cat-serwis'; catName = 'Serwis'; }
+            if(currentEvType === 'repair') { catClass = 'cat-naprawa'; catName = 'Naprawa'; }
+            if(currentEvType === 'damage') { catClass = 'cat-szkoda'; catName = 'Szkoda'; }
+
+            div.innerHTML = `<span class="card-tl-cat ${catClass}">${catName}</span>
+                             <div style="font-weight:700; font-size:14px;">${title} <span style="float:right; font-size:11px; font-weight:600; color:var(--text-muted)">${date}</span></div>
+                             <div style="font-size:12.5px; color:var(--text-muted); margin-top:5px;">${note}</div>
+                             ${brutto ? `<div style="margin-top:10px; font-weight:800; color:var(--danger); font-size:13px; border-top:1px solid #f1f5f9; padding-top:8px;">Koszt zewn.: ${brutto} PLN</div>` : ''}`;
+            tl.prepend(div);
+            closeModal();
+        });
+
+        function openMileageModal() {
+            document.getElementById('new_km_date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('mileageModal').style.display = 'flex';
+        }
+
+        document.getElementById('mileageForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const kmInput = document.getElementById('new_km').value;
+            const date = document.getElementById('new_km_date').value;
+            const reason = document.getElementById('new_km_reason').value;
+            
+            const currentKm = parseInt(document.getElementById('det-odometer').innerText.replace(/\s/g, ''));
+            if(parseInt(kmInput) < currentKm) {
+                alert(`BŁĄD: Wprowadzony przebieg (${parseInt(kmInput).toLocaleString('pl-PL')} km) jest mniejszy niż aktualny (${currentKm.toLocaleString('pl-PL')} km). Aktualizacja odrzucona!`);
+                return;
+            }
+
+            document.getElementById('det-odometer').innerText = parseInt(kmInput).toLocaleString('pl-PL');
+            document.getElementById('det-odometer-date').innerText = date;
+
+            const tl = document.getElementById('vehicleTimeline');
+            const div = document.createElement('div');
+            div.className = `card-tl-item`;
+            div.innerHTML = `<span class="card-tl-cat cat-inne">Raport KM</span>
+                             <div style="font-weight:700; font-size:14px; color:var(--accent-blue);">Aktualizacja Stanu: ${parseInt(kmInput).toLocaleString('pl-PL')} km <span style="float:right; font-size:11px; font-weight:600; color:var(--text-muted)">${date}</span></div>
+                             <div style="font-size:12.5px; color:var(--text-muted); margin-top:5px;">Powód wpisu: ${reason}</div>`;
+            tl.prepend(div);
+
+            document.getElementById('mileageModal').style.display = 'none';
+            this.reset();
+        });
+
+        function handleCardFileUpload(input) {
+            if(input.files.length > 0) {
+                const list = document.getElementById('cardFileList');
+                for(let file of input.files) {
+                    const item = document.createElement('div');
+                    item.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#fff; padding:12px 15px; border-radius:8px; border:1px solid var(--border-light); margin-bottom:8px; font-size:13px; font-weight:600;";
+                    item.innerHTML = `<span><i class="fa-solid fa-file-pdf" style="color:var(--danger); margin-right:8px;"></i> ${file.name}</span><a href="#" style="color:var(--accent-blue); text-decoration:none;"><i class="fa-solid fa-eye"></i></a>`;
+                    list.prepend(item);
+                }
+            }
+        }
+
+        document.getElementById('fleetErpForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert("Pojazd pomyślnie zapisany w bazie ERP DTD Serwis.");
+            toggleViews('view-list');
+        });
+    </script>
+</body>
+</html>
