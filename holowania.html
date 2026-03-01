@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTD Serwis - Rejestr Holowań i Transportu</title>
+    
+    <!-- Biblioteki Zewnętrzne -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           KONFIGURACJA UI I MOTYWU BAZOWEGO
+           ========================================= */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent-blue: #0284c7;
+            --accent-hover: #0369a1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+
+            /* Dark theme colors do kreatora z pliku */
+            --dark-panel: #0f1419;
+            --dark-input: #1a1f26;
+            --dark-border: #2a3136;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* =========================================
+           SIDEBAR (ZGODNY Z ERP)
+           ========================================= */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.15); z-index: 50; }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .sidebar-header { padding: 35px 25px; font-size: 24px; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px; }
+        .sidebar-header span { color: var(--accent-blue); }
+        
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 12px 25px; margin: 2px 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 14px; transition: 0.2s; cursor: pointer; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: var(--sidebar-hover); color: white; }
+        .nav-item.active { background-color: rgba(2, 132, 199, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; }
+
+        .has-submenu { justify-content: space-between; }
+        .submenu { background-color: rgba(0,0,0,0.2); margin-bottom: 5px; padding: 5px 0; display: none; }
+        .submenu-label { padding: 12px 25px 5px 55px; font-size: 10px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 1px; }
+        .submenu-item { padding: 8px 25px 8px 55px; display: block; color: #94a3b8; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
+        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
+        .submenu-item.active { color: white; font-weight: 700; border-left-color: var(--accent-blue); }
+
+        /* =========================================
+           TOPBAR & WRAPPER
+           ========================================= */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 0 40px; height: 80px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; }
+        .search-bar { background: #f1f5f9; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; width: 350px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 500; color: var(--text-main); }
+        
+        .content-area { padding: 40px; overflow-y: auto; flex: 1; position: relative; background: var(--bg-body); }
+        .view-panel { display: none; animation: fadeIn 0.4s ease; }
+        .view-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           STYLE WIDOKÓW BAZOWYCH (LISTA/DETALE)
+           ========================================= */
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        
+        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 30px; overflow: hidden; }
+        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 14px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
+        .card-body { padding: 30px; }
+
+        /* Tabela */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-color); }
+        td { padding: 18px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+        tr:hover td { background-color: #f8fafc; cursor: pointer; }
+
+        /* Etykiety, Statusy, Przyciski */
+        .status-badge { padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; display: inline-block; }
+        .st-done { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .st-pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .st-cancel { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .st-active { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(14, 165, 233, 0); } 100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); } }
+
+        .reg-badge { background: #1e293b; color: #fff; padding: 4px 10px; border-radius: 6px; font-family: 'Courier New', monospace; font-weight: 800; font-size: 13px; letter-spacing: 1px; display: inline-block; text-transform: uppercase; }
+
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+        .btn-primary { background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2); }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .btn-secondary { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-secondary:hover { background: #f1f5f9; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+
+        /* Detale */
+        .details-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: start; }
+        @media (max-width: 1024px) { .details-grid { grid-template-columns: 1fr; } }
+        .info-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; font-size: 13.5px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; }
+        .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        .info-label { color: var(--text-muted); font-weight: 600; width: 45%; flex-shrink: 0;}
+        .info-value { font-weight: 700; color: var(--text-main); text-align: right; word-break: break-word;}
+
+        /* =========================================
+           STYLE KREATORA HOLOWANIA (Mroczny motyw z pliku)
+           ========================================= */
+        .form-erp-card {
+            background-color: var(--dark-panel);
+            color: #e0e0e0;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 1px solid var(--dark-border);
+        }
+
+        .form-erp-card .section-title {
+            font-size: 16px; font-weight: 700; color: #4a9eff;
+            margin-top: 30px; margin-bottom: 20px; padding-bottom: 10px;
+            border-bottom: 2px solid rgba(74, 158, 255, 0.2);
+            display: flex; align-items: center; gap: 10px; text-transform: uppercase;
+        }
+
+        .form-erp-card .section-number {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 24px; height: 24px; background-color: #4a9eff; color: #0f1419;
+            border-radius: 50%; font-weight: 800; font-size: 12px;
+        }
+
+        .form-erp-card .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px;}
+        .form-erp-card label { font-size: 12px; font-weight: 600; color: #b0b0b0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-erp-card .required::after { content: ' *'; color: #ff6b6b; }
+
+        .form-erp-card input[type="text"],
+        .form-erp-card input[type="email"],
+        .form-erp-card input[type="tel"],
+        .form-erp-card input[type="date"],
+        .form-erp-card input[type="datetime-local"],
+        .form-erp-card input[type="number"],
+        .form-erp-card select,
+        .form-erp-card textarea {
+            padding: 12px 15px; background-color: var(--dark-input); border: 1px solid var(--dark-border);
+            border-radius: 8px; color: #e0e0e0; font-size: 14px; font-family: inherit; transition: all 0.3s ease; width: 100%;
+        }
+
+        .form-erp-card input:focus, .form-erp-card select:focus, .form-erp-card textarea:focus {
+            outline: none; border-color: #4a9eff; background-color: #232a33; box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+        }
+
+        .form-erp-card textarea { resize: vertical; min-height: 80px; }
+
+        .form-row { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        @media (max-width: 800px) { .form-row-3 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .form-row-2, .form-row-3 { grid-template-columns: 1fr; } }
+
+        .form-erp-card .radio-group { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-top: 5px; }
+        .form-erp-card .radio-group label { display: flex; align-items: center; gap: 8px; margin: 0; text-transform: none; font-weight: 500; font-size: 14px; color: #e0e0e0; cursor: pointer; }
+        .form-erp-card input[type="radio"], .form-erp-card input[type="checkbox"] { cursor: pointer; width: 18px; height: 18px; accent-color: #4a9eff; }
+
+        .form-erp-card .info-box { background-color: rgba(74, 158, 255, 0.05); border-left: 3px solid #4a9eff; padding: 15px; margin-bottom: 20px; border-radius: 0 4px 4px 0; font-size: 13px; color: #a0b0c0; }
+        .form-erp-card .conditional-section { display: none; background-color: #1a1f26; padding: 20px; border-radius: 8px; border: 1px solid #2a3136; margin-top: 10px; margin-bottom: 15px; animation: fadeIn 0.3s; }
+        .form-erp-card .conditional-section.active { display: block; }
+
+        /* Nowe style dla jednolitego formularza pionowego zamiast zakładek */
+        .form-erp-card .form-section {
+            display: block;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px dashed var(--dark-border);
+            animation: fadeIn 0.4s ease;
+        }
+        .form-erp-card .form-section:last-of-type {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .checklist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 10px; margin-bottom: 15px; }
+        .checklist-item { display: flex; align-items: flex-start; gap: 10px; background: #1a1f26; padding: 15px; border-radius: 8px; border: 1px solid #2a3136; cursor: pointer; transition: 0.2s;}
+        .checklist-item:hover { border-color: #4a9eff; }
+        .checklist-item input { margin-top: 2px; }
+        .checklist-item label { margin: 0; text-transform: none; font-weight: 500; font-size: 13px; cursor: pointer; color:#e0e0e0;}
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header"><span>DTD</span> Serwis</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-samochody')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car"></i> Samochody</div>
+                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px; transition: transform 0.3s;"></i>
+            </div>
+            <div class="submenu" id="submenu-samochody" style="display: none;">
+                <div class="submenu-label">Najmy</div>
+                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+                <div class="submenu-label">Flota własna</div>
+                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+            </div>
+
+            <a href="holowania.html" class="nav-item active"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> Oględziny</a>
+            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+            <a href="magazyn.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i części</a>
+            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px; transition: transform 0.3s;"></i>
+            </div>
+            <div class="submenu" id="submenu-naprawy" style="display: none;">
+                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            </div>
+
+            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator dokumentów</a>
+        </div>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <div class="topbar">
+            <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Szukaj zlecenia, auta, wykonawcy..."></div>
+            <div class="user-info">
+                <i class="fa-regular fa-bell" style="font-size:20px; cursor:pointer; color:var(--text-muted); margin-right:20px;"></i>
+                <span style="font-weight:700;">admin@dtdserwis.pl</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- WIDOK 1: REJESTR HOLOWAŃ -->
+            <div id="view-list" class="view-panel active">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-truck-pickup" style="color:var(--accent-blue)"></i> Rejestr Holowań i Transportu</div>
+                    <button class="btn btn-primary" onclick="toggleViews('view-form')"><i class="fa-solid fa-plus-circle"></i> Zarejestruj Holowanie</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Zlecenie / Data</th>
+                                <th>Pojazd Holowany</th>
+                                <th>Wykonawca (Laweta)</th>
+                                <th>Trasa</th>
+                                <th>Koszty Brutto</th>
+                                <th>Status Zlecenia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr onclick="showDetails('HOL-2026/03/01')">
+                                <td><strong>HOL-2026/03/01</strong><br><small class="text-muted">01.03.2026</small></td>
+                                <td><span class="reg-badge">WA 11223</span><br>Audi A4</td>
+                                <td>Jan-Hol Sp. z o.o.<br><small class="text-muted">Zlecone przez: Poszkodowany</small></td>
+                                <td>Warszawa (Jerozolimskie) <br> <i class="fa-solid fa-arrow-right" style="color:var(--text-muted)"></i> Serwis DTD</td>
+                                <td style="font-weight: 800;">500,00 zł</td>
+                                <td><span class="status-badge st-done">Zakończone (Z FV)</span></td>
+                            </tr>
+                            <tr onclick="showDetails('HOL-2026/03/05')">
+                                <td><strong>HOL-2026/03/05</strong><br><small class="text-muted">05.03.2026</small></td>
+                                <td><span class="reg-badge">KR 4455X</span><br>Ford Transit</td>
+                                <td>AutoPomoc Kraków<br><small class="text-muted">Zlecone przez: Assistance</small></td>
+                                <td>A4, MOP Złotniki <br> <i class="fa-solid fa-arrow-right" style="color:var(--text-muted)"></i> Parking Strzeżony</td>
+                                <td style="font-weight: 800; color: var(--danger);">Oczekuje wyceny</td>
+                                <td><span class="status-badge st-active">W trakcie realizacji</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WIDOK 2: KARTA SZCZEGÓŁÓW HOLOWANIA -->
+            <div id="view-details" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-truck-pickup"></i> Karta Zlecenia Holowania: <span id="detail-nr" style="color:var(--accent-blue)">HOL-2026/03/01</span></div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-arrow-left"></i> Wróć do listy</button>
+                        <button class="btn btn-secondary"><i class="fa-solid fa-print"></i> Drukuj Raport</button>
+                        <button class="btn btn-warning"><i class="fa-solid fa-pen"></i> Edytuj Wpis</button>
+                    </div>
+                </div>
+
+                <div class="details-grid">
+                    <div class="left-col">
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-car-burst"></i> Pojazd i Sprawa</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Nr Powiązanej Szkody:</div><div class="info-value" style="color:var(--accent-blue)">DTD-2026-090 (PZU)</div></div>
+                                <div class="info-row"><div class="info-label">Pojazd Holowany:</div><div class="info-value">Audi A4 (Osobowy)</div></div>
+                                <div class="info-row"><div class="info-label">Nr Rejestracyjny:</div><div class="info-value"><span class="reg-badge">WA 11223</span></div></div>
+                                <div class="info-row"><div class="info-label">Stan po zdarzeniu:</div><div class="info-value" style="color:var(--danger)">Niejezdny (Rozbity przód)</div></div>
+                                <div class="info-row"><div class="info-label">Kto zlecił usługę:</div><div class="info-value">Poszkodowany (Jan Kowalski)</div></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-route"></i> Parametry Trasy i Usługi</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Data usługi:</div><div class="info-value">01.03.2026</div></div>
+                                <div class="info-row"><div class="info-label">Czas trwania operacji:</div><div class="info-value">14:30 (Wezwanie) - 16:00 (Rozładunek)</div></div>
+                                <div class="info-row"><div class="info-label">Skąd pobrano (Punkt A):</div><div class="info-value">Warszawa, Al. Jerozolimskie / Emilii Plater</div></div>
+                                <div class="info-row"><div class="info-label">Gdzie zdano (Punkt B):</div><div class="info-value">Serwis DTD, ul. Przykładowa 1</div></div>
+                                <div class="info-row"><div class="info-label">Rodzaj sprzętu:</div><div class="info-value">Laweta (Platforma stała)</div></div>
+                                <div class="info-row"><div class="info-label">Trudności na miejscu:</div><div class="info-value">Zablokowane przednie koła (użyto wózków)</div></div>
+                                <div class="info-row"><div class="info-label">Dodatkowe czynności:</div><div class="info-value">Uprzątnięcie rozbitego szkła z jedni</div></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="right-col">
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-building"></i> Wykonawca usługi (Podwykonawca)</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Nazwa firmy:</div><div class="info-value">Jan-Hol Sp. z o.o.</div></div>
+                                <div class="info-row"><div class="info-label">NIP:</div><div class="info-value">1112223334</div></div>
+                                <div class="info-row"><div class="info-label">Telefon:</div><div class="info-value">+48 600 500 400</div></div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="border-color: var(--warning);">
+                            <div class="card-header" style="background:#fffbeb; color:var(--warning);"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenie Kosztów</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Kwota Brutto:</div><div class="info-value" style="font-size:16px;">500,00 zł</div></div>
+                                <div class="info-row"><div class="info-label">Kwota Netto:</div><div class="info-value text-muted">406,50 zł</div></div>
+                                <div style="border-top:1px dashed var(--border-color); margin:15px 0;"></div>
+                                <div class="info-row"><div class="info-label">Forma rozliczenia:</div><div class="info-value">Cesja na holownika</div></div>
+                                <div class="info-row"><div class="info-label">Dokument Kosztowy:</div><div class="info-value">FV 123/2026</div></div>
+                                <div class="info-row"><div class="info-label">Za co naliczono:</div><div class="info-value text-muted">Załadunek, Transport (15km), Utrudnienia (Wózki)</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDOK 3: KREATOR HOLOWANIA (Z ADAPTOWANEGO FORMULARZA) -->
+            <div id="view-form" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-truck-pickup" style="color:var(--accent-blue)"></i> Formularz Szczegółów Holowania (Kreator)</div>
+                    <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-xmark"></i> Anuluj</button>
+                </div>
+
+                <div class="form-erp-card">
+                    <p style="color: #8a8a8a; margin-bottom: 35px; font-size: 14px;">Roszczenie: Holowanie / Laweta - rejestracja pełnych szczegółów zdarzenia, sprzętu i kosztów na potrzeby rozliczeń z Towarzystwem Ubezpieczeń.</p>
+
+                    <form id="towingForm">
+                        
+                        <!-- SEKCJA A: IDENTYFIKACJA SPRAWY -->
+                        <div class="form-section" id="sprawy">
+                            <div class="section-title"><span class="section-number">A</span>Identyfikacja Sprawy w Systemie</div>
+                            <div class="info-box">Wiążemy holowanie z istniejącą sprawą szkodową, aby przekazać faktury do TU.</div>
+
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label class="required">Wyszukaj i wybierz szkodę z bazy DTD</label>
+                                    <select class="creator-input" required>
+                                        <option value="">-- Wybierz sprawę --</option>
+                                        <option>DTD-2026-090 (Jan Kowalski, PZU)</option>
+                                        <option>DTD-2026-089 (Firma XYZ, Warta)</option>
+                                        <option>Brak szkody w systemie (Inny powód holowania)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Ubezpieczyciel płatnik (OC sprawcy / AC poszkodowanego)</label>
+                                    <input type="text" name="insurer" placeholder="np. PZU, Warta, UNIQA" required>
+                                </div>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label class="required">Osoba wypełniająca protokół (imię i nazwisko)</label>
+                                    <input type="text" name="reportedBy" placeholder="np. Jan Kowalski (Kierowca / Pracownik)" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Telefon do osoby zlecającej/obecnej na miejscu</label>
+                                    <input type="tel" name="reporterPhone" placeholder="+48..." required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA B: DANE ZDARZENIA -->
+                        <div class="form-section" id="zdarzenia">
+                            <div class="section-title"><span class="section-number">B</span>Dane Zdarzenia (Kontekst Holowania)</div>
+                            <div class="form-row-3">
+                                <div class="form-group"><label class="required">Data zdarzenia</label><input type="date" id="eventDate" required></div>
+                                <div class="form-group"><label>Godzina zdarzenia</label><input type="time"></div>
+                                <div class="form-group"><label class="required">Miejscowość kolizji / awarii</label><input type="text" required></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="required">Ulica / Nr drogi / Punkt charakterystyczny</label>
+                                    <input type="text" placeholder="np. Autostrada A4, 125 kilometr w kierunku Wrocławia" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="required">Opis sytuacji wymuszającej użycie lawety</label>
+                                    <textarea placeholder="np. Najechanie na tył, pojazd wbił się w barierki, wyciek płynu chłodniczego, połamane plastiki na jezdni." required></textarea>
+                                </div>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label class="required">Czy była Policja?</label>
+                                    <div class="radio-group">
+                                        <label><input type="radio" name="policePresent" value="nie" checked onchange="document.getElementById('policeDataSection').classList.remove('active')"> Nie</label>
+                                        <label><input type="radio" name="policePresent" value="tak" onchange="document.getElementById('policeDataSection').classList.add('active')"> Tak</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="policeDataSection" class="conditional-section">
+                                <div class="form-row-2">
+                                    <div class="form-group"><label>Jednostka Policji (Opcjonalnie)</label><input type="text"></div>
+                                    <div class="form-group"><label>Numer interwencji / notatki</label><input type="text"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA C: POJAZD HOLOWANY -->
+                        <div class="form-section" id="pojazdu">
+                            <div class="section-title"><span class="section-number">C</span>Pojazd Wciągany na Lawetę</div>
+                            <div class="form-row-3">
+                                <div class="form-group"><label class="required">Marka</label><input type="text" required></div>
+                                <div class="form-group"><label class="required">Model</label><input type="text" required></div>
+                                <div class="form-group"><label class="required">Nr rejestracyjny</label><input type="text" placeholder="np. WA 12345" required></div>
+                            </div>
+                            <div class="form-row-3">
+                                <div class="form-group"><label>VIN (Do wyceny)</label><input type="text" placeholder="17 znaków"></div>
+                                <div class="form-group">
+                                    <label class="required">Gabaryt / Rodzaj pojazdu</label>
+                                    <select required>
+                                        <option value="">-- Wybierz --</option>
+                                        <option value="osobowy">Osobowy / Sedan / Kombi</option>
+                                        <option value="suv">Osobowy duży / SUV (Cięższy)</option>
+                                        <option value="dostawczy">Dostawczy / Bus</option>
+                                        <option value="ciezarowy">Ciężarowy</option>
+                                    </select>
+                                </div>
+                                <div class="form-group"><label>DMC (Jeśli dostawczy/ciężarowy)</label><input type="number" placeholder="Waga w kg"></div>
+                            </div>
+                            <div class="form-row-2" style="margin-top: 10px;">
+                                <div class="form-group">
+                                    <label class="required">Zasadność prawna lawety (Wybierz główny powód)</label>
+                                    <select required>
+                                        <option value="">-- Dlaczego auto nie pojechało na kołach? --</option>
+                                        <option>Mechaniczne wykluczenie jazdy (urwane koło, chłodnica)</option>
+                                        <option>Prawne wykluczenie z ruchu (zatrzymany dowód, zbite lampy)</option>
+                                        <option>Nakaz usunięcia pojazdu wydany przez Policję/Służby</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA D: ZLECENIE HOLOWANIA -->
+                        <div class="form-section" id="zlecenia">
+                            <div class="section-title"><span class="section-number">D</span>Inicjator Zlecenia i Zgody TU</div>
+                            <div class="info-box">TU często kwestionują wybór pomocy drogowej, o ile nie była to "ich" pomoc z assistance. Wymagane jest tu zaznaczenie, czy dzwoniono na infolinię TU.</div>
+                            <div class="form-group">
+                                <label class="required">Kto fizycznie wezwał ten konkretny holownik na miejsce?</label>
+                                <select required>
+                                    <option value="">-- Wybierz --</option>
+                                    <option>Sam poszkodowany (znalazł w Google)</option>
+                                    <option>Policja / Służby wezwały "swojego" wykonawcę</option>
+                                    <option>TU przypisało wykonawcę z Assistance</option>
+                                    <option>Nasz Serwis (zleciliśmy to naszemu podwykonawcy)</option>
+                                </select>
+                            </div>
+                            <div class="form-row-2" style="margin-top: 15px;">
+                                <div class="form-group">
+                                    <label class="required">Czy przed wezwaniem dzwoniono na Infolinię Sprawcy (TU)?</label>
+                                    <select id="insurerConsultation" required onchange="document.getElementById('consultationDataSection').classList.toggle('active', this.value === 'tak')">
+                                        <option value="nie">Nie (wymagało tego bezpieczeństwo / brak czasu)</option>
+                                        <option value="tak">Tak, próbowano uzgodnić</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="consultationDataSection" class="conditional-section">
+                                <div class="form-row-2">
+                                    <div class="form-group"><label>Data i wynik rozmowy z TU</label><textarea placeholder="np. Dzwoniono o 14:15. TU oświadczyło, że wyślą lawetę za 4 godziny. Odmówiono ze względu na postój na autostradzie."></textarea></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA E: WYKONAWCA I SPOSÓB REALIZACJI -->
+                        <div class="form-section" id="wykonawcy">
+                            <div class="section-title"><span class="section-number">E</span>Sposób Realizacji Transportu / Wykonawca</div>
+                            
+                            <div class="form-row-2" style="margin-bottom: 25px;">
+                                <div class="form-group">
+                                    <label class="required" style="font-size: 14px; color: var(--accent-blue);">Jak zrealizowano transport pojazdu?</label>
+                                    <div class="radio-group" style="display: flex; flex-direction: column; gap: 15px; align-items: flex-start; margin-top: 10px;">
+                                        <label style="cursor:pointer; font-weight:700;"><input type="radio" name="transportMode" value="zewnetrzna" checked onchange="toggleTransportMode()"> Zewnętrzna firma holująca (Faktura za usługę)</label>
+                                        <label style="cursor:pointer; font-weight:700;"><input type="radio" name="transportMode" value="wlasny" onchange="toggleTransportMode()"> Transport we własnym zakresie</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="externalTransportData" class="conditional-section active" style="display: block; border-color: var(--accent-blue);">
+                                <h3 style="color: var(--accent-blue); font-size: 14px; margin-bottom: 15px; margin-top: 0;">Dane zewnętrznej firmy holującej:</h3>
+                                <div class="form-row-2">
+                                    <div class="form-group"><label class="required">Pełna nazwa firmy holującej</label><input type="text" id="extCompName" placeholder="Zgodnie z fakturą" required></div>
+                                    <div class="form-group"><label>NIP firmy</label><input type="text"></div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group"><label class="required">Adres siedziby firmy holującej</label><input type="text" id="extCompAddr" required></div>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group"><label class="required">Telefon kontaktowy / Kierowca</label><input type="tel" id="extCompPhone" required></div>
+                                    <div class="form-group"><label>Nr rejestracyjny lawety</label><input type="text" placeholder="Opcjonalnie (dowód dla TU)"></div>
+                                </div>
+                            </div>
+
+                            <div id="ownTransportData" class="conditional-section" style="display: none; border-color: var(--warning); background: rgba(245, 158, 11, 0.05);">
+                                <h3 style="color: var(--warning); font-size: 14px; margin-bottom: 15px; margin-top: 0;">Szczegóły transportu we własnym zakresie:</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="required">Wybierz metodę realizacji transportu własnego:</label>
+                                        <select id="ownTransportMethod" onchange="toggleRentalCost()">
+                                            <option value="">-- Wybierz metodę --</option>
+                                            <option value="kola">Na kołach (Pojazd był częściowo jezdny / zachował prawo do ruchu)</option>
+                                            <option value="laweta_wynajem">Laweta wynajęta (Posiadamy osobną fakturę za wynajem samej autolawety)</option>
+                                            <option value="laweta_wlasna">Laweta własna (Należąca do poszkodowanego / floty własnej)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- NOWOŚĆ: Sekcja kosztów wynajmu lawety (dynamiczna) -->
+                                <div id="rentalCostSection" style="display: none; margin-top: 15px; padding: 15px; border-left: 3px solid var(--accent-blue); background: rgba(74, 158, 255, 0.05); border-radius: 4px; animation: fadeIn 0.3s ease;">
+                                    <div class="form-row-2">
+                                        <div class="form-group">
+                                            <label class="required" style="color: var(--accent-blue);">Koszt wynajmu lawety (Brutto PLN)</label>
+                                            <input type="number" step="0.01" id="rentalCostInput" placeholder="np. 350.00">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="required" id="rentalInvoiceLabel">Numer faktury za wynajem sprzętu</label>
+                                            <input type="text" id="rentalInvoiceInput" placeholder="np. FV 123/2026">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-row" style="margin-top: 15px;">
+                                    <div class="form-group">
+                                        <label>Dodatkowe uwagi i argumentacja dla TU</label>
+                                        <textarea placeholder="np. Poszkodowany samodzielnie wynajął autolawetę i przewiózł pojazd ze względu na absurdalnie wysokie koszty firm zewnętrznych..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA F: PARAMETRY HOLOWANIA -->
+                        <div class="form-section" id="parametry">
+                            <div class="section-title"><span class="section-number">F</span>Precyzyjne Czasy i Utrudnienia</div>
+                            <div class="info-box">Ubezpieczyciele wyliczają koszty bazując na stawkach roboczogodzin operatora lawety oraz przejechanych kilometrach. Jeśli zjazd zajął 2 godziny z powodu urwanego koła – musisz to tu opisać.</div>
+                            
+                            <div class="form-row-4">
+                                <div class="form-group"><label class="required">Godz. Wezwania</label><input type="time" required></div>
+                                <div class="form-group"><label>Godz. Przyjazdu</label><input type="time"></div>
+                                <div class="form-group"><label>Godz. Załadunku</label><input type="time"></div>
+                                <div class="form-group"><label>Godz. Zrzutu (Zakończ.)</label><input type="time"></div>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 20px;">
+                                <label class="required">Typ użytego sprzętu</label>
+                                <select required>
+                                    <option value="laweta">Zwykła Laweta (Platforma płaska / najazdy)</option>
+                                    <option value="hds">Laweta z dźwigiem HDS</option>
+                                    <option value="holowanie">Pojazd holujący (sztywny hol / linka)</option>
+                                    <option value="ratunkowe">Specjalistyczny sprzęt ratownictwa drogowego</option>
+                                </select>
+                            </div>
+
+                            <label style="margin-top:20px; display:block;">Czynności dodatkowe i uciążliwości na miejscu (Zwiększają stawkę i czas!):</label>
+                            <div class="checklist-grid">
+                                <label class="checklist-item"><input type="checkbox"> <span>Wyciąganie pojazdu z rowu / pobocza</span></label>
+                                <label class="checklist-item"><input type="checkbox"> <span>Zablokowane koła / Uszkodzone zawieszenie (użyto wózków)</span></label>
+                                <label class="checklist-item"><input type="checkbox"> <span>Zabezpieczenie miejsca zdarzenia przed policją</span></label>
+                                <label class="checklist-item"><input type="checkbox"> <span>Uprzątnięcie odłamków karoserii i płynów z jezdni</span></label>
+                                <label class="checklist-item"><input type="checkbox"> <span>Rozłączony akumulator / brak kluczyków</span></label>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA G: TRASA -->
+                        <div class="form-section" id="trasa">
+                            <div class="section-title"><span class="section-number">G</span>Przebieg Trasy i Dystans</div>
+                            <div class="form-group"><label class="required">Punkt pobrania (Skąd zabrano auto - dokładny adres)</label><input type="text" required></div>
+                            <div class="form-group"><label class="required">Punkt docelowy zrzutu (Dokąd zawieziono)</label><input type="text" required></div>
+                            
+                            <div class="form-row-2" style="margin-top: 15px;">
+                                <div class="form-group"><label class="required">Całkowity pokonany dystans z załadowanym pojazdem (km)</label><input type="number" step="0.1" required style="font-weight: 800; color: #4a9eff; font-size: 16px;"></div>
+                                <div class="form-group"><label>Dystans dojazdu "na pusto" (Z bazy lawety do zdarzenia w km)</label><input type="number" step="0.1"></div>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label>Czy były postoje lub punkty pośrednie? (np. zawiezienie klienta pod dom przed warsztatem)</label>
+                                <textarea placeholder="Opisz ew. zmiany trasy uzasadniające dłuższy dystans/czas..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA H: KOSZTY -->
+                        <div class="form-section" id="koszty">
+                            <div class="section-title"><span class="section-number">H</span>Rozliczenie Finansowe z Wykonawcą</div>
+                            
+                            <div class="form-row-2">
+                                <div class="form-group"><label class="required" style="color:#ff6b6b">Całkowita Kwota na FV za Holowanie (BRUTTO PLN)</label><input type="number" step="0.01" required style="font-weight: 800; font-size: 18px;"></div>
+                                <div class="form-group">
+                                    <label class="required">Forma zapłaty / rozliczenia</label>
+                                    <select required>
+                                        <option value="">-- Wybierz --</option>
+                                        <option>Klient zapłacił gotówką/kartą (żąda zwrotu na konto)</option>
+                                        <option>Rozliczenie bezgotówkowe - Cesja Praw na Holownika</option>
+                                        <option>Serwis DTD opłacił fakturę i włącza to do łącznych kosztów szkody</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row-2" style="margin-top: 15px;">
+                                <div class="form-group"><label class="required">Numer Faktury (Od Wykonawcy lub za wynajem lawety)</label><input type="text" required></div>
+                                <div class="form-group"><label class="required">Data wystawienia FV</label><input type="date" required></div>
+                            </div>
+
+                            <div class="section-separator" style="margin-top:25px; margin-bottom:25px; border-top:1px dashed var(--dark-border);"></div>
+                            <h3 style="color:#4a9eff; margin-bottom:15px;">Parkowanie Płatne (Jeśli dotyczy)</h3>
+                            <div class="form-row-3">
+                                <div class="form-group"><label>Czy auto trafiło na płatny parking przed wyceną?</label><select onchange="document.getElementById('parkSection').style.display = this.value === 'tak' ? 'block' : 'none'"><option value="nie">Nie</option><option value="tak">Tak</option></select></div>
+                            </div>
+                            <div id="parkSection" class="conditional-section" style="margin-top: 0;">
+                                <div class="form-row-3">
+                                    <div class="form-group"><label>Nazwa parkingu</label><input type="text"></div>
+                                    <div class="form-group"><label>Stawka za 1 dobę (PLN)</label><input type="number" step="0.01"></div>
+                                    <div class="form-group"><label>Suma dób</label><input type="number"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA I: ZAŁĄCZNIKI -->
+                        <div class="form-section" id="zalaczniki">
+                            <div class="section-title"><span class="section-number">I</span>Załączniki (Skanowanie Dokumentów)</div>
+                            <div class="info-box">Holowanie na kwoty wyższe niż rynkowe zostanie zawsze zweryfikowane przez TU. Bez zdjęć udowadniających ciężki załadunek z rowu lub wynajem, TU skreśli połowę wyceny.</div>
+                            
+                            <div class="form-row-2">
+                                <div class="upload-zone" onclick="document.getElementById('up1').click()">
+                                    <i class="fa-solid fa-file-invoice"></i>
+                                    <div style="font-weight: 700; color: #e0e0e0;">Wgraj Fakturę za Holowanie / Wynajem (PDF/Foto)</div>
+                                    <input type="file" id="up1" style="display:none;">
+                                </div>
+                                <div class="upload-zone" onclick="document.getElementById('up2').click()">
+                                    <i class="fa-solid fa-truck-ramp-box"></i>
+                                    <div style="font-weight: 700; color: #e0e0e0;">Zdjęcia z Załadunku (Dowód na blokady kół/wózki)</div>
+                                    <input type="file" id="up2" style="display:none;" multiple>
+                                </div>
+                            </div>
+                            <div class="form-row-2" style="margin-top: 20px;">
+                                <div class="upload-zone" onclick="document.getElementById('up3').click()">
+                                    <i class="fa-solid fa-file-signature"></i>
+                                    <div style="font-weight: 700; color: #e0e0e0;">Zlecenie Holowania / Cesja (Dokument)</div>
+                                    <input type="file" id="up3" style="display:none;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="button-group" style="display:flex; gap:15px; margin-top:30px; border-top:1px solid var(--dark-border); padding-top:20px; justify-content:flex-end;">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('towingForm').reset()" style="background:transparent; border-color:var(--dark-border); color:#e0e0e0;">Zresetuj</button>
+                            <button type="submit" class="btn btn-primary" style="padding:15px 30px; font-size:15px;">Zapisz i Dodaj do Sprawy →</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Skrypty -->
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
+            if (submenu.style.display === "none") {
+                submenu.style.display = "block";
+                if(icon) icon.style.transform = "rotate(180deg)";
+            } else {
+                submenu.style.display = "none";
+                if(icon) icon.style.transform = "rotate(0deg)";
+            }
+        }
+
+        function toggleViews(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showDetails(nr) {
+            document.getElementById('detail-nr').innerText = nr;
+            toggleViews('view-details');
+        }
+
+        // --- NOWOŚĆ: Logika wyświetlania kosztów wynajmu lawety ---
+        function toggleRentalCost() {
+            const method = document.getElementById('ownTransportMethod').value;
+            const rentalSection = document.getElementById('rentalCostSection');
+            const costInput = document.getElementById('rentalCostInput');
+            const invoiceInput = document.getElementById('rentalInvoiceInput');
+            
+            if (method === 'laweta_wynajem') {
+                rentalSection.style.display = 'block';
+                costInput.setAttribute('required', 'true');
+                invoiceInput.setAttribute('required', 'true');
+            } else {
+                rentalSection.style.display = 'none';
+                costInput.removeAttribute('required');
+                invoiceInput.removeAttribute('required');
+            }
+        }
+
+        // --- Logika wyboru transportu własnego vs zewnętrznego ---
+        function toggleTransportMode() {
+            const mode = document.querySelector('input[name="transportMode"]:checked').value;
+            const extSection = document.getElementById('externalTransportData');
+            const ownSection = document.getElementById('ownTransportData');
+            
+            if(mode === 'zewnetrzna') {
+                extSection.style.display = 'block';
+                ownSection.style.display = 'none';
+                
+                // Dodajemy atrybuty 'required' do firmy zewnętrznej
+                document.getElementById('extCompName').setAttribute('required', 'true');
+                document.getElementById('extCompAddr').setAttribute('required', 'true');
+                document.getElementById('extCompPhone').setAttribute('required', 'true');
+                
+                // Zdejmujemy 'required' z transportu własnego i kosztów wynajmu
+                document.getElementById('ownTransportMethod').removeAttribute('required');
+                document.getElementById('rentalCostInput').removeAttribute('required');
+                document.getElementById('rentalInvoiceInput').removeAttribute('required');
+            } else {
+                extSection.style.display = 'none';
+                ownSection.style.display = 'block';
+                
+                // Zdejmujemy 'required' z firmy zewnętrznej
+                document.getElementById('extCompName').removeAttribute('required');
+                document.getElementById('extCompAddr').removeAttribute('required');
+                document.getElementById('extCompPhone').removeAttribute('required');
+                
+                // Dodajemy 'required' do transportu własnego
+                document.getElementById('ownTransportMethod').setAttribute('required', 'true');
+                // Aktualizujemy widoczność i wymogi sekcji kosztów wynajmu
+                toggleRentalCost();
+            }
+        }
+
+        // Walidacja dat (nie większa niż dzisiaj)
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            const evtDate = document.getElementById('eventDate');
+            if(evtDate) evtDate.max = today;
+            
+            // Inicjalizacja stanów po załadowaniu
+            toggleTransportMode();
+        });
+
+        // Obsługa Submit
+        document.getElementById('towingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(!this.checkValidity()) {
+                this.reportValidity();
+                return;
+            }
+            alert('Raport z Holowania / Transportu został pomyślnie zapisany i przypisany do akt szkody!');
+            toggleViews('view-list');
+            this.reset();
+            // Reset widoków do stanu początkowego
+            toggleTransportMode();
+            document.getElementById('policeDataSection').classList.remove('active');
+            document.getElementById('consultationDataSection').classList.remove('active');
+            document.getElementById('parkSection').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
