@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTD Serwis - Archiwum Floty (Sprzedane i Zezłomowane)</title>
+    
+    <!-- Biblioteki Zewnętrzne -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           KONFIGURACJA UI I MOTYWU BAZOWEGO
+           ========================================= */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent-blue: #0284c7;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+
+            --dark-panel: #0f1419;
+            --dark-border: #2a3136;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* =========================================
+           SIDEBAR (ZGODNY Z ERP)
+           ========================================= */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.15); }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .sidebar-header { padding: 35px 25px; font-size: 24px; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px; }
+        .sidebar-header span { color: var(--accent-blue); }
+        
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 12px 25px; margin: 2px 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 14px; transition: 0.2s; cursor: pointer; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: var(--sidebar-hover); color: white; }
+        .nav-item.active { background-color: rgba(2, 132, 199, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; }
+
+        .submenu { background-color: rgba(0,0,0,0.2); margin-bottom: 5px; padding: 5px 0; display: none; }
+        .submenu-label { padding: 12px 25px 5px 55px; font-size: 10px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 1px; }
+        .submenu-item { padding: 8px 25px 8px 55px; display: block; color: #94a3b8; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
+        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
+        .submenu-item.active { color: white; font-weight: 700; border-left-color: var(--accent-blue); }
+
+        /* =========================================
+           TOPBAR & WRAPPER
+           ========================================= */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 0 40px; height: 80px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; }
+        .search-bar { background: #f1f5f9; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; width: 350px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 500; }
+        
+        .content-area { padding: 40px; overflow-y: auto; flex: 1; position: relative; }
+        .view-panel { display: none; animation: fadeIn 0.4s ease; }
+        .view-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* BAZOWE ELEMENTY */
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 30px; overflow: hidden; transition: 0.3s; }
+        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 14px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
+        .card-body { padding: 30px; }
+
+        /* TABELA */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-color); }
+        td { padding: 18px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+        tr:hover td { background-color: #f8fafc; cursor: pointer; }
+
+        .status-badge { padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; display: inline-block; }
+        .st-sold { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .st-scrap { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        
+        .reg-badge { background: #1e293b; color: #fff; padding: 4px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-weight: 800; font-size: 14px; letter-spacing: 1px; display: inline-block; text-transform: uppercase; }
+
+        /* BUTTONY */
+        .btn { padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-primary { background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2); }
+        .btn-primary:hover { background: #0369a1; transform: translateY(-2px); }
+        .btn-danger { background: var(--danger); color: white; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);}
+        .btn-danger:hover { background: #b91c1c; transform: translateY(-2px); }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-secondary { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+
+        /* =========================================
+           WIDOK DETALI ARCHIWUM
+           ========================================= */
+        .summary-dashboard { background: #1e293b; color: white; border-radius: 16px; padding: 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-bottom: 30px;}
+        .summary-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; }
+        .summary-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block; letter-spacing: 0.5px;}
+        .summary-val { font-size: 24px; font-weight: 900; color: white; display: block; }
+        .summary-val.highlight { color: #38bdf8; }
+        .summary-val.danger { color: #fca5a5; }
+        .summary-val.warning { color: #fde68a; }
+
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        @media (max-width: 1100px) { .details-grid { grid-template-columns: 1fr; } }
+        .info-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; font-size: 13.5px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; }
+        .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        .info-label { color: var(--text-muted); font-weight: 600; width: 45%; flex-shrink: 0;}
+        .info-value { font-weight: 700; color: var(--text-main); text-align: right; word-break: break-word;}
+        
+        #view-details .info-edit[contenteditable="true"] { background-color: #fffbeb; border: 1px dashed #fbbf24; padding: 2px 6px; border-radius: 4px; outline: none; cursor: text; transition: 0.2s; }
+        #view-details .info-edit[contenteditable="true"]:focus { background-color: white; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+        /* NOWOŚĆ: Tabularna nawigacja w Karcie Archiwum */
+        .card-nav { display: flex; gap: 5px; border-bottom: 1px solid var(--border-color); margin-bottom: 25px; background: white; padding: 10px 10px 0 10px; border-radius: 12px 12px 0 0; overflow-x: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+        .card-nav-btn { padding: 12px 20px; border: none; background: none; font-size: 12px; font-weight: 800; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; text-transform: uppercase; transition: 0.2s; white-space: nowrap; }
+        .card-nav-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); background: rgba(2, 132, 199, 0.05); }
+        .card-section { display: none; }
+        .card-section.active { display: block; animation: slideIn 0.3s ease; }
+
+        /* Historia Zdarzeń */
+        .required::after { content: '*'; color: var(--danger); margin-left: 4px; font-size: 14px; }
+        
+        .creator-input { padding: 14px 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: var(--text-main); background: white; outline: none; transition: 0.3s; font-family: inherit; width: 100%; }
+        .creator-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        textarea.creator-input { resize: vertical; min-height: 80px; }
+
+        /* Kafelki operacji (Sprzedaż / Złom) */
+        .operation-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .op-label { display: flex; align-items: center; justify-content: center; gap: 10px; background: #f8fafc; border: 2px solid var(--border-color); padding: 20px; border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 15px; color: var(--text-muted); transition: 0.2s; }
+        .op-label input { display: none; }
+        .op-label:hover { background: #f1f5f9; border-color: #94a3b8; }
+        
+        /* Aktywne stany */
+        .op-label:has(input[value="sprzedaz"]:checked) { border-color: var(--success); background: #ecfdf5; color: #065f46; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);}
+        .op-label:has(input[value="zlom"]:checked) { border-color: var(--danger); background: #fef2f2; color: #991b1b; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.15);}
+
+        /* Załączniki / Skan */
+        .upload-zone { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 30px; text-align: center; background: #f8fafc; cursor: pointer; transition: 0.2s; }
+        .upload-zone:hover { border-color: var(--accent-blue); background: #f0f9ff; }
+        .upload-zone i { font-size: 32px; color: #94a3b8; margin-bottom: 10px; transition: 0.3s;}
+        .upload-zone:hover i { color: var(--accent-blue); transform: translateY(-5px);}
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR KOMPLETNY -->
+    <div class="sidebar">
+        <div class="sidebar-header"><span>DTD</span> Serwis</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+            
+            <div class="nav-item active has-submenu" onclick="toggleSubmenu('submenu-samochody')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car"></i> Samochody</div>
+                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px; transform: rotate(180deg);"></i>
+            </div>
+            <div class="submenu" id="submenu-samochody" style="display: block;">
+                <div class="submenu-label">Najmy</div>
+                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+                <div class="submenu-label">Flota własna</div>
+                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+                <a href="flota_sprzedane.html" class="submenu-item active">Sprzedane / Zezłom.</a>
+                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+            </div>
+
+            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> Oględziny</a>
+            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+            <a href="magazyn.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i części</a>
+            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+            </div>
+            <div class="submenu" id="submenu-naprawy">
+                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            </div>
+
+            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator dokumentów</a>
+        </div>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <div class="topbar">
+            <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Szukaj po numerze VIN, rejestracji lub nabywcy..."></div>
+            <div class="user-info">
+                <i class="fa-regular fa-bell" style="font-size:20px; cursor:pointer; color:var(--text-muted); margin-right:20px;"></i>
+                <span style="font-weight:700;">admin@dtdserwis.pl</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- WIDOK 1: REJESTR SPRZEDANYCH / ZEZŁOMOWANYCH -->
+            <div id="view-list" class="view-panel active">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-box-archive" style="color:var(--text-muted)"></i> Archiwum Floty (Wycofane)</div>
+                    <button class="btn btn-danger" onclick="toggleViews('view-form')"><i class="fa-solid fa-car-tunnel"></i> Wycofaj Pojazd z Floty</button>
+                </div>
+
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pojazd / VIN</th>
+                                <th>Typ Operacji</th>
+                                <th>Nabywca / Stacja Demontażu</th>
+                                <th>Kwota Brutto</th>
+                                <th>Data Wycofania</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr onclick="showArchiveDetails('WA 12345', 'sprzedaz')">
+                                <td><span class="reg-badge">WA 12345</span><br><small class="text-muted" style="font-family:monospace;">VIN: TMB1234567890ABCD</small><br>Skoda Fabia</td>
+                                <td><span class="status-badge st-sold"><i class="fa-solid fa-handshake"></i> Sprzedaż</span></td>
+                                <td><strong>Jan Kowalski</strong><br><small class="text-muted">Umowa: FS 12/2026</small></td>
+                                <td style="font-weight:800;">15 000,00 zł</td>
+                                <td>15.02.2026</td>
+                            </tr>
+                            <tr onclick="showArchiveDetails('KR 99999', 'zlom')">
+                                <td><span class="reg-badge">KR 99999</span><br><small class="text-muted" style="font-family:monospace;">VIN: JTD9876543210XYZ</small><br>Toyota Yaris (Szkoda Całk.)</td>
+                                <td><span class="status-badge st-scrap"><i class="fa-solid fa-car-burst"></i> Kasacja / Złom</span></td>
+                                <td><strong>Auto-Złom Kraków Sp. z o.o.</strong><br><small class="text-muted">Zaśw: ZD/099/2026</small></td>
+                                <td style="font-weight:800; color:var(--danger)">800,00 zł</td>
+                                <td>10.01.2026</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WIDOK 2: KARTA DETALI ARCHIWUM -->
+            <div id="view-details" class="view-panel">
+                <div class="header-actions">
+                    <div>
+                        <div class="page-title"><i class="fa-solid fa-folder-closed"></i> Akta Wycofanego Pojazdu: <span id="detail-reg" style="color:var(--accent-blue)">WA 12345</span></div>
+                        <div style="margin-top: 5px; font-size: 13px; color: var(--text-muted);">Pojazd trwale usunięty z dyspozycyjności. Dokumenty zarchiwizowane.</div>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-arrow-left"></i> Wróć</button>
+                        <button class="btn btn-secondary"><i class="fa-solid fa-download"></i> Pobierz Dokument (PDF)</button>
+                        <button class="btn btn-warning" id="adminEditBtn" onclick="toggleEditMode()"><i class="fa-solid fa-unlock-keyhole"></i> Tryb Edycji (Admin)</button>
+                    </div>
+                </div>
+
+                <!-- NOWOŚĆ: Nawigacja wewnątrz karty archiwalnej -->
+                <div class="card-nav">
+                    <button class="card-nav-btn active" onclick="switchArchiveTab('wycofanie', this)"><i class="fa-solid fa-file-signature"></i> Szczegóły Wycofania</button>
+                    <button class="card-nav-btn" onclick="switchArchiveTab('historia', this)"><i class="fa-solid fa-clock-rotate-left"></i> Pełna Historia Eksploatacji</button>
+                </div>
+
+                <!-- ZAKŁADKA 1: SZCZEGÓŁY WYCOFANIA (ZBYCIA/ZŁOMOWANIA) -->
+                <div id="tab-wycofanie" class="card-section active">
+                    <div class="summary-dashboard">
+                        <div class="summary-item">
+                            <span class="summary-label">Typ Operacji</span>
+                            <span class="summary-val highlight" id="det-op-type"><i class="fa-solid fa-handshake"></i> Sprzedaż</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Data wycofania z floty</span>
+                            <span class="summary-val highlight"><span class="info-edit">15.02.2026</span></span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Ostatni przebieg w DTD</span>
+                            <span class="summary-val"><span class="info-edit">195 200</span> km</span>
+                        </div>
+                        <div class="summary-item" style="border-color: rgba(56, 189, 248, 0.4);">
+                            <span class="summary-label" style="color: #bae6fd;">Wartość transakcji (Brutto)</span>
+                            <span class="summary-val highlight" style="font-size: 28px;" id="det-price"><span class="info-edit">15 000,00</span> zł</span>
+                        </div>
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="left-col">
+                            <div class="card">
+                                <div class="card-header"><i class="fa-solid fa-car"></i> Dane Pojazdu w momencie zbycia</div>
+                                <div class="card-body">
+                                    <div class="info-row"><div class="info-label">Marka i Model:</div><div class="info-value info-edit">Skoda Fabia III</div></div>
+                                    <div class="info-row"><div class="info-label">Numer Rejestracyjny:</div><div class="info-value info-edit"><span class="reg-badge" style="font-size: 11px;">WA 12345</span></div></div>
+                                    <div class="info-row"><div class="info-label">Numer VIN:</div><div class="info-value info-edit" style="font-family: monospace;">TMB1234567890ABCD</div></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header" id="det-header-2"><i class="fa-solid fa-file-signature"></i> Szczegóły Operacji (Sprzedaż)</div>
+                                <div class="card-body">
+                                    <div class="info-row"><div class="info-label" id="det-lbl-buyer">Dane Nabywcy:</div><div class="info-value info-edit">Jan Kowalski</div></div>
+                                    <div class="info-row"><div class="info-label" id="det-lbl-nip">NIP / PESEL:</div><div class="info-value info-edit">85010112345</div></div>
+                                    <div class="info-row"><div class="info-label" id="det-lbl-doc">Nr Umowy / Faktury:</div><div class="info-value info-edit">FS 12/2026</div></div>
+                                    <div style="border-top:1px solid var(--border-light); margin:15px 0;"></div>
+                                    <div class="info-row"><div class="info-label">Status Polisy OC:</div><div class="info-value info-edit" style="color:var(--warning);">Przekazana nabywcy (Należy zgłosić do TU)</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="right-col">
+                            <div class="card">
+                                <div class="card-header"><i class="fa-solid fa-clipboard"></i> Notatki Archiwalne z Wycofania</div>
+                                <div class="card-body">
+                                    <p class="info-edit" style="font-size: 13px; line-height: 1.5; color: var(--text-dark); background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed var(--border-color);">
+                                        Pojazd sprzedany w stanie uszkodzonym (kolizja z dnia 10.01.2026). Nabywca poinformowany o braku prawa rękojmi. Zdano 2 komplety kluczyków i dowód rejestracyjny z odciętym rogiem.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header"><i class="fa-solid fa-images"></i> Załączniki i Skany</div>
+                                <div class="card-body">
+                                    <div style="display:flex; flex-direction:column; gap:8px;">
+                                        <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:12px 15px; border:1px solid var(--border-light); border-radius:8px; font-size:13px; font-weight:600;">
+                                            <span><i class="fa-solid fa-file-pdf" style="color:var(--danger)"></i> Umowa_Sprzedazy_FS12.pdf</span>
+                                            <a href="#" style="color:var(--accent-blue); text-decoration:none;">Podgląd</a>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:12px 15px; border:1px solid var(--border-light); border-radius:8px; font-size:13px; font-weight:600;">
+                                            <span><i class="fa-solid fa-image" style="color:var(--success)"></i> Skan_Dowodu_Rejestracyjnego.jpg</span>
+                                            <a href="#" style="color:var(--accent-blue); text-decoration:none;">Podgląd</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ZAKŁADKA 2: PEŁNA HISTORIA EKSPLOATACJI W FIRMIE -->
+                <div id="tab-historia" class="card-section">
+                    
+                    <!-- Agregacja Statystyk Historycznych -->
+                    <div class="summary-dashboard" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                        <div class="summary-item">
+                            <span class="summary-label">Całkowity czas we flocie</span>
+                            <span class="summary-val">4 lata, 2 m-ce</span>
+                            <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">15.12.2021 - 15.02.2026</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Zrealizowane Najmy</span>
+                            <span class="summary-val highlight">42</span>
+                            <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">Łącznie 850 dni w wynajmie</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Koszty Serwisu i Napraw</span>
+                            <span class="summary-val danger">24 500,00 zł</span>
+                            <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">15 wizyt w warsztacie</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Szkody i Wypadki</span>
+                            <span class="summary-val warning">3 zgłoszenia</span>
+                            <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">2x z OC Sprawcy, 1x z AC</span>
+                        </div>
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="left-col">
+                            <div class="card">
+                                <div class="card-header"><i class="fa-solid fa-timeline"></i> Oś Czasu (Historia Życia Pojazdu)</div>
+                                <div class="card-body" style="padding: 20px;">
+                                    
+                                    <div class="card-timeline" id="vehicleLifeTimeline">
+                                        <!-- Wydarzenie 5 -->
+                                        <div class="card-tl-item" style="border-color: var(--danger); background: #fef2f2;">
+                                            <span class="card-tl-cat" style="background: var(--danger); color: white;">WYCOFANIE</span>
+                                            <div style="font-weight:800; font-size:14px; color:var(--danger);">Sprzedaż pojazdu (Umowa FS 12/2026) <span style="float:right; font-size:11px; color:var(--text-muted); font-weight:600;">15.02.2026</span></div>
+                                            <div style="font-size:13px; margin-top:8px; color:var(--text-dark);">Pojazd sprzedany w uszkodzonym stanie firmie zewnętrznej za 15 000 PLN. Cykl życia zamknięty.</div>
+                                        </div>
+
+                                        <!-- Wydarzenie 4 -->
+                                        <div class="card-tl-item">
+                                            <span class="card-tl-cat cat-szkoda">Szkoda Całkowita</span>
+                                            <div style="font-weight:700; font-size:14px;">Wypadek - Najechanie na tył <span style="float:right; font-size:11px; color:var(--text-muted)">10.01.2026</span></div>
+                                            <div style="font-size:12.5px; margin-top:5px; color:var(--text-muted);">Poważne uszkodzenie tyłu pojazdu z winy osoby 3. Poduszki wystrzelone. Rzeczoznawca orzekł szkodę całkowitą (Naprawa nieopłacalna).</div>
+                                            <div style="margin-top:8px; font-weight:800; color:var(--accent-blue); font-size: 12px;">Szkoda: DTD-2026-004</div>
+                                        </div>
+
+                                        <!-- Wydarzenie 3 -->
+                                        <div class="card-tl-item">
+                                            <span class="card-tl-cat cat-serwis">Serwis Mechaniczny</span>
+                                            <div style="font-weight:700; font-size:14px;">Wymiana rozrządu i pompy wody <span style="float:right; font-size:11px; color:var(--text-muted)">05.11.2025</span></div>
+                                            <div style="font-size:12.5px; margin-top:5px; color:var(--text-muted);">Przebieg: 185 000 km. Dodatkowo wymiana oleju w skrzyni biegów.</div>
+                                            <div style="margin-top:8px; font-weight:800; color:var(--danger); font-size: 12px;">Koszt: 3 200,00 PLN</div>
+                                        </div>
+
+                                        <!-- Wydarzenie 2 -->
+                                        <div class="card-tl-item">
+                                            <span class="card-tl-cat cat-wydanie">Najem Długoterminowy</span>
+                                            <div style="font-weight:700; font-size:14px;">Wydanie do firmy ABC Sp. z o.o. <span style="float:right; font-size:11px; color:var(--text-muted)">01.06.2024</span></div>
+                                            <div style="font-size:12.5px; margin-top:5px; color:var(--text-muted);">Auto wynajęte jako pojazd flotowy przedstawiciela handlowego. Umowa trwała 12 miesięcy.</div>
+                                        </div>
+
+                                        <!-- Wydarzenie 1 -->
+                                        <div class="card-tl-item">
+                                            <span class="card-tl-cat cat-finanse" style="background: var(--success); color: white;">WCIĄGNIĘCIE DO FLOTY</span>
+                                            <div style="font-weight:700; font-size:14px;">Zakup pojazdu i rejestracja <span style="float:right; font-size:11px; color:var(--text-muted)">15.12.2021</span></div>
+                                            <div style="font-size:12.5px; margin-top:5px; color:var(--text-muted);">Pojazd kupiony jako nowy z salonu Skoda. Wpisany do systemu z przebiegiem 12 km.</div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="right-col">
+                            <div class="card">
+                                <div class="card-header"><i class="fa-solid fa-camera-retro"></i> Galeria Historyczna</div>
+                                <div class="card-body">
+                                    <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Zdjęcia ze szkody z 10.01.2026</div>
+                                    <div class="gallery-grid" style="margin-bottom: 25px;">
+                                        <div class="gallery-item" style="height: 110px;"><i class="fa-solid fa-car-burst"></i><div class="gallery-label">Rozbity Tył</div></div>
+                                        <div class="gallery-item" style="height: 110px;"><i class="fa-solid fa-car-burst"></i><div class="gallery-label">Poduszki</div></div>
+                                    </div>
+
+                                    <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Zdjęcia z Wydania (Najem z 2024)</div>
+                                    <div class="gallery-grid" style="margin-bottom: 25px;">
+                                        <div class="gallery-item"><i class="fa-regular fa-image"></i><div class="gallery-label">Przód (Czysty)</div></div>
+                                        <div class="gallery-item"><i class="fa-regular fa-image"></i><div class="gallery-label">Licznik (120k)</div></div>
+                                    </div>
+                                    
+                                    <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Skan przy wciągnięciu do bazy (2021)</div>
+                                    <div class="gallery-grid">
+                                        <div class="gallery-item" style="height: 80px; border-color: var(--success); color: var(--success);"><i class="fa-solid fa-file-pdf"></i><div class="gallery-label" style="background: var(--success);">Faktura Zakupu</div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header"><i class="fa-solid fa-clipboard"></i> Wewnętrzne Notatki Archiwalne</div>
+                                <div class="card-body">
+                                    <p style="font-size: 13px; line-height: 1.6; color: var(--text-dark);">
+                                        Auto bardzo awaryjne w obrębie elektroniki. 3 krotnie wymieniany sterownik szyb. <br><br>
+                                        Po wypadku z 10.01 zrezygnowaliśmy z naprawy, gdyż kosztorys z ASO opiewał na 42 tys. PLN (wartość rynkowa to 30 tys. PLN). Szczątki zlicytowane.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDOK 3: KREATOR WYCOFANIA (Na podstawie dostarczonego pliku) -->
+            <div id="view-form" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-car-tunnel" style="color:var(--danger)"></i> Procedura Wycofania Pojazdu z Floty</div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-xmark"></i> Anuluj</button>
+                        <button class="btn btn-danger" onclick="archiveVehicle()"><i class="fa-solid fa-box-archive"></i> Zakończ cykl życia pojazdu</button>
+                    </div>
+                </div>
+
+                <div style="max-width: 900px; margin: 0 auto;">
+                    <form id="archiveForm">
+                        
+                        <div class="card">
+                            <div class="card-body" style="padding-bottom: 10px;">
+                                <div class="operation-switch">
+                                    <label class="op-label">
+                                        <input type="radio" name="operationType" value="sprzedaz" checked onchange="toggleForm()">
+                                        <i class="fa-solid fa-handshake"></i> Sprzedaż Pojazdu
+                                    </label>
+                                    <label class="op-label">
+                                        <input type="radio" name="operationType" value="zlom" onchange="toggleForm()">
+                                        <i class="fa-solid fa-car-burst"></i> Złomowanie (Kasacja)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-clipboard-list"></i> Szczegóły Operacji (Dla Księgowości i Historii)</div>
+                            <div class="card-body">
+                                
+                                <div class="form-grid">
+                                    <div class="form-group full-width">
+                                        <label class="creator-label required">Wybierz pojazd z aktywnej floty</label>
+                                        <select class="creator-input" required style="font-weight: 700; border-color: var(--accent-blue);">
+                                            <option value="" disabled selected>-- Znajdź pojazd (Marka, Nr Rej, VIN) --</option>
+                                            <option>Skoda Fabia [WA 12345] - VIN: TMB1234567890ABCD</option>
+                                            <option>Toyota Yaris [KR 99999] - VIN: JTD9876543210XYZ</option>
+                                            <option>Renault Master [GD 11223] - VIN: VF1456...</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="creator-label required">Data fizycznego przekazania / złomowania</label>
+                                        <input type="date" class="creator-input" id="actionDate" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="creator-label required">Stan licznika w dniu wycofania (KM)</label>
+                                        <input type="number" class="creator-input" placeholder="Ostatni przebieg" required>
+                                    </div>
+
+                                    <div class="form-group full-width">
+                                        <label class="creator-label required" id="lbl-amount">Kwota ze sprzedaży (Brutto PLN)</label>
+                                        <input type="number" class="creator-input" step="0.01" placeholder="0.00" required style="font-size:18px; font-weight:800; color:var(--success);">
+                                    </div>
+                                </div>
+
+                                <div class="form-grid" style="border-top: 1px dashed var(--border-color); padding-top: 25px; margin-top: 10px;">
+                                    
+                                    <div class="form-group">
+                                        <label class="creator-label required" id="lbl-buyer">Dane Nabywcy (Imię i Nazwisko / Firma)</label>
+                                        <input type="text" class="creator-input" id="ph-buyer" placeholder="Kto kupił pojazd?" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="creator-label" id="lbl-nip">NIP / PESEL Nabywcy</label>
+                                        <input type="text" class="creator-input" placeholder="Dane do faktury / umowy">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="creator-label required" id="lbl-doc">Nr Faktury Sprzedaży / Umowy</label>
+                                        <input type="text" class="creator-input" id="ph-doc" placeholder="np. FS 12/2026" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="creator-label required">Co zrobiono z polisą OC?</label>
+                                        <select class="creator-input" required>
+                                            <option value="" disabled selected>-- Wybierz status z listy --</option>
+                                            <option>Przekazana nabywcy (Należy zgłosić do TU by uniknąć re-kalkulacji)</option>
+                                            <option>Wypowiedziana (Złożono wniosek o zwrot składki na konto)</option>
+                                            <option>Brak ważnej polisy w dniu zbycia</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group full-width" style="margin-top: 15px;">
+                                        <label class="creator-label"><i class="fa-solid fa-file-pdf"></i> Załącz skan dokumentu (Dla Księgowości i archiwum)</label>
+                                        <div class="upload-zone" onclick="document.getElementById('fileUploadDoc').click()">
+                                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                                            <div style="font-size: 14px; font-weight: 700; color: var(--text-dark); margin-top:10px;" id="lbl-upload-title">Wgraj skan Umowy Sprzedaży / Faktury</div>
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px;" id="lbl-upload-desc">Plik PDF lub wyraźne zdjęcie. Uchroni Cię to w razie mandatów z fotoradarów po zbyciu pojazdu.</div>
+                                            <input type="file" id="fileUploadDoc" style="display: none;" accept="image/*,application/pdf">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group full-width">
+                                        <label class="creator-label">Notatki / Uwagi końcowe do archiwum</label>
+                                        <textarea class="creator-input" placeholder="Opcjonalne uwagi np. Pojazd sprzedany jako uszkodzony, bez prawa zwrotu z tytułu rękojmi. Zdane 2 komplety kluczyków."></textarea>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Skrypty -->
+    <script>
+        // Nawigacja
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
+            if (submenu.style.display === "none") {
+                submenu.style.display = "block";
+                if(icon) icon.style.transform = "rotate(180deg)";
+            } else {
+                submenu.style.display = "none";
+                if(icon) icon.style.transform = "rotate(0deg)";
+            }
+        }
+
+        function toggleViews(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Tryb Detali i symulacja zaciągania danych
+        function showArchiveDetails(reg, type) {
+            document.getElementById('detail-reg').innerText = reg;
+            
+            // Prosta symulacja zmiany wyglądu w zależności czy to złom czy sprzedaż
+            const header2 = document.getElementById('det-header-2');
+            const lblBuyer = document.getElementById('det-lbl-buyer');
+            const lblNip = document.getElementById('det-lbl-nip');
+            const lblDoc = document.getElementById('det-lbl-doc');
+            const opType = document.getElementById('det-op-type');
+            const price = document.getElementById('det-price');
+
+            if(type === 'zlom') {
+                header2.innerHTML = '<i class="fa-solid fa-car-burst"></i> Szczegóły Operacji (Złomowanie / Kasacja)';
+                lblBuyer.innerText = "Stacja Demontażu:";
+                lblNip.innerText = "NIP Stacji:";
+                lblDoc.innerText = "Zaświadczenie:";
+                opType.innerHTML = '<i class="fa-solid fa-car-burst"></i> Złomowanie';
+                opType.className = "summary-val danger";
+                price.innerHTML = '<span class="info-edit">800,00</span> zł';
+                price.style.color = "var(--danger)";
+            } else {
+                header2.innerHTML = '<i class="fa-solid fa-file-signature"></i> Szczegóły Operacji (Sprzedaż)';
+                lblBuyer.innerText = "Dane Nabywcy:";
+                lblNip.innerText = "NIP / PESEL:";
+                lblDoc.innerText = "Nr Umowy / Faktury:";
+                opType.innerHTML = '<i class="fa-solid fa-handshake"></i> Sprzedaż';
+                opType.className = "summary-val highlight";
+                price.innerHTML = '<span class="info-edit">15 000,00</span> zł';
+                price.style.color = "white";
+            }
+
+            // Automatycznie ustawiamy pierwszą zakładkę przy wejściu do nowego auta
+            const defaultTabBtn = document.querySelector('.card-nav-btn');
+            if(defaultTabBtn) switchArchiveTab('wycofanie', defaultTabBtn);
+
+            toggleViews('view-details');
+        }
+
+        // NOWOŚĆ: Przełączanie zakładek w karcie archiwum
+        function switchArchiveTab(tabId, btnElement) {
+            // Zmiana przycisków
+            document.querySelectorAll('.card-nav-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            // Zmiana zawartości (sekcji)
+            document.querySelectorAll('#view-details .card-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        // Tryb Edycji Administratora
+        let isEditMode = false;
+        function toggleEditMode() {
+            const btn = document.getElementById('adminEditBtn');
+            const fields = document.querySelectorAll('#view-details .info-edit');
+            
+            isEditMode = !isEditMode;
+            
+            if (isEditMode) {
+                // Odblokowanie edycji
+                fields.forEach(f => f.setAttribute('contenteditable', 'true'));
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Zapisz Zmiany (Admin)';
+                btn.style.background = 'var(--success)';
+                btn.style.borderColor = 'var(--success)';
+                alert("TRYB ADMINISTRATORA: Edycja odblokowana. Edytujesz zamknięte akta. Zmiana tych danych powinna być wykonywana wyłącznie w celu korekty błędów.");
+            } else {
+                // Zapisywanie zmian
+                fields.forEach(f => f.removeAttribute('contenteditable'));
+                btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole"></i> Tryb Edycji (Admin)';
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                alert("Zaktualizowano akta archiwalne w bazie.");
+            }
+        }
+
+        // ==========================================
+        // LOGIKA FORMULARZA WYCOFANIA
+        // ==========================================
+        
+        // Ustaw dzisiejszą datę przy wejściu do formularza
+        document.addEventListener("DOMContentLoaded", () => {
+            const actionDate = document.getElementById('actionDate');
+            if(actionDate) actionDate.valueAsDate = new Date();
+        });
+
+        // Inteligentna zmiana etykiet i podpowiedzi w zależności od typu operacji
+        function toggleForm() {
+            const opType = document.querySelector('input[name="operationType"]:checked').value;
+            
+            const lblAmount = document.getElementById('lbl-amount');
+            const lblBuyer = document.getElementById('lbl-buyer');
+            const lblNip = document.getElementById('lbl-nip');
+            const lblDoc = document.getElementById('lbl-doc');
+            const phBuyer = document.getElementById('ph-buyer');
+            const phDoc = document.getElementById('ph-doc');
+            
+            // Pola strefy uploadu
+            const uploadTitle = document.getElementById('lbl-upload-title');
+            const uploadDesc = document.getElementById('lbl-upload-desc');
+
+            if (opType === 'zlom') {
+                lblAmount.innerText = "Kwota uzyskana ze złomowania (Brutto PLN)";
+                lblBuyer.innerText = "Stacja Demontażu Pojazdów (Nazwa)";
+                phBuyer.placeholder = "Nazwa stacji złomowania";
+                lblNip.innerText = "NIP Stacji Demontażu";
+                lblDoc.innerText = "Nr Zaświadczenia o Demontażu Pojazdu";
+                phDoc.placeholder = "Zgodnie z wydanym zaświadczeniem";
+                
+                uploadTitle.innerText = "Wgraj skan Zaświadczenia o Demontażu Pojazdu";
+                uploadDesc.innerText = "Dokument ten jest absolutnie niezbędny do wyrejestrowania pojazdu w Wydziale Komunikacji oraz zwrotu składki z OC.";
+            } else {
+                lblAmount.innerText = "Kwota ze sprzedaży (Brutto PLN)";
+                lblBuyer.innerText = "Dane Nabywcy (Imię i Nazwisko / Firma)";
+                phBuyer.placeholder = "Kto kupił pojazd?";
+                lblNip.innerText = "NIP / PESEL Nabywcy";
+                lblDoc.innerText = "Nr Faktury Sprzedaży / Umowy";
+                phDoc.placeholder = "np. FS 12/2026";
+                
+                uploadTitle.innerText = "Wgraj skan Umowy Sprzedaży lub Faktury";
+                uploadDesc.innerText = "Plik PDF lub wyraźne zdjęcie. Uchroni Cię to w razie mandatów z fotoradarów po fizycznym zbyciu pojazdu.";
+            }
+        }
+
+        // Zapis formularza i symulacja przeniesienia do archiwum
+        function archiveVehicle() {
+            const form = document.getElementById('archiveForm');
+            if(!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const opType = document.querySelector('input[name="operationType"]:checked').value;
+            const actionName = opType === 'zlom' ? 'zezłomowany (KASACJA)' : 'sprzedany (ZBYCIE)';
+
+            alert(`Sukces operacji! \n\nPojazd został oznaczony w systemie ERP jako: ${actionName}. \nZniknie on natychmiast z listy dostępnych aut do najmu we flocie głównej, a jego dane i dokumenty zostały trwale przeniesione do Archiwum.`);
+            
+            form.reset();
+            document.getElementById('actionDate').valueAsDate = new Date();
+            toggleForm();
+            toggleViews('view-list');
+        }
+    </script>
+</body>
+</html>
