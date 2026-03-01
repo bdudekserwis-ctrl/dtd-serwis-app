@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTD Serwis - Archiwum Najmów (Zakończone)</title>
+    
+    <!-- Biblioteki Zewnętrzne -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           KONFIGURACJA UI I MOTYWU BAZOWEGO
+           ========================================= */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent-blue: #0284c7;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+
+            --dark-panel: #0f1419;
+            --dark-border: #2a3136;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* =========================================
+           SIDEBAR (ZGODNY Z ERP)
+           ========================================= */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.15); }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .sidebar-header { padding: 35px 25px; font-size: 24px; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px; }
+        .sidebar-header span { color: var(--accent-blue); }
+        
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 12px 25px; margin: 2px 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 14px; transition: 0.2s; cursor: pointer; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: var(--sidebar-hover); color: white; }
+        .nav-item.active { background-color: rgba(2, 132, 199, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; }
+
+        .submenu { background-color: rgba(0,0,0,0.2); margin-bottom: 5px; padding: 5px 0; display: none; }
+        .submenu-label { padding: 12px 25px 5px 55px; font-size: 10px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 1px; }
+        .submenu-item { padding: 8px 25px 8px 55px; display: block; color: #94a3b8; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
+        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
+        .submenu-item.active { color: white; font-weight: 700; border-left-color: var(--accent-blue); }
+
+        /* =========================================
+           TOPBAR & WRAPPER
+           ========================================= */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 0 40px; height: 80px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; }
+        .search-bar { background: #f1f5f9; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; width: 350px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 500; }
+        
+        .content-area { padding: 40px; overflow-y: auto; flex: 1; position: relative; }
+        .view-panel { display: none; animation: fadeIn 0.4s ease; }
+        .view-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* BAZOWE ELEMENTY BAZY DANYCH */
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 30px; overflow: hidden; transition: 0.3s; }
+        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 14px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
+        .card-body { padding: 30px; }
+
+        /* TABELA */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-color); }
+        td { padding: 18px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+        tr:hover td { background-color: #f8fafc; cursor: pointer; }
+
+        .status-badge { padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; display: inline-block; }
+        .st-done { background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; }
+        .st-paid { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .st-debt { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        
+        .reg-badge { background: #1e293b; color: #fff; padding: 4px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-weight: 800; font-size: 14px; letter-spacing: 1px; display: inline-block; text-transform: uppercase; }
+
+        /* BUTTONY */
+        .btn { padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-primary { background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2); }
+        .btn-primary:hover { background: #0369a1; transform: translateY(-2px); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+
+        /* =========================================
+           KARTA ARCHIWUM (WIDOK DETALI)
+           ========================================= */
+        .summary-dashboard { background: #1e293b; color: white; border-radius: 16px; padding: 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-bottom: 30px;}
+        .summary-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; }
+        .summary-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block; letter-spacing: 0.5px;}
+        .summary-val { font-size: 24px; font-weight: 900; color: white; display: block; }
+        .summary-val.highlight { color: #38bdf8; }
+        
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        @media (max-width: 1200px) { .details-grid { grid-template-columns: 1fr; } }
+        
+        .info-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; font-size: 13.5px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; }
+        .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        .info-label { color: var(--text-muted); font-weight: 600; width: 45%; flex-shrink: 0;}
+        .info-value { font-weight: 700; color: var(--text-main); text-align: right; word-break: break-word;}
+        .info-value.alert { color: var(--danger); }
+
+        /* Inline Edit Styles */
+        #view-details .info-edit[contenteditable="true"] { background-color: #fffbeb; border: 1px dashed #fbbf24; padding: 2px 6px; border-radius: 4px; outline: none; cursor: text; transition: 0.2s; }
+        #view-details .info-edit[contenteditable="true"]:focus { background-color: white; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+        /* Historia Zdarzeń */
+        .card-timeline { position: relative; padding-left: 30px; border-left: 2px solid var(--border-color); margin-left: 10px; margin-top: 10px; }
+        .card-tl-item { background: #f8fafc; border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; margin-bottom: 20px; position: relative; }
+        .card-tl-item::before { content: ''; position: absolute; left: -39px; top: 22px; width: 14px; height: 14px; background: white; border: 3px solid var(--accent-blue); border-radius: 50%; }
+        .card-tl-cat { font-size: 10px; font-weight: 900; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; margin-bottom: 10px; display: inline-block; letter-spacing: 0.5px;}
+        
+        .cat-wydanie { background: #e0f2fe; color: #0369a1; }
+        .cat-awaria { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;}
+        .cat-notatka { background: #fef3c7; color: #92400e; }
+        .cat-zwrot { background: #d1fae5; color: #065f46; }
+        .cat-finanse { background: #f1f5f9; color: #475569; }
+        .cat-korekta { background: #fce7f3; color: #4338ca; border: 1px dashed #6366f1; }
+
+        /* Galeria Zdjęć */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 15px; }
+        .gallery-item { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; height: 90px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.2s; overflow: hidden; position: relative;}
+        .gallery-item:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+        .gallery-item i { font-size: 24px; }
+        .gallery-label { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; font-size: 10px; text-align: center; padding: 4px 0; font-weight: 600;}
+
+        /* Lista Obciążeń (Kary) */
+        .penalty-list { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 20px; }
+        .penalty-row { display: flex; justify-content: space-between; font-size: 13px; color: #92400e; padding: 10px 0; border-bottom: 1px dashed #fcd34d; font-weight: 600;}
+        .penalty-row:last-child { border-bottom: none; }
+        .penalty-price { font-weight: 800; }
+
+        /* Modale Korekt */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-card { background: white; width: 600px; max-width: 90vw; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; }
+        .modal-header { padding: 20px 30px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 800; color: var(--text-dark); }
+        .modal-body { padding: 30px; max-height: 80vh; overflow-y: auto;}
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .creator-label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .creator-input { padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: var(--text-main); background: white; outline: none; transition: 0.3s; font-family: inherit; width: 100%; }
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR KOMPLETNY (ZGODNY Z ERP) -->
+    <div class="sidebar">
+        <div class="sidebar-header"><span>DTD</span> Serwis</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+            
+            <div class="nav-item active has-submenu" onclick="toggleSubmenu('submenu-samochody')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car"></i> Samochody</div>
+                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px; transform: rotate(180deg);"></i>
+            </div>
+            <div class="submenu" id="submenu-samochody" style="display: block;">
+                <div class="submenu-label">Najmy</div>
+                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+                <a href="najmy_archiwum.html" class="submenu-item active">Najmy zakończone (Archiwum)</a>
+                <div class="submenu-label">Flota własna</div>
+                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+            </div>
+
+            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> Oględziny</a>
+            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+            <a href="magazyn.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i części</a>
+            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+            </div>
+            <div class="submenu" id="submenu-naprawy">
+                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            </div>
+
+            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator dokumentów</a>
+        </div>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <div class="topbar">
+            <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Szukaj archiwalnej umowy, klienta, VIN..."></div>
+            <div class="user-info">
+                <i class="fa-regular fa-bell" style="font-size:20px; cursor:pointer; color:var(--text-muted); margin-right:20px;"></i>
+                <span style="font-weight:700;">admin@dtdserwis.pl</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- WIDOK 1: REJESTR ZAKOŃCZONYCH NAJMÓW -->
+            <div id="view-list" class="view-panel active">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-box-archive" style="color:var(--accent-blue)"></i> Archiwum Zakończonych Najmów</div>
+                    <button class="btn btn-secondary"><i class="fa-solid fa-download"></i> Eksportuj do Excel</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nr Umowy / Kontekst</th>
+                                <th>Najemca</th>
+                                <th>Pojazd Wydany</th>
+                                <th>Okres Najmu</th>
+                                <th>Wartość Brutto</th>
+                                <th>Status Rozliczenia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr onclick="showArchiveDetails('UM-2025/11/42')">
+                                <td><strong>UM-2025/11/42</strong><br><small class="text-muted">OC Sprawcy (PZU)</small></td>
+                                <td>Kamil Nowak<br><small class="text-muted">Powiązana szkoda: DTD-2025-188</small></td>
+                                <td><span class="reg-badge">WA 12345</span><br>Toyota Yaris (B)</td>
+                                <td>01.11.2025 - 15.11.2025<br><small class="text-muted">14 dób</small></td>
+                                <td style="font-weight: 800;">2 583,00 zł</td>
+                                <td><span class="status-badge st-paid">Opłacona przez TU</span></td>
+                            </tr>
+                            <tr onclick="showArchiveDetails('UM-2025/12/05')">
+                                <td><strong>UM-2025/12/05</strong><br><small class="text-muted">Prywatny</small></td>
+                                <td>Firma XYZ Sp. z o.o.<br><small class="text-muted">NIP: 1112223334</small></td>
+                                <td><span class="reg-badge">WX 99881</span><br>Skoda Octavia (C)</td>
+                                <td>05.12.2025 - 10.12.2025<br><small class="text-muted">5 dób</small></td>
+                                <td style="font-weight: 800;">1 230,00 zł</td>
+                                <td><span class="status-badge st-done">Zakończony (Z kaucji)</span></td>
+                            </tr>
+                            <tr onclick="showArchiveDetails('UM-2026/01/10')">
+                                <td><strong>UM-2026/01/10</strong><br><small class="text-muted">Zastępczy z warsztatu</small></td>
+                                <td>Anna Kowalczyk<br><small class="text-muted">Naprawa mechaniczna</small></td>
+                                <td><span class="reg-badge">PO 11223</span><br>Kia Ceed (C)</td>
+                                <td>10.01.2026 - 15.01.2026<br><small class="text-muted">5 dób</small></td>
+                                <td style="font-weight: 800; color: var(--danger);">1 500,00 zł</td>
+                                <td><span class="status-badge st-debt">Oczekuje na płatność</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WIDOK 2: KARTA ARCHIWALNA (SUCHE DANE + EDYCJA) -->
+            <div id="view-details" class="view-panel">
+                <div class="header-actions">
+                    <div>
+                        <div class="page-title"><i class="fa-solid fa-folder-closed"></i> Karta Archiwalna Najmu: <span id="detail-nr" style="color:var(--accent-blue)">UM-2025/11/42</span></div>
+                        <div style="margin-top: 5px; font-size: 13px; color: var(--text-muted);">Najem zakończony. Edycja tylko dla uprawnionych kont (Tryb Administratora).</div>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-arrow-left"></i> Wróć</button>
+                        <!-- NOWOŚĆ: Post Factum Options -->
+                        <button class="btn btn-danger" onclick="openCorrectionModal()" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5;"><i class="fa-solid fa-folder-plus"></i> Dodaj Notatkę / Korektę</button>
+                        <button class="btn btn-warning" id="adminEditBtn" onclick="toggleArchiveEditMode()"><i class="fa-solid fa-unlock-keyhole"></i> Tryb Edycji (Admin)</button>
+                    </div>
+                </div>
+
+                <!-- Dashboard Podsumowujący -->
+                <div class="summary-dashboard">
+                    <div class="summary-item">
+                        <span class="summary-label">Czas trwania najmu</span>
+                        <span class="summary-val highlight">14 pełnych dób</span>
+                        <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">01.11.2025 - 15.11.2025</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Przejechany Dystans</span>
+                        <span class="summary-val highlight"><span class="info-edit">1 420</span> km</span>
+                        <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">(Średnio 101 km / dobę)</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Wartość Netto Usługi</span>
+                        <span class="summary-val"><span class="info-edit">2 100,00</span> zł</span>
+                        <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">Stawka bazowa: <span class="info-edit">150</span> zł/doba</span>
+                    </div>
+                    <div class="summary-item" style="border-color: rgba(56, 189, 248, 0.4);">
+                        <span class="summary-label" style="color: #bae6fd;">Całkowita Wartość Brutto</span>
+                        <span class="summary-val highlight" style="font-size: 28px;"><span class="info-edit">2 583,00</span> zł</span>
+                        <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">FV: <span class="info-edit">FV/2025/11/140</span></span>
+                    </div>
+                </div>
+
+                <!-- Siatka Suchych Danych -->
+                <div class="details-grid">
+                    
+                    <!-- LEWA KOLUMNA -->
+                    <div class="left-col">
+                        
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-user-shield"></i> Dane Najemcy i Kontekst</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Imię i Nazwisko:</div><div class="info-value info-edit">Kamil Nowak</div></div>
+                                <div class="info-row"><div class="info-label">PESEL / NIP:</div><div class="info-value info-edit">80010155667</div></div>
+                                <div class="info-row"><div class="info-label">Telefon:</div><div class="info-value info-edit">+48 555 444 333</div></div>
+                                <div class="info-row"><div class="info-label">Prawo Jazdy:</div><div class="info-value info-edit">12345/WA/21</div></div>
+                                <div style="border-top:1px solid var(--border-light); margin:15px 0;"></div>
+                                <div class="info-row"><div class="info-label">Kontekst najmu:</div><div class="info-value info-edit" style="color:var(--accent-blue);">OC Sprawcy (PZU S.A.)</div></div>
+                                <div class="info-row"><div class="info-label">Nr Szkody w TU:</div><div class="info-value info-edit">PL/2025/11/999</div></div>
+                                <div class="info-row"><div class="info-label">Powiązana w DTD:</div><div class="info-value info-edit">DTD-2025-188</div></div>
+                                <div class="info-row"><div class="info-label">Uzasadnienie z UM:</div><div class="info-value info-edit" style="font-weight: 500;">Dojazdy do pracy, dowożenie dzieci (Zaznaczono w oświadczeniu)</div></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-car"></i> Dane Pojazdu Wydanego</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Pojazd:</div><div class="info-value info-edit">Toyota Yaris Comfort (Segment B)</div></div>
+                                <div class="info-row"><div class="info-label">Nr Rejestracyjny:</div><div class="info-value"><span class="reg-badge info-edit" style="font-size: 11px;">WA 12345</span></div></div>
+                                <div class="info-row"><div class="info-label">VIN:</div><div class="info-value info-edit" style="font-family: monospace;">JTD1234567890ABCD</div></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-scale-balanced"></i> Protokół Zdawczo-Odbiorczy</div>
+                            <div class="card-body">
+                                <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Stan Licznika</div>
+                                <div class="info-row"><div class="info-label">Wydanie:</div><div class="info-value"><span class="info-edit">145 200</span> km (01.11.2025, 08:00)</div></div>
+                                <div class="info-row"><div class="info-label">Zwrot:</div><div class="info-value"><span class="info-edit">146 620</span> km (15.11.2025, 16:30)</div></div>
+                                
+                                <div style="border-top:1px solid var(--border-light); margin:15px 0;"></div>
+                                <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Stan Paliwa</div>
+                                <div class="info-row"><div class="info-label">Wydanie:</div><div class="info-value info-edit">16/16 (Pełny)</div></div>
+                                <div class="info-row"><div class="info-label">Zwrot:</div><div class="info-value alert info-edit">14/16 (Brak 2/16)</div></div>
+                                
+                                <div style="border-top:1px solid var(--border-light); margin:15px 0;"></div>
+                                <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Stan Wizualny</div>
+                                <div class="info-row"><div class="info-label">Wydanie (Notatki):</div><div class="info-value info-edit" style="font-weight: 500;">Rysa na prawych przednich drzwiach (znane).</div></div>
+                                <div class="info-row"><div class="info-label">Zwrot (Nowe):</div><div class="info-value alert info-edit" style="font-weight: 500;">Mocno zabrudzone wnętrze, błoto na tapicerce. Zarysowany kołpak PP.</div></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- PRAWA KOLUMNA -->
+                    <div class="right-col">
+                        
+                        <!-- Historia i awarie -->
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-clock-rotate-left"></i> Historia Zdarzeń i Problemy w trakcie Najmu</div>
+                            <div class="card-body" style="padding: 20px;">
+                                <div class="card-timeline" id="archiveTimeline">
+                                    <div class="card-tl-item">
+                                        <span class="card-tl-cat cat-wydanie">Wydanie</span>
+                                        <div style="font-weight:700; font-size:13px;">Podpisanie umowy i wydanie auta <span style="float:right; font-size:11px; color:var(--text-muted)">01.11.2025 08:00</span></div>
+                                    </div>
+
+                                    <div class="card-tl-item">
+                                        <span class="card-tl-cat cat-awaria">Awaria / Kolizja zgłoszona</span>
+                                        <div style="font-weight:700; font-size:13px; color:var(--danger)">Zgłoszenie pęknięcia opony na A4 <span style="float:right; font-size:11px; color:var(--text-muted)">08.11.2025 14:20</span></div>
+                                        <div style="font-size:12px; margin-top:5px; color:var(--text-muted)">Klient przebił oponę na autostradzie. Użyto zestawu naprawczego. Opona do wymiany po zwrocie.</div>
+                                    </div>
+
+                                    <div class="card-tl-item">
+                                        <span class="card-tl-cat cat-notatka">Terminarz</span>
+                                        <div style="font-weight:700; font-size:13px;">Przedłużenie najmu <span style="float:right; font-size:11px; color:var(--text-muted)">12.11.2025 09:15</span></div>
+                                        <div style="font-size:12px; margin-top:5px; color:var(--text-muted)">Serwis potwierdził opóźnienie w dostawie części. Najem przedłużony do 15.11. TU poinformowane.</div>
+                                    </div>
+
+                                    <div class="card-tl-item">
+                                        <span class="card-tl-cat cat-zwrot">Zwrot Pojazdu</span>
+                                        <div style="font-weight:700; font-size:13px;">Zamknięcie protokołu <span style="float:right; font-size:11px; color:var(--text-muted)">15.11.2025 16:30</span></div>
+                                        <div style="font-size:12px; margin-top:5px; color:var(--text-muted)">Zanotowano braki w paliwie i mocne zabrudzenie. Obciążono kaucję/fakturę.</div>
+                                    </div>
+
+                                    <div class="card-tl-item" style="margin-bottom: 0;">
+                                        <span class="card-tl-cat cat-finanse">Finanse</span>
+                                        <div style="font-weight:700; font-size:13px; color:var(--success)">Wystawiono Fakturę VAT <span style="float:right; font-size:11px; color:var(--text-muted)">16.11.2025 08:00</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Obciążenia i Kary -->
+                        <div class="card">
+                            <div class="card-header" style="background:#fffbeb; color:#b45309; border-bottom-color:#fde68a;"><i class="fa-solid fa-file-invoice-dollar"></i> Nałożone Kary i Obciążenia przy zwrocie</div>
+                            <div class="card-body" style="padding: 0;">
+                                <div class="penalty-list" style="border:none; border-radius:0;">
+                                    <div class="penalty-row">
+                                        <span>Braki w paliwie (2/16 baku) + Opłata manip.</span>
+                                        <span class="penalty-price info-edit">120,00 zł Netto</span>
+                                    </div>
+                                    <div class="penalty-row">
+                                        <span>Pranie tapicerki (Mocne zabrudzenie błotem)</span>
+                                        <span class="penalty-price info-edit">150,00 zł Netto</span>
+                                    </div>
+                                    <div class="penalty-row" style="border-top: 2px solid #fde68a; padding-top: 15px; margin-top: 5px; color:var(--danger)">
+                                        <span><strong>Suma potrąceń i obciążeń:</strong></span>
+                                        <span class="penalty-price info-edit" style="font-size:16px;">270,00 zł Netto</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Galeria / Dokumenty -->
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-images"></i> Pliki, Protokoły i Galeria Zdjęć</div>
+                            <div class="card-body">
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Dokumenty Prawne (PDF)</div>
+                                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px; margin-bottom: 20px;">
+                                    <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:10px 15px; border:1px solid var(--border-light); border-radius:8px; font-size:13px; font-weight:600;">
+                                        <span><i class="fa-solid fa-file-pdf" style="color:var(--danger)"></i> UM-2025_11_42_Podpisana.pdf</span>
+                                        <a href="#" style="color:var(--accent-blue); text-decoration:none;">Pobierz</a>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:10px 15px; border:1px solid var(--border-light); border-radius:8px; font-size:13px; font-weight:600;">
+                                        <span><i class="fa-solid fa-file-pdf" style="color:var(--danger)"></i> Protokol_Zdawczo_Odbiorczy.pdf</span>
+                                        <a href="#" style="color:var(--accent-blue); text-decoration:none;">Pobierz</a>
+                                    </div>
+                                </div>
+
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Zdjęcia z WYDANIA (01.11.2025)</div>
+                                <div class="gallery-grid">
+                                    <div class="gallery-item"><i class="fa-regular fa-image"></i><div class="gallery-label">Przód Lewy</div></div>
+                                    <div class="gallery-item"><i class="fa-regular fa-image"></i><div class="gallery-label">Tył Prawy</div></div>
+                                    <div class="gallery-item"><i class="fa-regular fa-image"></i><div class="gallery-label">Licznik Start</div></div>
+                                </div>
+
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-top: 20px;">Zdjęcia ze ZWROTU (15.11.2025)</div>
+                                <div class="gallery-grid">
+                                    <div class="gallery-item"><i class="fa-regular fa-image"></i><div class="gallery-label">Brudna Kanapa</div></div>
+                                    <div class="gallery-item"><i class="fa-regular fa-image"></i><div class="gallery-label">Licznik Zwrot</div></div>
+                                    <div class="gallery-item" style="border-style:dashed;" onclick="document.getElementById('fileUploadArchive').click()"><i class="fa-solid fa-plus"></i><div class="gallery-label">Dodaj spóźnione</div></div>
+                                    <input type="file" id="fileUploadArchive" style="display:none;" accept="image/*">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL: DODAJ KOREKTĘ / NOTATKĘ POST-FACTUM -->
+    <div class="modal-overlay" id="correctionModal">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header"><h3 style="color:#b91c1c; font-weight:800;"><i class="fa-solid fa-folder-plus"></i> Dodaj Korektę do Archiwum</h3><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('correctionModal')"></i></div>
+            <div class="modal-body">
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Wpis zostanie dodany do osi czasu jako zdarzenie z adnotacją post-factum. Używaj w przypadku wpłat za kary, anulacji dokumentów lub innych zmian po zamknięciu sprawy.</p>
+                <form id="correctionForm">
+                    <div class="form-group">
+                        <label class="creator-label required">Data Korekty / Zdarzenia</label>
+                        <input type="date" id="kor_date" class="creator-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="creator-label required">Typ Zdarzenia Post-Factum</label>
+                        <select id="kor_type" class="creator-input" required>
+                            <option value="">-- Wybierz rodzaj --</option>
+                            <option value="Wpłata Kary/Rozliczenie">Opłacenie nałożonej kary przez klienta</option>
+                            <option value="Korekta FV">Wystawienie faktury korygującej (np. dla TU)</option>
+                            <option value="Dosłanie sprzętu">Klient dosłał/oddał brakujący sprzęt (kluczyk/kołpak)</option>
+                            <option value="Notatka windykacyjna">Informacja z działu windykacji / Prawnika</option>
+                            <option value="Inne">Inna zmiana wewnętrzna</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="creator-label required">Dokładny opis zmiany / Informacja dla zespołu</label>
+                        <textarea id="kor_note" class="creator-input" rows="4" placeholder="np. Klient wykonał przelew na kwotę 270 PLN za brakujące paliwo i pranie. Numer operacji bankowej: #12345..." required></textarea>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:30px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('correctionModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-danger"><i class="fa-solid fa-thumbtack"></i> Zapisz w Aktach</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skrypty -->
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
+            if (submenu.style.display === "none") {
+                submenu.style.display = "block";
+                if(icon) icon.style.transform = "rotate(180deg)";
+            } else {
+                submenu.style.display = "none";
+                if(icon) icon.style.transform = "rotate(0deg)";
+            }
+        }
+
+        function toggleViews(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showArchiveDetails(umowaNr) {
+            document.getElementById('detail-nr').innerText = umowaNr;
+            toggleViews('view-details');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // --- TRYB EDYCJI ADMINISTRATORA (INLINE EDIT) ---
+        let isArchiveEditMode = false;
+        function toggleArchiveEditMode() {
+            const btn = document.getElementById('adminEditBtn');
+            const fields = document.querySelectorAll('#view-details .info-edit');
+            
+            isArchiveEditMode = !isArchiveEditMode;
+            
+            if (isArchiveEditMode) {
+                // Odblokowanie
+                fields.forEach(f => f.setAttribute('contenteditable', 'true'));
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Zapisz Zmiany (Admin)';
+                btn.style.background = 'var(--success)';
+                btn.style.borderColor = 'var(--success)';
+                alert('TRYB ADMINISTRATORA: Edycja odblokowana. Zmiana tych danych powinna być wykonywana wyłącznie w celu korekty błędów ("literówek"). Zmiany modyfikują wpisy w bazie DTD.');
+            } else {
+                // Zapisanie
+                fields.forEach(f => f.removeAttribute('contenteditable'));
+                btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole"></i> Tryb Edycji (Admin)';
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                alert("Zmiany zapisane. Baza została zaktualizowana.");
+            }
+        }
+
+        // --- DODAWANIE KOREKT (MODAL) ---
+        function openCorrectionModal() {
+            document.getElementById('kor_date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('correctionModal').style.display = 'flex';
+        }
+
+        document.getElementById('correctionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const date = document.getElementById('kor_date').value;
+            const type = document.getElementById('kor_type').value;
+            const note = document.getElementById('kor_note').value;
+            
+            const tl = document.getElementById('archiveTimeline');
+            const div = document.createElement('div');
+            div.className = `card-tl-item`;
+            
+            // Format daty dla estetyki
+            const d = new Date(date);
+            const formattedDate = d.toLocaleDateString('pl-PL');
+
+            div.innerHTML = `<span class="card-tl-cat cat-korekta">Korekta / Aneks</span>
+                             <div style="font-weight:700; font-size:13px; color:var(--text-dark);">${type} <span style="float:right; font-size:11px; color:var(--danger); font-weight:800;">${formattedDate} (Post-Factum)</span></div>
+                             <div style="font-size:12.5px; margin-top:8px; color:var(--text-muted); border-top: 1px dashed var(--border-color); padding-top: 8px;">${note}</div>`;
+            
+            // Dodanie na samą górę osi czasu
+            tl.prepend(div);
+            
+            closeModal('correctionModal');
+            this.reset();
+        });
+
+    </script>
+</body>
+</html>
