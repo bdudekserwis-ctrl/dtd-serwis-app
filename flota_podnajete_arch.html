@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTD Serwis - Archiwum Podnajmów</title>
+    
+    <!-- Biblioteki Zewnętrzne -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           KONFIGURACJA UI I MOTYWU BAZOWEGO
+           ========================================= */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent-blue: #6366f1; /* INDYGO dla podnajmów */
+            --accent-hover: #4f46e5;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+
+            --dark-panel: #0f1419;
+            --dark-border: #2a3136;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* =========================================
+           SIDEBAR (ZGODNY Z ERP)
+           ========================================= */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.15); }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .sidebar-header { padding: 35px 25px; font-size: 24px; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px; }
+        .sidebar-header span { color: var(--accent-blue); }
+        
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 12px 25px; margin: 2px 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 14px; transition: 0.2s; cursor: pointer; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: var(--sidebar-hover); color: white; }
+        .nav-item.active { background-color: rgba(99, 102, 241, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; }
+
+        .submenu { background-color: rgba(0,0,0,0.2); margin-bottom: 5px; padding: 5px 0; display: none; }
+        .submenu-label { padding: 12px 25px 5px 55px; font-size: 10px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 1px; }
+        .submenu-item { padding: 8px 25px 8px 55px; display: block; color: #94a3b8; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
+        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
+        .submenu-item.active { color: white; font-weight: 700; border-left-color: var(--accent-blue); }
+
+        /* =========================================
+           TOPBAR & WRAPPER
+           ========================================= */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 0 40px; height: 80px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; }
+        .search-bar { background: #f1f5f9; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; width: 350px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 500; }
+        
+        .content-area { padding: 40px; overflow-y: auto; flex: 1; position: relative; }
+        .view-panel { display: none; animation: fadeIn 0.4s ease; }
+        .view-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* BAZOWE ELEMENTY */
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 30px; overflow: hidden; transition: 0.3s; }
+        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 14px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
+        .card-body { padding: 30px; }
+
+        /* TABELA */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-color); }
+        td { padding: 18px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+        tr:hover td { background-color: #f8fafc; cursor: pointer; }
+
+        .status-badge { padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; display: inline-block; }
+        .st-done { background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; }
+        .st-paid { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .st-debt { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        
+        .reg-badge { background: #1e293b; color: #fff; padding: 4px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-weight: 800; font-size: 14px; letter-spacing: 1px; display: inline-block; text-transform: uppercase; }
+
+        /* BUTTONY */
+        .btn { padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-primary { background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2); }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .btn-danger { background: var(--danger); color: white; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);}
+        .btn-danger:hover { background: #b91c1c; transform: translateY(-2px); }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-secondary { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-secondary:hover { background: var(--bg-body); }
+
+        /* =========================================
+           WIDOK DETALI ARCHIWUM
+           ========================================= */
+        .summary-dashboard { background: #1e293b; color: white; border-radius: 16px; padding: 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-bottom: 30px;}
+        .summary-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; }
+        .summary-label { font-size: 11px; color: #a5b4fc; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block; letter-spacing: 0.5px;}
+        .summary-val { font-size: 24px; font-weight: 900; color: white; display: block; }
+        .summary-val.highlight { color: #818cf8; }
+        .summary-val.danger { color: #fca5a5; }
+
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+        @media (max-width: 1100px) { .details-grid { grid-template-columns: 1fr; } }
+        
+        .info-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; font-size: 13.5px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; }
+        .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        .info-label { color: var(--text-muted); font-weight: 600; width: 45%; flex-shrink: 0;}
+        .info-value { font-weight: 700; color: var(--text-main); text-align: right; word-break: break-word;}
+        .info-value.alert { color: var(--danger); }
+
+        /* Inline Edit Styles */
+        #view-details .info-edit[contenteditable="true"] { background-color: #fffbeb; border: 1px dashed #fbbf24; padding: 2px 6px; border-radius: 4px; outline: none; cursor: text; transition: 0.2s; }
+        #view-details .info-edit[contenteditable="true"]:focus { background-color: white; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+
+        /* Historia Zdarzeń */
+        .card-timeline { position: relative; padding-left: 30px; border-left: 2px solid var(--border-color); margin-left: 10px; margin-top: 10px; }
+        .card-tl-item { background: #f8fafc; border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; margin-bottom: 20px; position: relative; }
+        .card-tl-item::before { content: ''; position: absolute; left: -39px; top: 22px; width: 14px; height: 14px; background: white; border: 3px solid var(--accent-blue); border-radius: 50%; }
+        .card-tl-cat { font-size: 10px; font-weight: 900; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; margin-bottom: 10px; display: inline-block; letter-spacing: 0.5px;}
+        
+        .cat-wydanie { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .cat-zwrot { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;}
+        .cat-finanse { background: #fef3c7; color: #92400e; border: 1px solid #fde68a;}
+        .cat-korekta { background: #fee2e2; color: #991b1b; border: 1px dashed #fca5a5; }
+
+        /* Galeria Zdjęć */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 15px; }
+        .gallery-item { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; height: 90px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.2s; overflow: hidden; position: relative;}
+        .gallery-item:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+        .gallery-item i { font-size: 24px; }
+        .gallery-label { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; font-size: 10px; text-align: center; padding: 4px 0; font-weight: 600;}
+
+        /* Lista Obciążeń (Kary) */
+        .penalty-list { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 20px; }
+        .penalty-row { display: flex; justify-content: space-between; font-size: 13px; color: #92400e; padding: 10px 0; border-bottom: 1px dashed #fcd34d; font-weight: 600;}
+        .penalty-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .penalty-price { font-weight: 800; }
+
+        /* Modale Korekt */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-card { background: white; width: 600px; max-width: 90vw; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; }
+        .modal-header { padding: 20px 30px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 800; color: var(--text-dark); }
+        .modal-body { padding: 30px; max-height: 80vh; overflow-y: auto;}
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .creator-label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .creator-input { padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: var(--text-main); background: white; outline: none; transition: 0.3s; font-family: inherit; width: 100%; }
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR KOMPLETNY (ZGODNY Z ERP) -->
+    <div class="sidebar">
+        <div class="sidebar-header"><span>DTD</span> Serwis</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+            
+            <div class="nav-item active has-submenu" onclick="toggleSubmenu('submenu-samochody')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car"></i> Samochody</div>
+                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px; transform: rotate(180deg);"></i>
+            </div>
+            <div class="submenu" id="submenu-samochody" style="display: block;">
+                <div class="submenu-label">Najmy</div>
+                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+                <div class="submenu-label">Flota własna</div>
+                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+                <a href="flota_podnajete_arch.html" class="submenu-item active">Podnajęte - Archiwum</a>
+            </div>
+
+            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> Oględziny</a>
+            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+            <a href="magazyn.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i części</a>
+            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+            </div>
+            <div class="submenu" id="submenu-naprawy">
+                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            </div>
+
+            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator dokumentów</a>
+        </div>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <div class="topbar">
+            <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Szukaj po nr rejestracyjnym lub partnerze..."></div>
+            <div class="user-info">
+                <i class="fa-regular fa-bell" style="font-size:20px; cursor:pointer; color:var(--text-muted); margin-right:20px;"></i>
+                <span style="font-weight:700;">admin@dtdserwis.pl</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- WIDOK 1: REJESTR ZAKOŃCZONYCH PODNAJMÓW -->
+            <div id="view-list" class="view-panel active">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-box-archive" style="color:var(--text-muted)"></i> Archiwum Floty Zewnętrznej (Zakończone Podnajmy)</div>
+                    <button class="btn btn-secondary"><i class="fa-solid fa-download"></i> Eksportuj do Excel</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pojazd (Nr Rej)</th>
+                                <th>Podwykonawca (Wypożyczalnia)</th>
+                                <th>Okres Najmu</th>
+                                <th>Koszt Netto dla DTD</th>
+                                <th>Rozliczenie z Partnerem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr onclick="showArchiveDetails('WA 11223')">
+                                <td><span class="reg-badge">WA 11223</span><br>Toyota Yaris (B)</td>
+                                <td><strong>RentACar 24 Sp. z o.o.</strong><br><small class="text-muted">NIP: 9876543210</small></td>
+                                <td>01.01.2026 - 15.01.2026<br><small class="text-muted">14 dób</small></td>
+                                <td style="font-weight: 800;">1 400,00 zł</td>
+                                <td><span class="status-badge st-paid">Opłacona FV kosztowa</span></td>
+                            </tr>
+                            <tr onclick="showArchiveDetails('KR 4455X')">
+                                <td><span class="reg-badge">KR 4455X</span><br>Skoda Octavia (C)</td>
+                                <td><strong>Jan Kowalski (Osoba Prywatna)</strong><br><small class="text-muted">PESEL: 80101012345</small></td>
+                                <td>10.12.2025 - 20.12.2025<br><small class="text-muted">10 dób</small></td>
+                                <td style="font-weight: 800;">800,00 zł</td>
+                                <td><span class="status-badge st-done">Zakończony (Z kaucji)</span></td>
+                            </tr>
+                            <tr onclick="showArchiveDetails('PO 99000')">
+                                <td><span class="reg-badge">PO 99000</span><br>Renault Master (Dostawczy)</td>
+                                <td><strong>VanRent Polska</strong><br><small class="text-muted">NIP: 1112223334</small></td>
+                                <td>05.11.2025 - 10.11.2025<br><small class="text-muted">5 dób</small></td>
+                                <td style="font-weight: 800; color: var(--danger);">1 250,00 zł</td>
+                                <td><span class="status-badge st-debt">Faktura nieopłacona!</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WIDOK 2: KARTA ARCHIWALNA PODNAJMU (SUCHE DANE + EDYCJA) -->
+            <div id="view-details" class="view-panel">
+                <div class="header-actions">
+                    <div>
+                        <div class="page-title"><i class="fa-solid fa-folder-closed"></i> Akta Zakończonego Podnajmu: <span id="detail-reg" style="color:var(--accent-blue)">WA 11223</span></div>
+                        <div style="margin-top: 5px; font-size: 13px; color: var(--text-muted);">Pojazd został zwrócony do podwykonawcy. Zapis tylko do wglądu.</div>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-arrow-left"></i> Wróć</button>
+                        <button class="btn btn-danger" onclick="openCorrectionModal()" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5;"><i class="fa-solid fa-folder-plus"></i> Dodaj Notatkę / Korektę</button>
+                        <button class="btn btn-warning" id="adminEditBtn" onclick="toggleArchiveEditMode()"><i class="fa-solid fa-unlock-keyhole"></i> Tryb Edycji (Admin)</button>
+                    </div>
+                </div>
+
+                <!-- Dashboard Podsumowujący -->
+                <div class="summary-dashboard">
+                    <div class="summary-item">
+                        <span class="summary-label">Czas trwania podnajmu</span>
+                        <span class="summary-val highlight"><span class="info-edit">14</span> pełnych dób</span>
+                        <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">01.01.2026 - 15.01.2026</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Koszt DTD (Wartość Netto)</span>
+                        <span class="summary-val"><span class="info-edit">1 400,00</span> zł</span>
+                        <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">Stawka bazowa: <span class="info-edit">100</span> zł/doba</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Przejechany Dystans</span>
+                        <span class="summary-val highlight"><span class="info-edit">840</span> km</span>
+                        <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">Limit z umowy: 150 km/doba</span>
+                    </div>
+                    <div class="summary-item" style="border-color: rgba(248, 113, 113, 0.4);">
+                        <span class="summary-label" style="color: #fecaca;">Dodatkowe obciążenia od partnera</span>
+                        <span class="summary-val danger" style="font-size: 28px;"><span class="info-edit">150,00</span> zł</span>
+                        <span style="font-size:12px; opacity:0.7; margin-top:4px; display:block;">Potrącono z kaucji</span>
+                    </div>
+                </div>
+
+                <!-- NOWOŚĆ: Sekcja Statusu Płatności -->
+                <div class="card" style="border-color: var(--warning); margin-bottom: 30px;">
+                    <div class="card-header" style="background: #fffbeb; color: #b45309;">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> Status Płatności Faktury za Podnajem
+                    </div>
+                    <div class="card-body" style="padding: 20px;">
+                        <div class="form-grid" style="margin-bottom: 0;">
+                            <div class="form-group">
+                                <label class="creator-label">Status Faktury (Od Partnera)</label>
+                                <select class="creator-input info-edit" id="invoiceStatus" onchange="toggleInvoiceReason()">
+                                    <option value="oplacona">✅ Opłacona w terminie</option>
+                                    <option value="nieoplacona" selected>❌ Nieopłacona (Oczekująca / Przeterminowana)</option>
+                                    <option value="korekta">⚠️ Wstrzymana - oczekuje na korektę</option>
+                                    <option value="potracenie">🔄 Skompensowana (potrącenie wzajemne)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="creator-label">Termin Płatności (z FV)</label>
+                                <input type="date" class="creator-input info-edit" value="2026-02-01">
+                            </div>
+                            <div class="form-group full-width" id="invoiceReasonGroup">
+                                <label class="creator-label" style="color: var(--danger);">Powód braku płatności / Notatka Księgowa</label>
+                                <input type="text" class="creator-input info-edit" style="border-color: var(--danger);" value="Czekamy na korektę z powodu niesłusznego naliczenia kary za brudną tapicerkę." placeholder="Wpisz dlaczego faktura nie została uregulowana...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Siatka Suchych Danych -->
+                <div class="details-grid">
+                    
+                    <!-- LEWA KOLUMNA -->
+                    <div class="left-col">
+                        
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-building"></i> Dane Podwykonawcy i Auta</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Partner (Wypożyczalnia):</div><div class="info-value info-edit">RentACar 24 Sp. z o.o.</div></div>
+                                <div class="info-row"><div class="info-label">NIP / PESEL:</div><div class="info-value info-edit">9876543210</div></div>
+                                <div class="info-row"><div class="info-label">Osoba Kontaktowa:</div><div class="info-value info-edit">Tomasz Wypożyczalnia (+48 111 222 333)</div></div>
+                                <div style="border-top:1px solid var(--border-light); margin:15px 0;"></div>
+                                <div class="info-row"><div class="info-label">Pojazd Pobierany:</div><div class="info-value info-edit">Toyota Yaris Comfort (Klasa B)</div></div>
+                                <div class="info-row"><div class="info-label">Nr Rejestracyjny:</div><div class="info-value"><span class="reg-badge info-edit" style="font-size: 11px;">WA 11223</span></div></div>
+                                <div class="info-row"><div class="info-label">Numer VIN:</div><div class="info-value info-edit" style="font-family: monospace;">JTD1234567890ABCD</div></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-scale-balanced"></i> Protokół Zdawczo-Odbiorczy (Z wypożyczalnią)</div>
+                            <div class="card-body">
+                                <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Stan Licznika</div>
+                                <div class="info-row"><div class="info-label">Wydanie od partnera:</div><div class="info-value"><span class="info-edit">12 400</span> km (01.01.2026, 08:00)</div></div>
+                                <div class="info-row"><div class="info-label">Zwrot do partnera:</div><div class="info-value"><span class="info-edit">13 240</span> km (15.01.2026, 16:30)</div></div>
+                                
+                                <div style="border-top:1px solid var(--border-light); margin:15px 0;"></div>
+                                <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Stan Paliwa</div>
+                                <div class="info-row"><div class="info-label">Odebrano z:</div><div class="info-value info-edit">16/16 (Pełny)</div></div>
+                                <div class="info-row"><div class="info-label">Zwrócono z:</div><div class="info-value alert info-edit">15/16 (Braki - potrącenie)</div></div>
+                                
+                                <div style="border-top:1px solid var(--border-light); margin:15px 0;"></div>
+                                <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Uwagi Wizualne (Nasze vs Partner)</div>
+                                <div class="info-row"><div class="info-label">Wady przy odbiorze:</div><div class="info-value info-edit" style="font-weight: 500;">Brak wad, auto nowe.</div></div>
+                                <div class="info-row"><div class="info-label">Wady przy zwrocie:</div><div class="info-value alert info-edit" style="font-weight: 500;">Plama na tylnej kanapie. Wypożyczalnia nałożyła karę 150 zł za pranie tapicerki. Koszt przerzucony na klienta docelowego.</div></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- PRAWA KOLUMNA -->
+                    <div class="right-col">
+                        
+                        <!-- Historia zdarzeń -->
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-clock-rotate-left"></i> Oś Czasu Podnajmu (Zdarzenia)</div>
+                            <div class="card-body" style="padding: 20px;">
+                                <div class="card-timeline" id="archiveTimeline">
+                                    <div class="card-tl-item">
+                                        <span class="card-tl-cat cat-wydanie">Pobranie Auta</span>
+                                        <div style="font-weight:700; font-size:13px;">Odbiór pojazdu od partnera <span style="float:right; font-size:11px; color:var(--text-muted)">01.01.2026 08:00</span></div>
+                                        <div style="font-size:12px; margin-top:5px; color:var(--text-muted)">Wpłacono kaucję 1000 PLN. Auto wciągnięte do puli aut dostępnych.</div>
+                                    </div>
+
+                                    <div class="card-tl-item">
+                                        <span class="card-tl-cat cat-notatka">Wypożyczenie (Klient)</span>
+                                        <div style="font-weight:700; font-size:13px; color:var(--accent-blue)">Wydano naszemu klientowi: J. Kowalski <span style="float:right; font-size:11px; color:var(--text-muted)">01.01.2026 10:00</span></div>
+                                        <div style="font-size:12px; margin-top:5px; color:var(--text-muted)">Szkoda DTD-2026-004. Wynajem zastępczy z OC.</div>
+                                    </div>
+
+                                    <div class="card-tl-item">
+                                        <span class="card-tl-cat cat-notatka">Odbiór (Klient)</span>
+                                        <div style="font-weight:700; font-size:13px;">Zwrot od naszego klienta <span style="float:right; font-size:11px; color:var(--text-muted)">15.01.2026 14:00</span></div>
+                                        <div style="font-size:12px; margin-top:5px; color:var(--text-muted)">Odebrano auto. Zauważono zabrudzenia na kanapie i brak w paliwie. Obciążono klienta z kaucji w oddzielnym module.</div>
+                                    </div>
+
+                                    <div class="card-tl-item">
+                                        <span class="card-tl-cat cat-zwrot">Zwrot do Partnera</span>
+                                        <div style="font-weight:700; font-size:13px;">Oddanie auta wypożyczalni <span style="float:right; font-size:11px; color:var(--text-muted)">15.01.2026 16:30</span></div>
+                                        <div style="font-size:12px; margin-top:5px; color:var(--text-muted)">Zakończenie podnajmu. Wypożyczalnia potrąciła 150 zł kaucji. Zwrócono 850 zł.</div>
+                                    </div>
+
+                                    <div class="card-tl-item" style="margin-bottom: 0;">
+                                        <span class="card-tl-cat cat-finanse">Rozliczenie (Kosztowe)</span>
+                                        <div style="font-weight:700; font-size:13px; color:var(--danger)">Otrzymano FV kosztową <span style="float:right; font-size:11px; color:var(--text-muted)">18.01.2026</span></div>
+                                        <div style="font-size:12px; margin-top:5px; color:var(--text-muted)">Faktura nr FV/123/26 na kwotę 1400 PLN Netto.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Galeria / Dokumenty -->
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-images"></i> Pliki, Protokoły i Galeria Zdjęć</div>
+                            <div class="card-body">
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Dokumenty (Od partnera)</div>
+                                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px; margin-bottom: 20px;">
+                                    <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:10px 15px; border:1px solid var(--border-light); border-radius:8px; font-size:13px; font-weight:600;">
+                                        <span><i class="fa-solid fa-file-pdf" style="color:var(--danger)"></i> Umowa_Podnajmu_Rent24.pdf</span>
+                                        <a href="#" style="color:var(--accent-blue); text-decoration:none;">Pobierz</a>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:10px 15px; border:1px solid var(--border-light); border-radius:8px; font-size:13px; font-weight:600;">
+                                        <span><i class="fa-solid fa-file-pdf" style="color:var(--danger)"></i> Protokol_Zwrotu_z_Uwagami.pdf</span>
+                                        <a href="#" style="color:var(--accent-blue); text-decoration:none;">Pobierz</a>
+                                    </div>
+                                </div>
+
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Zdjęcia z Odbioru (01.01.2026)</div>
+                                <div class="gallery-grid">
+                                    <div class="gallery-item"><i class="fa-regular fa-image"></i><div class="gallery-label">Czyste Wnętrze</div></div>
+                                    <div class="gallery-item"><i class="fa-regular fa-image"></i><div class="gallery-label">Licznik (12.4k)</div></div>
+                                </div>
+
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-top: 20px;">Zdjęcia ze Zwrotu (15.01.2026)</div>
+                                <div class="gallery-grid">
+                                    <div class="gallery-item"><i class="fa-regular fa-image"></i><div class="gallery-label">Plama (Kanapa)</div></div>
+                                    <div class="gallery-item" style="border-style:dashed;" onclick="alert('Moduł wgrywania plików w przygotowaniu')"><i class="fa-solid fa-plus"></i><div class="gallery-label">Dodaj dowód</div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL: DODAJ KOREKTĘ / NOTATKĘ POST-FACTUM -->
+    <div class="modal-overlay" id="correctionModal">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header"><h3 style="color:#b91c1c; font-weight:800;"><i class="fa-solid fa-folder-plus"></i> Dodaj Korektę do Archiwum</h3><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('correctionModal')"></i></div>
+            <div class="modal-body">
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Wpis zostanie dodany do osi czasu jako zdarzenie z adnotacją post-factum. Używaj np. w przypadku opóźnionych faktur od partnera lub dodatkowych obciążeń po zamknięciu sprawy.</p>
+                <form id="correctionForm">
+                    <div class="form-group">
+                        <label class="creator-label required">Data Korekty / Zdarzenia</label>
+                        <input type="date" id="kor_date" class="creator-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="creator-label required">Typ Zdarzenia Post-Factum</label>
+                        <select id="kor_type" class="creator-input" required>
+                            <option value="">-- Wybierz rodzaj --</option>
+                            <option value="Dodatkowa Faktura Kosztowa">Otrzymano dodatkową FV od partnera</option>
+                            <option value="Korekta FV">Otrzymano korektę faktury od wypożyczalni</option>
+                            <option value="Zwrot Kaucji">Partner zwrócił opóźnioną kaucję</option>
+                            <option value="Spór z Partnerem">Zgłoszenie sporu dot. uszkodzeń</option>
+                            <option value="Inne">Inna notatka operacyjna</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="creator-label required">Dokładny opis zmiany / Informacja dla księgowości</label>
+                        <textarea id="kor_note" class="creator-input" rows="4" placeholder="np. Wypożyczalnia dosłała FV za mandat z fotoradaru z dnia 10.01. Należy obciążyć naszego klienta..." required></textarea>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:30px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('correctionModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-danger"><i class="fa-solid fa-thumbtack"></i> Zapisz w Aktach</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skrypty -->
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
+            if (submenu.style.display === "none") {
+                submenu.style.display = "block";
+                if(icon) icon.style.transform = "rotate(180deg)";
+            } else {
+                submenu.style.display = "none";
+                if(icon) icon.style.transform = "rotate(0deg)";
+            }
+        }
+
+        function toggleViews(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showArchiveDetails(reg) {
+            document.getElementById('detail-reg').innerText = reg;
+            toggleViews('view-details');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // --- NOWOŚĆ: Pokazywanie/Ukrywanie powodu braku wpłaty FV ---
+        function toggleInvoiceReason() {
+            const status = document.getElementById('invoiceStatus').value;
+            const reasonGroup = document.getElementById('invoiceReasonGroup');
+            
+            if (status === 'oplacona') {
+                reasonGroup.style.display = 'none';
+            } else {
+                reasonGroup.style.display = 'flex';
+                const label = reasonGroup.querySelector('label');
+                const input = reasonGroup.querySelector('input');
+
+                if (status === 'korekta') {
+                    label.innerText = 'Powód wstrzymania (dlaczego czekamy na korektę?)';
+                    label.style.color = 'var(--warning)';
+                    input.style.borderColor = 'var(--warning)';
+                } else if (status === 'potracenie') {
+                    label.innerText = 'Z czym skompensowano fakturę? (Notatka)';
+                    label.style.color = 'var(--accent-blue)';
+                    input.style.borderColor = 'var(--accent-blue)';
+                } else {
+                    label.innerText = 'Powód opóźnienia / braku płatności';
+                    label.style.color = 'var(--danger)';
+                    input.style.borderColor = 'var(--danger)';
+                }
+            }
+        }
+        
+        // Wywołaj na start, żeby dopasować wygląd
+        document.addEventListener("DOMContentLoaded", toggleInvoiceReason);
+
+        // --- TRYB EDYCJI ADMINISTRATORA (INLINE EDIT) ---
+        let isArchiveEditMode = false;
+        function toggleArchiveEditMode() {
+            const btn = document.getElementById('adminEditBtn');
+            const fields = document.querySelectorAll('#view-details .info-edit');
+            
+            isArchiveEditMode = !isArchiveEditMode;
+            
+            if (isArchiveEditMode) {
+                // Odblokowanie
+                fields.forEach(f => f.setAttribute('contenteditable', 'true'));
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Zapisz Zmiany (Admin)';
+                btn.style.background = 'var(--success)';
+                btn.style.borderColor = 'var(--success)';
+                alert("TRYB ADMINISTRATORA: Edycja odblokowana. Zmiana tych danych powinna być wykonywana wyłącznie w celu korekty błędów (literówek). Zmiany modyfikują wpisy w bazie kosztowej DTD.");
+            } else {
+                // Zapisanie
+                fields.forEach(f => f.removeAttribute('contenteditable'));
+                btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole"></i> Tryb Edycji (Admin)';
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                alert("Zmiany zapisane. Baza kosztów i logistyki została zaktualizowana.");
+            }
+        }
+
+        // --- DODAWANIE KOREKT (MODAL) ---
+        function openCorrectionModal() {
+            document.getElementById('kor_date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('correctionModal').style.display = 'flex';
+        }
+
+        document.getElementById('correctionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const date = document.getElementById('kor_date').value;
+            const type = document.getElementById('kor_type').value;
+            const note = document.getElementById('kor_note').value;
+            
+            const tl = document.getElementById('archiveTimeline');
+            const div = document.createElement('div');
+            div.className = `card-tl-item`;
+            
+            const d = new Date(date);
+            const formattedDate = d.toLocaleDateString('pl-PL');
+
+            div.innerHTML = `<span class="card-tl-cat cat-korekta">Korekta / Adnotacja</span>
+                             <div style="font-weight:700; font-size:13px; color:var(--text-dark);">${type} <span style="float:right; font-size:11px; color:var(--danger); font-weight:800;">${formattedDate} (Post-Factum)</span></div>
+                             <div style="font-size:12.5px; margin-top:8px; color:var(--text-muted); border-top: 1px dashed var(--border-color); padding-top: 8px;">${note}</div>`;
+            
+            tl.prepend(div);
+            
+            closeModal('correctionModal');
+            this.reset();
+        });
+
+    </script>
+</body>
+</html>
