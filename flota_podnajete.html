@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTD Serwis - Pojazdy Podnajęte</title>
+    
+    <!-- Biblioteki Zewnętrzne -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           KONFIGURACJA UI I MOTYWU BAZOWEGO
+           ========================================= */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent-blue: #6366f1; /* INDYGO dla podnajmów (wyróżnienie floty zewn.) */
+            --accent-hover: #4f46e5;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+
+            --dark-panel: #0f1419;
+            --dark-input: #1a1f26;
+            --dark-border: #2a3136;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* =========================================
+           SIDEBAR (ZGODNY Z ERP)
+           ========================================= */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.15); }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .sidebar-header { padding: 35px 25px; font-size: 24px; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px; }
+        .sidebar-header span { color: var(--accent-blue); }
+        
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 12px 25px; margin: 2px 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 14px; transition: 0.2s; cursor: pointer; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: var(--sidebar-hover); color: white; }
+        .nav-item.active { background-color: rgba(99, 102, 241, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; }
+
+        .submenu { background-color: rgba(0,0,0,0.2); margin-bottom: 5px; padding: 5px 0; display: none; }
+        .submenu-label { padding: 12px 25px 5px 55px; font-size: 10px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 1px; }
+        .submenu-item { padding: 8px 25px 8px 55px; display: block; color: #94a3b8; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
+        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
+        .submenu-item.active { color: white; font-weight: 700; border-left-color: var(--accent-blue); }
+
+        /* =========================================
+           TOPBAR & WRAPPER
+           ========================================= */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 0 40px; height: 80px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; }
+        .search-bar { background: #f1f5f9; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; width: 350px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 500; }
+        
+        .content-area { padding: 40px; overflow-y: auto; flex: 1; position: relative; }
+        .view-panel { display: none; animation: fadeIn 0.4s ease; }
+        .view-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* BAZOWE ELEMENTY */
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 30px; overflow: hidden; transition: 0.3s; }
+        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 14px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
+        .card-body { padding: 30px; }
+
+        /* TABELA */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-color); }
+        td { padding: 18px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+        tr:hover td { background-color: #f8fafc; cursor: pointer; }
+
+        .status-badge { padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; display: inline-block; }
+        .st-active { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .st-delayed { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; animation: pulse 2s infinite;}
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        
+        .reg-badge { background: #1e293b; color: #fff; padding: 4px 12px; border-radius: 6px; font-family: 'Courier New', monospace; font-weight: 800; font-size: 14px; letter-spacing: 1px; display: inline-block; text-transform: uppercase; }
+
+        /* BUTTONY */
+        .btn { padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-primary { background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2); }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #b91c1c; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); }
+        .btn-secondary { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-secondary:hover { background: var(--bg-body); }
+        .btn-small { padding: 6px 12px; font-size: 11px; }
+
+        /* =========================================
+           WIDOK DETALI PODNAJMU
+           ========================================= */
+        .details-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: start; }
+        @media (max-width: 1100px) { .details-grid { grid-template-columns: 1fr; } }
+        .info-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; font-size: 13.5px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; }
+        .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        .info-label { color: var(--text-muted); font-weight: 600; width: 45%; flex-shrink: 0;}
+        .info-value { font-weight: 700; color: var(--text-main); text-align: right; word-break: break-word;}
+        
+        #view-details .info-edit[contenteditable="true"] { background-color: #fffbeb; border: 1px dashed #fbbf24; padding: 2px 6px; border-radius: 4px; outline: none; cursor: text; transition: 0.2s; }
+        #view-details .info-edit[contenteditable="true"]:focus { background-color: white; border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+
+        /* Panel Zwrotu (Return Panel) */
+        .return-panel { display: none; background: #fffbeb; border: 1px solid #fde68a; border-radius: 16px; padding: 25px; margin-top: 20px; animation: fadeIn 0.3s; }
+        .return-panel.active { display: block; }
+        .return-header { font-size: 15px; font-weight: 800; color: #b45309; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #fde68a;}
+
+        .bypass-box { display: flex; align-items: center; gap: 10px; background: white; padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 20px; }
+        .bypass-box:hover { border-color: var(--warning); background: #fef3c7; }
+        .bypass-box input { width: 18px; height: 18px; accent-color: var(--warning); cursor: pointer; }
+        .protocol-fields { display: block; }
+        .protocol-fields.hidden { display: none; }
+
+        /* =========================================
+           KREATOR FORMULARZA
+           ========================================= */
+        .form-grid { display: grid; gap: 20px; margin-bottom: 20px; }
+        .form-row-2 { grid-template-columns: 1fr 1fr; }
+        .form-row-3 { grid-template-columns: repeat(3, 1fr); }
+        @media (max-width: 800px) { .form-row-3 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .form-row-2, .form-row-3 { grid-template-columns: 1fr; } }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        
+        .creator-label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .required::after { content: '*'; color: var(--danger); margin-left: 4px; font-size: 14px; }
+        
+        .creator-input { padding: 14px 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: var(--text-main); background: white; outline: none; transition: 0.3s; font-family: inherit; width: 100%; }
+        .creator-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        textarea.creator-input { resize: vertical; min-height: 80px; }
+        .creator-input:disabled { background: #f1f5f9; color: var(--text-muted); cursor: not-allowed; }
+
+        .plate-input { text-transform: uppercase; font-weight: 800; font-size: 16px !important; letter-spacing: 2px; color: var(--accent-blue) !important; text-align: center; }
+
+        /* Typ podwykonawcy (Przełącznik) */
+        .type-switch { display: flex; background: #f1f5f9; padding: 5px; border-radius: 10px; border: 1px solid var(--border-color); width: max-content; margin-bottom: 20px; }
+        .type-option { padding: 10px 25px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; color: var(--text-muted); transition: 0.2s; user-select: none; }
+        .type-option.active { background: white; color: var(--accent-blue); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+        /* Upload / Dokumenty */
+        .upload-zone { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 25px; text-align: center; background: #f8fafc; cursor: pointer; transition: 0.2s; margin-bottom: 15px;}
+        .upload-zone:hover { border-color: var(--accent-blue); background: #eef2ff; }
+        .upload-zone i { font-size: 28px; color: #94a3b8; margin-bottom: 10px; display: block; transition: 0.3s;}
+        .upload-zone:hover i { color: var(--accent-blue); transform: translateY(-3px);}
+
+        /* Informacyjne */
+        .form-info-box { background: #f0f9ff; border-left: 4px solid var(--accent-blue); padding: 15px; border-radius: 0 8px 8px 0; font-size: 12.5px; color: var(--text-muted); margin-bottom: 25px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR KOMPLETNY (ZGODNY Z ERP) -->
+    <div class="sidebar">
+        <div class="sidebar-header"><span>DTD</span> Serwis</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+            
+            <div class="nav-item active has-submenu" onclick="toggleSubmenu('submenu-samochody')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car"></i> Samochody</div>
+                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px; transform: rotate(180deg);"></i>
+            </div>
+            <div class="submenu" id="submenu-samochody" style="display: block;">
+                <div class="submenu-label">Najmy</div>
+                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+                <div class="submenu-label">Flota własna</div>
+                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+                <a href="flota_podnajete.html" class="submenu-item active">Pojazdy podnajęte</a>
+                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+            </div>
+
+            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> Oględziny</a>
+            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+            <a href="magazyn.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i części</a>
+            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+            </div>
+            <div class="submenu" id="submenu-naprawy">
+                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            </div>
+
+            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator dokumentów</a>
+        </div>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <div class="topbar">
+            <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Szukaj po nr rejestracyjnym lub partnerze..."></div>
+            <div class="user-info">
+                <i class="fa-regular fa-bell" style="font-size:20px; cursor:pointer; color:var(--text-muted); margin-right:20px;"></i>
+                <span style="font-weight:700;">admin@dtdserwis.pl</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- WIDOK 1: REJESTR PODNAJMÓW -->
+            <div id="view-list" class="view-panel active">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-car-on" style="color:var(--accent-blue)"></i> Zarządzanie Flotą Zewnętrzną (Podnajmy)</div>
+                    <button class="btn btn-primary" onclick="toggleViews('view-form')"><i class="fa-solid fa-plus-circle"></i> Wprowadź Nowy Podnajem</button>
+                </div>
+
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pojazd (Nr Rej)</th>
+                                <th>Podwykonawca (Wypożyczalnia)</th>
+                                <th>Okres Wynajmu</th>
+                                <th>Stawka Netto (Koszt DTD)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr onclick="showSubleaseDetails('KR 99887')">
+                                <td><span class="reg-badge">KR 99887</span><br>Kia Ceed (C)</td>
+                                <td><strong>RentACar 24 Sp. z o.o.</strong><br><small class="text-muted">NIP: 9876543210</small></td>
+                                <td>Od: 10.02.2026<br><small class="text-muted">Do: 20.02.2026</small></td>
+                                <td style="font-weight:800;">100,00 zł / doba</td>
+                                <td><span class="status-badge st-active">Trwa najem</span></td>
+                            </tr>
+                            <tr onclick="showSubleaseDetails('WA 55667')">
+                                <td><span class="reg-badge">WA 55667</span><br>Skoda Fabia (B)</td>
+                                <td><strong>Jan Kowalski (Osoba Prywatna)</strong><br><small class="text-muted">PESEL: 80101012345</small></td>
+                                <td>Od: 01.02.2026<br><small class="text-muted">Do: Odwołania</small></td>
+                                <td style="font-weight:800;">80,00 zł / doba</td>
+                                <td><span class="status-badge st-active">Trwa najem (Bezterminowy)</span></td>
+                            </tr>
+                            <tr onclick="showSubleaseDetails('PO 11223')">
+                                <td><span class="reg-badge">PO 11223</span><br>Renault Master (Dostawczy)</td>
+                                <td><strong>VanRent Polska</strong><br><small class="text-muted">NIP: 1112223334</small></td>
+                                <td>Od: 15.01.2026<br><small class="text-muted">Do: 15.02.2026</small></td>
+                                <td style="font-weight:800;">220,00 zł / doba</td>
+                                <td><span class="status-badge st-delayed">Przekroczony termin!</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WIDOK 2: KARTA DETALI PODNAJMU -->
+            <div id="view-details" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-folder-open"></i> Karta Podnajmu: <span id="detail-reg" style="color:var(--accent-blue)">KR 99887</span></div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-arrow-left"></i> Wróć</button>
+                        <button class="btn btn-secondary" id="editDetailsBtn" onclick="toggleEditMode()"><i class="fa-solid fa-pen"></i> Edytuj Akta</button>
+                        <button class="btn btn-danger" onclick="toggleReturnMode()"><i class="fa-solid fa-right-left"></i> Zakończ (Zwróć auto partnerowi)</button>
+                    </div>
+                </div>
+
+                <div class="details-grid">
+                    
+                    <div class="left-col">
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-car"></i> 1. Dane Wynajętego Pojazdu</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Marka i Model:</div><div class="info-value info-edit">Kia Ceed</div></div>
+                                <div class="info-row"><div class="info-label">Numer Rejestracyjny:</div><div class="info-value"><span class="reg-badge info-edit">KR 99887</span></div></div>
+                                <div class="info-row"><div class="info-label">Numer VIN:</div><div class="info-value info-edit" style="font-family:monospace;">U5YHxxxxxxxxxxx</div></div>
+                                <div class="info-row"><div class="info-label">Segment / Klasa:</div><div class="info-value info-edit">Klasa C</div></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-building"></i> 2. Partner Zewnętrzny (Podwykonawca)</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Nazwa Firmy / Osoby:</div><div class="info-value info-edit">RentACar 24 Sp. z o.o.</div></div>
+                                <div class="info-row"><div class="info-label">NIP / PESEL:</div><div class="info-value info-edit">9876543210</div></div>
+                                <div class="info-row"><div class="info-label">Osoba kontaktowa:</div><div class="info-value info-edit">Tomasz Wypożyczalnia</div></div>
+                                <div class="info-row"><div class="info-label">Telefon:</div><div class="info-value info-edit">+48 111 222 333</div></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-file-invoice-dollar"></i> 3. Nasze Koszty i Warunki Podnajmu</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Data Odebrania:</div><div class="info-value info-edit">10.02.2026 10:00</div></div>
+                                <div class="info-row"><div class="info-label">Planowany Zwrot:</div><div class="info-value info-edit">20.02.2026 10:00</div></div>
+                                <div style="border-top: 1px dashed var(--border-light); margin: 15px 0;"></div>
+                                <div class="info-row"><div class="info-label">Stawka Netto (Koszt DTD):</div><div class="info-value info-edit" style="color:var(--accent-blue); font-size:15px;">100,00 zł / doba</div></div>
+                                <div class="info-row"><div class="info-label">Kaucja wpłacona:</div><div class="info-value info-edit">1 000,00 zł</div></div>
+                                <div class="info-row"><div class="info-label">Limit kilometrów:</div><div class="info-value info-edit" style="color:var(--danger)">150 km / doba</div></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="right-col">
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-folder-open"></i> 4. Dokumenty i Zdjęcia Startowe</div>
+                            <div class="card-body">
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Umowa z Partnerem</div>
+                                <div style="display:flex; justify-content:space-between; background:#f8fafc; padding:12px 15px; border:1px solid var(--border-light); border-radius:8px; font-size:13px; font-weight:600; margin-top:10px; margin-bottom: 20px;">
+                                    <span><i class="fa-solid fa-file-pdf" style="color:var(--danger)"></i> umowa_podnajmu.pdf</span>
+                                    <a href="#" style="color:var(--accent-blue); text-decoration:none;">Podgląd</a>
+                                </div>
+
+                                <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Zdjęcia Odebranego Auta (Stan)</div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                                    <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; height: 70px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 20px;"><i class="fa-regular fa-image"></i></div>
+                                    <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; height: 70px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 20px;"><i class="fa-regular fa-image"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PANEL ZWROTU (UKRYTY DOMYŚLNIE) -->
+                        <div class="return-panel" id="returnCard">
+                            <div class="return-header"><i class="fa-solid fa-box-archive"></i> Zakończenie i Zwrot do Wypożyczalni</div>
+                            
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label class="creator-label required" style="color:#b45309">Data i godzina faktycznego zwrotu</label>
+                                <input type="datetime-local" class="creator-input" id="returnDateActual" style="border-color:#fde68a;">
+                            </div>
+
+                            <label class="bypass-box" id="bypassLabel">
+                                <input type="checkbox" id="bypassProtocol" onchange="toggleProtocol()">
+                                <span style="flex: 1;">Odstępuję od dodawania protokołu zwrotu (np. zaufany partner odebrał auto bez oględzin lub sprawa w toku).</span>
+                            </label>
+
+                            <div class="protocol-fields" id="protocolFields">
+                                <div class="upload-zone" onclick="document.getElementById('fileUploadReturnProtocol').click()" style="margin-bottom: 15px; padding: 20px; border-color:#fde68a; background:white;">
+                                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 20px; color:#b45309;"></i>
+                                    <div style="font-size: 12px; font-weight: 700; color: var(--text-dark);">Wgraj Protokół Zwrotu (Od podwykonawcy)</div>
+                                    <input type="file" id="fileUploadReturnProtocol" style="display: none;" accept="image/*,application/pdf">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <label class="creator-label">Przebieg końcowy przy zdaniu (KM)</label>
+                                    <input type="number" class="creator-input" placeholder="Stan licznika">
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <label class="creator-label" style="color:var(--danger)">Dodatkowe obciążenia / Kary od wypożyczalni (PLN)</label>
+                                    <input type="number" step="0.01" class="creator-input" placeholder="np. 150.00 (Braki paliwa, mycie)">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="creator-label">Uwagi do zwrotu / Opis obciążeń</label>
+                                    <textarea class="creator-input" placeholder="Np. Wypożyczalnia potrąciła 150 zł z kaucji za brudną tapicerkę po naszym kliencie. Koszt należy zrefakturować na naszego klienta." style="min-height: 80px;"></textarea>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-danger" style="width: 100%; justify-content: center; margin-top: 20px; padding: 15px; font-size: 14px;" onclick="archiveSublease()">
+                                <i class="fa-solid fa-lock"></i> Zakończ Podnajem i Archiwizuj
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDOK 3: KREATOR PODNAJMU (FORMULARZ DODAWANIA) -->
+            <div id="view-form" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-car-side" style="color:var(--accent-blue)"></i> Rejestracja Nowego Pojazdu Podnajętego</div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-xmark"></i> Anuluj</button>
+                        <button class="btn btn-primary" onclick="saveSublease()"><i class="fa-solid fa-save"></i> Zapisz Podnajem w Systemie</button>
+                    </div>
+                </div>
+
+                <div class="form-container">
+                    <div class="form-erp-card" style="background: white; border-color: var(--border-color); color: var(--text-main); box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 30px;">
+                        <form id="subleaseForm">
+                            
+                            <div class="form-info-box">
+                                <i class="fa-solid fa-circle-info" style="color:var(--accent-blue); margin-right:5px;"></i>
+                                Pamiętaj: Pojazdy podnajęte od razu trafiają do puli aut dostępnych do wydania w kreatorze "Wydaj Auto". Skrupulatnie zapisz limit kilometrów ustalony przez partnera, abyśmy nie przekroczyli go na umowie z naszym klientem docelowym!
+                            </div>
+
+                            <div class="card" style="box-shadow:none; border-color:#cbd5e1;">
+                                <div class="card-header" style="background:#f8fafc;"><i class="fa-solid fa-car"></i> 1. Dane Wynajętego Pojazdu</div>
+                                <div class="card-body">
+                                    <div class="form-grid form-row-2">
+                                        <div class="form-group">
+                                            <label class="creator-label required">Marka i Model</label>
+                                            <input type="text" class="creator-input" placeholder="np. Kia Ceed" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="creator-label required">Numer Rejestracyjny</label>
+                                            <input type="text" class="creator-input plate-input" placeholder="WA 12345" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="creator-label">Numer VIN (Opcjonalnie)</label>
+                                            <input type="text" class="creator-input" placeholder="Przydatne do ew. mandatów z fotoradarów">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="creator-label required">Segment / Klasa (Dla TU)</label>
+                                            <select class="creator-input" required>
+                                                <option value="" disabled selected>-- Wybierz klasę --</option>
+                                                <option>Klasa A</option>
+                                                <option>Klasa B</option>
+                                                <option>Klasa C</option>
+                                                <option>Klasa D / SUV</option>
+                                                <option>Dostawczy / Specjalny</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card" style="box-shadow:none; border-color:#cbd5e1;">
+                                <div class="card-header" style="background:#f8fafc;"><i class="fa-solid fa-building"></i> 2. Podwykonawca (Od kogo bierzemy pojazd)</div>
+                                <div class="card-body">
+                                    
+                                    <div class="type-switch">
+                                        <div class="type-option active" id="btn-firma" onclick="setPartnerType('firma')">Firma / Wypożyczalnia</div>
+                                        <div class="type-option" id="btn-osoba" onclick="setPartnerType('osoba')">Osoba Fizyczna</div>
+                                    </div>
+
+                                    <div class="form-grid form-row-2">
+                                        <div class="form-group">
+                                            <label class="creator-label required" id="partnerNameLabel">Nazwa Wypożyczalni / Firmy</label>
+                                            <input type="text" class="creator-input" id="partnerNameInput" placeholder="np. RentACar 24" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="creator-label" id="partnerIdLabel">NIP Wypożyczalni</label>
+                                            <input type="text" class="creator-input" id="partnerIdInput" placeholder="Numer identyfikacyjny">
+                                        </div>
+                                    </div>
+                                    <div class="form-grid form-row-2" style="border-top: 1px dashed var(--border-color); padding-top: 20px; margin-top: 5px;">
+                                        <div class="form-group">
+                                            <label class="creator-label">Osoba kontaktowa z ramienia wynajmującego</label>
+                                            <input type="text" class="creator-input" placeholder="Imię i nazwisko">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="creator-label">Telefon kontaktowy</label>
+                                            <input type="tel" class="creator-input" placeholder="+48...">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card" style="box-shadow:none; border-color:#cbd5e1;">
+                                <div class="card-header" style="background:#f8fafc;"><i class="fa-solid fa-file-invoice-dollar"></i> 3. Warunki Podnajmu i Finanse</div>
+                                <div class="card-body">
+                                    <div class="form-grid form-row-3">
+                                        <div class="form-group">
+                                            <label class="creator-label required">Data i godzina ODEBRANIA przez nas</label>
+                                            <input type="datetime-local" class="creator-input" id="startDate" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="creator-label required">Planowana data ZWROTU</label>
+                                            <input type="datetime-local" class="creator-input" id="plannedReturnDate" required>
+                                            <label style="display: flex; align-items: center; gap: 6px; margin-top: 8px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text-muted);">
+                                                <input type="checkbox" id="indefiniteToggle" onchange="toggleIndefinite()" style="width: 16px; height: 16px; accent-color: var(--accent-blue);"> 
+                                                Najem bezterminowy (Do odwołania)
+                                            </label>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="creator-label required">Stawka dobowa NETTO (Nasz koszt)</label>
+                                            <input type="number" step="0.01" class="creator-input" placeholder="np. 90.00" required style="font-weight:700; color:var(--accent-blue)">
+                                        </div>
+                                    </div>
+                                    <div class="form-grid form-row-2" style="border-top: 1px dashed var(--border-color); padding-top: 20px; margin-top: 5px;">
+                                        <div class="form-group">
+                                            <label class="creator-label">Wpłacona przez nas Kaucja (PLN)</label>
+                                            <input type="number" step="1" class="creator-input" placeholder="np. 1000">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="creator-label required" style="color:var(--danger)">Limit kilometrów nakazany przez partnera!</label>
+                                            <input type="text" class="creator-input" placeholder="np. 150 km/doba (Zapisz skrupulatnie!)" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card" style="box-shadow:none; border-color:#cbd5e1; margin-bottom:0;">
+                                <div class="card-header" style="background:#f8fafc;"><i class="fa-solid fa-folder-open"></i> 4. Dokumenty i Zdjęcia (Odbiór)</div>
+                                <div class="card-body">
+                                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Zabezpiecz nasz serwis! Wgraj umowę, protokół oraz zdjęcia auta w momencie, gdy odebraliśmy je od podwykonawcy, aby nie płacić za nieswoje uszkodzenia.</p>
+                                    
+                                    <div class="form-grid form-row-2">
+                                        <div class="upload-zone" onclick="document.getElementById('fileUploadAgrement').click()">
+                                            <i class="fa-solid fa-file-contract"></i>
+                                            <div style="font-size: 14px; font-weight: 700; color: var(--text-dark);">Umowa Podnajmu / Protokół</div>
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Plik PDF lub Zdjęcie</div>
+                                            <input type="file" id="fileUploadAgrement" style="display: none;" accept="image/*,application/pdf" multiple>
+                                        </div>
+
+                                        <div class="upload-zone" onclick="document.getElementById('fileUploadPhotos').click()">
+                                            <i class="fa-solid fa-camera"></i>
+                                            <div style="font-size: 14px; font-weight: 700; color: var(--text-dark);">Zdjęcia Odebranego Auta</div>
+                                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Licznik, paliwo i uszkodzenia zastane</div>
+                                            <input type="file" id="fileUploadPhotos" style="display: none;" accept="image/*" multiple>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Skrypty -->
+    <script>
+        // Nawigacja
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
+            if (submenu.style.display === "none") {
+                submenu.style.display = "block";
+                if(icon) icon.style.transform = "rotate(180deg)";
+            } else {
+                submenu.style.display = "none";
+                if(icon) icon.style.transform = "rotate(0deg)";
+            }
+        }
+
+        function toggleViews(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Ukryj panel zwrotu, jeśli przechodzimy do innej karty
+            if(viewId !== 'view-details') {
+                const returnCard = document.getElementById('returnCard');
+                if(returnCard) returnCard.style.display = 'none';
+            }
+        }
+
+        function showSubleaseDetails(reg) {
+            const badge = document.getElementById('detail-reg');
+            if(badge) badge.innerText = reg;
+            toggleViews('view-details');
+        }
+
+        // Tryb Edycji w Karcie
+        let isEditMode = false;
+        function toggleEditMode() {
+            const btn = document.getElementById('editDetailsBtn');
+            const fields = document.querySelectorAll('#view-details .info-edit');
+            
+            isEditMode = !isEditMode;
+            
+            if (isEditMode) {
+                fields.forEach(f => f.setAttribute('contenteditable', 'true'));
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Zapisz Akta';
+                btn.style.background = 'var(--success)';
+                btn.style.borderColor = 'var(--success)';
+                btn.style.color = 'white';
+            } else {
+                fields.forEach(f => f.removeAttribute('contenteditable'));
+                btn.innerHTML = '<i class="fa-solid fa-pen"></i> Edytuj Akta';
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                btn.style.color = '';
+                alert("Aktualizacje zostały zapisane w bazie DTD.");
+            }
+        }
+
+        // ==========================================
+        // LOGIKA KREATORA I ZWROTU
+        // ==========================================
+        
+        document.addEventListener("DOMContentLoaded", () => {
+            const now = new Date();
+            // Poprawne formatowanie daty do elementu datetime-local
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+            
+            const startInput = document.getElementById('startDate');
+            if(startInput) startInput.value = localDateTime;
+        });
+
+        // Typ Podwykonawcy (Firma vs Osoba fizyczna)
+        function setPartnerType(type) {
+            const btnFirma = document.getElementById('btn-firma');
+            const btnOsoba = document.getElementById('btn-osoba');
+            if(btnFirma) btnFirma.classList.remove('active');
+            if(btnOsoba) btnOsoba.classList.remove('active');
+            
+            const activeBtn = document.getElementById('btn-' + type);
+            if(activeBtn) activeBtn.classList.add('active');
+
+            const nameLabel = document.getElementById('partnerNameLabel');
+            const nameInput = document.getElementById('partnerNameInput');
+            const idLabel = document.getElementById('partnerIdLabel');
+
+            if(!nameLabel || !nameInput || !idLabel) return;
+
+            if (type === 'firma') {
+                nameLabel.innerText = 'Nazwa Wypożyczalni / Firmy';
+                nameInput.placeholder = 'np. RentACar 24';
+                idLabel.innerText = 'NIP Wypożyczalni';
+            } else {
+                nameLabel.innerText = 'Imię i Nazwisko Właściciela';
+                nameInput.placeholder = 'Jan Kowalski';
+                idLabel.innerText = 'PESEL Właściciela';
+            }
+        }
+
+        // Najem Bezterminowy
+        function toggleIndefinite() {
+            const isChecked = document.getElementById('indefiniteToggle').checked;
+            const dateInput = document.getElementById('plannedReturnDate');
+            if(!dateInput) return;
+            
+            if (isChecked) {
+                dateInput.value = '';
+                dateInput.disabled = true;
+                dateInput.removeAttribute('required');
+            } else {
+                dateInput.disabled = false;
+                dateInput.setAttribute('required', 'true');
+            }
+        }
+
+        // Zapis Podnajmu (Kreator)
+        function saveSublease() {
+            const form = document.getElementById('subleaseForm');
+            if(!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            alert('Sukces! Pojazd z podnajmu został wprowadzony. Od teraz jest widoczny w puli aut dostępnych do wydania klientom.');
+            form.reset();
+            toggleViews('view-list');
+        }
+
+        // ==========================================
+        // PANEL ZWROTU W KARCIE
+        // ==========================================
+        function toggleReturnMode() {
+            const returnCard = document.getElementById('returnCard');
+            if(!returnCard) return;
+
+            returnCard.style.display = 'block';
+            
+            const retDateInput = document.getElementById('returnDateActual');
+            if(retDateInput) {
+                const now = new Date();
+                retDateInput.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+            }
+            
+            returnCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function toggleProtocol() {
+            const isChecked = document.getElementById('bypassProtocol').checked;
+            const protocolFields = document.getElementById('protocolFields');
+            const bypassLabel = document.getElementById('bypassLabel');
+            
+            if(!protocolFields || !bypassLabel) return;
+
+            if (isChecked) {
+                protocolFields.classList.add('hidden');
+                bypassLabel.style.borderColor = "var(--warning)";
+                bypassLabel.style.background = "#fffbeb";
+            } else {
+                protocolFields.classList.remove('hidden');
+                bypassLabel.style.borderColor = "var(--border-color)";
+                bypassLabel.style.background = "white";
+            }
+        }
+
+        function archiveSublease() {
+            const retDate = document.getElementById('returnDateActual').value;
+            if(!retDate) {
+                alert("Wprowadź datę faktycznego zwrotu pojazdu do partnera!");
+                return;
+            }
+
+            alert("Karta zamknięta! \n\nPojazd został pomyślnie zdany do podwykonawcy. Podnajem został zakończony, a auto znika z Twojej floty i przenosi się do Archiwum.");
+            toggleViews('view-list');
+        }
+    </script>
+</body>
+</html>
