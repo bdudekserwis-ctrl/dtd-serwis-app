@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTD Serwis - Moduł Oględziny PRO</title>
+    
+    <!-- Biblioteki Zewnętrzne -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           KONFIGURACJA UI I MOTYWU BAZOWEGO
+           ========================================= */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent-blue: #0284c7;
+            --accent-hover: #0369a1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+
+            /* Dark theme dla kreatora */
+            --dark-panel: #0f1419;
+            --dark-input: #1a1f26;
+            --dark-border: #2a3136;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* =========================================
+           SIDEBAR (ZGODNY Z ERP)
+           ========================================= */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.15); z-index: 50; }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .sidebar-header { padding: 35px 25px; font-size: 24px; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px; }
+        .sidebar-header span { color: var(--accent-blue); }
+        
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 12px 25px; margin: 2px 10px; border-radius: 10px; display: flex; align-items: center; gap: 12px; color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 13px; transition: 0.2s; cursor: pointer; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: var(--sidebar-hover); color: white; }
+        .nav-item.active { background-color: rgba(2, 132, 199, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; }
+
+        .submenu { background-color: rgba(0,0,0,0.2); margin-bottom: 5px; padding: 5px 0; display: none; }
+        .submenu-label { padding: 12px 25px 5px 55px; font-size: 10px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 1px; }
+        .submenu-item { padding: 8px 25px 8px 55px; display: block; color: #94a3b8; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
+        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
+        .submenu-item.active { color: white; font-weight: 700; border-left-color: var(--accent-blue); }
+
+        /* =========================================
+           TOPBAR & WRAPPER
+           ========================================= */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 0 40px; height: 80px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; }
+        .search-bar { background: #f1f5f9; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; width: 350px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 500; }
+        
+        .content-area { padding: 40px; overflow-y: auto; flex: 1; position: relative; }
+        .view-panel { display: none; animation: fadeIn 0.4s ease; }
+        .view-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           STYLE REJESTRU (TABELA)
+           ========================================= */
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        
+        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 30px; overflow: hidden; }
+        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 14px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
+        .card-body { padding: 30px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-color); }
+        td { padding: 18px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+        tr:hover td { background-color: #f8fafc; cursor: pointer; }
+
+        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .toolbar input, .toolbar select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; }
+
+        /* Badge Statusów */
+        .status-badge { padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; display: inline-block; }
+        .st-planned { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .st-today { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; animation: pulse 2s infinite;}
+        .st-done { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
+        .reg-badge { background: #1e293b; color: #fff; padding: 4px 10px; border-radius: 6px; font-family: 'Courier New', monospace; font-weight: 800; font-size: 13px; letter-spacing: 1px; display: inline-block; text-transform: uppercase; }
+
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .btn-secondary { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-success { background: var(--success); color: white; }
+
+        /* =========================================
+           STYLE DETALI OGLĘDZIN
+           ========================================= */
+        .details-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: start; }
+        @media (max-width: 1024px) { .details-grid { grid-template-columns: 1fr; } }
+        .info-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; font-size: 13.5px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; }
+        .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        .info-label { color: var(--text-muted); font-weight: 600; width: 45%; flex-shrink: 0;}
+        .info-value { font-weight: 700; color: var(--text-main); text-align: right; word-break: break-word;}
+        
+        .score-display { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13px; }
+        .score-good { color: var(--success); }
+        .score-bad { color: var(--danger); }
+        .score-warn { color: var(--warning); }
+
+        .tip-box { background: #fffbeb; border-left: 4px solid var(--warning); padding: 15px; border-radius: 0 8px 8px 0; font-size: 13px; color: #92400e; margin-bottom: 15px; }
+        .badge-ok { background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;}
+
+        /* Edycja Inline */
+        #view-details .info-edit[contenteditable="true"] {
+            background-color: #fffbeb;
+            border: 1px dashed #fbbf24;
+            padding: 2px 6px;
+            border-radius: 4px;
+            outline: none;
+            transition: all 0.2s;
+            cursor: text;
+        }
+
+        /* =========================================
+           STYLE KREATORA (CIEMNY MOTYW ERP)
+           ========================================= */
+        .form-erp-card { background-color: var(--dark-panel); color: #e0e0e0; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid var(--dark-border); }
+        .form-section { display: block; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px dashed var(--dark-border); animation: fadeIn 0.4s ease; }
+        .form-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+        .form-erp-card .section-title { font-size: 16px; font-weight: 700; color: #4a9eff; margin-top: 30px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid rgba(74, 158, 255, 0.2); display: flex; align-items: center; gap: 10px; text-transform: uppercase; }
+        .form-erp-card .section-number { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background-color: #4a9eff; color: #0f1419; border-radius: 50%; font-weight: 800; font-size: 12px; }
+
+        .form-erp-card .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px;}
+        .form-erp-card label { font-size: 11px; font-weight: 600; color: #b0b0b0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-erp-card .required::after { content: ' *'; color: #ff6b6b; }
+
+        .form-erp-card input, .form-erp-card select, .form-erp-card textarea {
+            padding: 12px 15px; background-color: var(--dark-input); border: 1px solid var(--dark-border);
+            border-radius: 8px; color: #e0e0e0; font-size: 14px; font-family: inherit; transition: 0.3s;
+        }
+        .form-erp-card input:focus, .form-erp-card select:focus, .form-erp-card textarea:focus { border-color: #4a9eff; outline: none; background: #232a33; }
+
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        @media (max-width: 600px) { .form-row-2, .form-row-3 { grid-template-columns: 1fr; } }
+
+        /* Scoring Rzeczoznawcy (Grid) */
+        .scoring-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 5px; }
+        .score-option { position: relative; display: block; }
+        .score-option input { position: absolute; opacity: 0; cursor: pointer; }
+        .score-label { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            padding: 15px 10px; background-color: #1a1f26; border: 1px solid var(--dark-border); 
+            border-radius: 8px; color: #8a8a8a; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .score-option:hover .score-label { border-color: #4a9eff; }
+        .score-option input:checked ~ .score-label { border-color: #4a9eff; background: rgba(74, 158, 255, 0.1); color: #fff; }
+        .score-option input[value="zly"]:checked ~ .score-label { border-color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+        .score-option input[value="dobry"]:checked ~ .score-label { border-color: var(--success); background: rgba(16, 185, 129, 0.1); }
+
+        .checklist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; }
+        .checklist-item { display: flex; align-items: center; gap: 10px; background: #1a1f26; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--dark-border); cursor: pointer; transition: 0.2s; }
+        .checklist-item:hover { border-color: #4a9eff; }
+        .checklist-item input { width: 16px; height: 16px; accent-color: #4a9eff; cursor: pointer; }
+        .checklist-item label { font-size: 13px; text-transform: none; font-weight: 500; color: #e0e0e0; cursor: pointer; margin: 0; }
+
+        /* Info box */
+        .info-box { background-color: rgba(74, 158, 255, 0.05); border-left: 3px solid #4a9eff; padding: 15px; margin-bottom: 20px; border-radius: 0 4px 4px 0; font-size: 13px; color: #a0b0c0; }
+
+        /* Modal Procedury */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal-box { background: white; width: 600px; border-radius: 16px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .modal-box h2 { font-size: 18px; margin-bottom: 20px; color: var(--accent-blue); display: flex; align-items: center; gap: 10px; }
+        .modal-box ol { margin-left: 20px; line-height: 1.8; font-size: 14px; }
+        .modal-box li { margin-bottom: 10px; }
+
+        /* Lista dodatkowych oględzin */
+        .additional-list { background: #1a1f26; border-radius: 8px; border: 1px solid var(--dark-border); padding: 15px; margin-top: 15px; }
+        .additional-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--dark-border); font-size: 12.5px; }
+        .additional-item:last-child { border-bottom: none; }
+
+    </style>
+</head>
+<body>
+
+    <!-- GŁÓWNY SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header"><span>DTD</span> Serwis</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-samochody')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car"></i> Samochody</div>
+                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px;"></i>
+            </div>
+            <div class="submenu" id="submenu-samochody">
+                <div class="submenu-label">Najmy</div>
+                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone</a>
+                <div class="submenu-label">Flota własna</div>
+                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+            </div>
+
+            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+            <a href="ogledziny.html" class="nav-item active"><i class="fa-solid fa-magnifying-glass"></i> Oględziny</a>
+            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+            </div>
+            <div class="submenu" id="submenu-naprawy">
+                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharski</a>
+                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+            </div>
+            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator dokumentów</a>
+        </div>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <div class="topbar">
+            <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Szukaj oględzin, nr szkody, VIN..."></div>
+            <div class="user-info">
+                <i class="fa-regular fa-bell" style="font-size:20px; cursor:pointer; color:var(--text-muted); margin-right:20px;"></i>
+                <span style="font-weight:700;">admin@dtdserwis.pl</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- WIDOK 1: REJESTR OGLĘDZIN -->
+            <div id="view-list" class="view-panel active">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-magnifying-glass-chart" style="color:var(--accent-blue)"></i> Rejestr Oględzin Pojazdów</div>
+                    <button class="btn btn-primary" onclick="toggleViews('view-form')"><i class="fa-solid fa-plus-circle"></i> Zaplanuj Oględziny</button>
+                </div>
+
+                <div class="toolbar">
+                    <input type="text" placeholder="Nr szkody...">
+                    <select><option value="">Typ: Wszystkie</option><option>Stacjonarne</option><option>Zdalne</option></select>
+                    <select><option value="">Status: Wszystkie</option><option>Zaplanowane</option><option>W trakcie</option><option>Zakończone</option></select>
+                    <input type="date" placeholder="Data od">
+                </div>
+
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nr Szkody</th>
+                                <th>Pojazd</th>
+                                <th>Termin</th>
+                                <th>Miejsce</th>
+                                <th>Rzeczoznawca</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inspectionsBody">
+                            <tr onclick="showDetails('PL/2026/088192')">
+                                <td><strong>PL/2026/088192</strong><br><small class="text-muted">DTD-2026-090</small></td>
+                                <td><span class="reg-badge">WA 11223</span><br>Audi A4</td>
+                                <td><strong>Dzisiaj, 11:30</strong><br><small class="text-muted">Pierwsze oględziny</small></td>
+                                <td>Warszawa, ul. Przykładowa 1</td>
+                                <td>Jan Kowalski (PZU)</td>
+                                <td><span class="status-badge st-today">NA DZIŚ</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WIDOK 2: KARTA DETALI OGLĘDZIN -->
+            <div id="view-details" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-file-invoice"></i> Akta Oględzin: <span id="detail-nr" style="color:var(--accent-blue)">PL/2026/088192</span></div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-arrow-left"></i> Wróć</button>
+                        <button class="btn btn-warning" id="editDetailsBtn" onclick="toggleEditMode()"><i class="fa-solid fa-pen-to-square"></i> Edytuj Kartę</button>
+                        <button class="btn btn-primary" onclick="alert('Pobieranie pełnego raportu PDF...')"><i class="fa-solid fa-download"></i> Raport PDF</button>
+                        <button class="btn btn-success" onclick="alert('Zakończono oględziny. Dane przeniesiono do kalkulacji kosztorysu.')"><i class="fa-solid fa-lock"></i> Rozlicz i Zamknij</button>
+                    </div>
+                </div>
+
+                <div class="details-grid">
+                    <div class="left-col">
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-circle-info"></i> Informacje o Sprawie i Pojedzie</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Nr Szkody / Powiązanie:</div><div class="info-value info-edit">PL/2026/088192 (DTD-2026-090)</div></div>
+                                <div class="info-row"><div class="info-label">Kolejność:</div><div class="info-value info-edit"><span class="badge-ok">Pierwsze oględziny</span></div></div>
+                                <div class="info-row"><div class="info-label">Pojazd:</div><div class="info-value info-edit">Audi A4 (WA 11223)</div></div>
+                                <div class="info-row"><div class="info-label">Towarzystwo (TU):</div><div class="info-value info-edit">PZU S.A.</div></div>
+                                <div style="border-top:1px dashed var(--border-color); margin:15px 0;"></div>
+                                <div class="info-row"><div class="info-label">Lokalizacja:</div><div class="info-value info-edit">Serwis DTD Warszawa, ul. Przykładowa 1</div></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-magnifying-glass"></i> Wynik i Wnioski Techniczne</div>
+                            <div class="card-body">
+                                <div class="tip-box info-edit">
+                                    <i class="fa-solid fa-lightbulb"></i> <strong>Wskazówki dla warsztatu:</strong> Koniecznie zdemontować zderzak i pokazać rzeczoznawcy pęknięte ślizgi lampy. Zwrócić uwagę na błąd radaru ACC.
+                                </div>
+                                <div class="info-row"><div class="info-label">Pomiary zawieszenia:</div><div class="info-value info-edit" style="color:var(--danger)">WYMAGANE</div></div>
+                                <div class="info-row"><div class="info-label">Weryfikacja bez demontażu:</div><div class="info-value info-edit">NIE</div></div>
+                                <div class="info-row"><div class="info-label">Wykazanie innych wad:</div><div class="info-value info-edit">TAK (poduszki silnika)</div></div>
+                                <div style="border-top:1px dashed var(--border-color); margin:15px 0;"></div>
+                                <div class="info-row"><div class="info-label">Nr Kosztorysu:</div><div class="info-value info-edit">K/2026/01/122</div></div>
+                                <div class="info-row"><div class="info-label">Kwota z Oględzin:</div><div class="info-value info-edit" style="color:var(--accent-blue); font-size:16px;">14 200,50 PLN Brutto</div></div>
+                                <div class="info-row"><div class="info-label">Opis rzeczoznawcy:</div><div class="info-value info-edit">Uszkodzony pas tylny, podłoga bagażnika do prostowania, zderzak i klapa do wymiany.</div></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="right-col">
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-user-tie"></i> Osoby Kontaktowe</div>
+                            <div class="card-body">
+                                <div style="font-size: 11px; font-weight: 800; color:var(--text-muted); margin-bottom:10px;">RZECZOZNAWCA (PZU)</div>
+                                <div class="info-row"><div class="info-label">Imię i Nazwisko:</div><div class="info-value info-edit">Jan Kowalski</div></div>
+                                <div class="info-row"><div class="info-label">Telefon / E-mail:</div><div class="info-value info-edit">+48 500 600 700<br>j.kowalski@pzu.pl</div></div>
+                                <div class="info-row">
+                                    <div class="info-label">Ocena (Scoring):</div>
+                                    <div class="info-value">
+                                        <div class="score-display score-good info-edit"><i class="fa-solid fa-face-smile"></i> Dobry (Rozsądny)</div>
+                                    </div>
+                                </div>
+                                <div style="border-top:1px dashed var(--border-color); margin:15px 0;"></div>
+                                <div style="font-size: 11px; font-weight: 800; color:var(--text-muted); margin-bottom:10px;">LIKWIDATOR PROWADZĄCY</div>
+                                <div class="info-row"><div class="info-label">Osoba w TU:</div><div class="info-value info-edit">Maria Nowak</div></div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-calendar-plus"></i> Terminy Uzupełniające</div>
+                            <div class="card-body">
+                                <div style="font-size: 12px; color:var(--text-muted); margin-bottom:15px;">Brak zaplanowanych dodatkowych oględzin dla tej szkody.</div>
+                                <button class="btn btn-secondary btn-small" style="width:100%" onclick="toggleViews('view-form')">+ Dodaj termin II-gi</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDOK 3: KREATOR OGLĘDZIN (SINGLE PAGE FORM - DARK) -->
+            <div id="view-form" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title" style="color:var(--text-dark)"><i class="fa-solid fa-calendar-plus" style="color:var(--accent-blue)"></i> Planowanie Oględzin Pojazdu</div>
+                    <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-xmark"></i> Anuluj</button>
+                </div>
+
+                <div class="form-erp-card">
+                    <form id="inspectionForm">
+                        
+                        <!-- SEKCJA 1: IDENTYFIKACJA -->
+                        <div class="form-section">
+                            <div class="section-title"><span class="section-number">1</span> Identyfikacja Sprawy i Typ Oględzin</div>
+                            <div class="info-box">Wybierz czy są to pierwsze oględziny czy kolejne (uzupełniające) po demontażu elementów.</div>
+                            
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label class="required">Rodzaj / Kolejność</label>
+                                    <select required>
+                                        <option value="pierwsze" selected>Pierwsze oględziny w sprawie</option>
+                                        <option value="uzupelniajace">Oględziny uzupełniające (II / III termin)</option>
+                                        <option value="powypadkowe">Oględziny po naprawie (weryfikacja jakości)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Nr Szkody (Powiązanie)</label>
+                                    <input type="text" placeholder="np. PL/2026/001234" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row-3">
+                                <div class="form-group">
+                                    <label class="required">Typ Oględzin</label>
+                                    <select required>
+                                        <option value="stacjonarne">Stacjonarne (Wizyta w serwisie)</option>
+                                        <option value="zdalne">Zdalne (Na zdjęciach / Aplikacja)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Status</label>
+                                    <select required>
+                                        <option value="zaplanowane">Zaplanowane</option>
+                                        <option value="w_trakcie">W trakcie realizacji</option>
+                                        <option value="zakonczone">Zakończone</option>
+                                        <option value="anulowane">Anulowane</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Towarzystwo Ubezpieczeń</label>
+                                    <select required>
+                                        <option value="">-- Wybierz TU --</option>
+                                        <option>PZU S.A.</option>
+                                        <option>Warta</option>
+                                        <option>Hestia</option>
+                                        <option>Generali</option>
+                                        <option>Compensa</option>
+                                        <option>mtu</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA 2: TERMIN I MIEJSCE -->
+                        <div class="form-section">
+                            <div class="section-title"><span class="section-number">2</span> Termin i Miejsce Spotkania</div>
+                            <div class="form-row-2">
+                                <div class="form-group"><label class="required">Data Oględzin</label><input type="date" required></div>
+                                <div class="form-group"><label class="required">Godzina</label><input type="time" required></div>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group"><label class="required">Miasto</label><input type="text" placeholder="np. Warszawa" required></div>
+                                <div class="form-group"><label class="required">Ulica i numer</label><input type="text" placeholder="np. ul. Serwisowa 1" required></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">Nazwa Miejsca (Warsztat/Parking)</label>
+                                <input type="text" placeholder="np. DTD Serwis Blacharski" required>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA 3: KONTAKTY I SCORING -->
+                        <div class="form-section">
+                            <div class="section-title"><span class="section-number">3</span> Rzeczoznawca i Kontakty</div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <label>Likwidator prowadzący w TU</label>
+                                <div class="form-row-3">
+                                    <input type="text" placeholder="Imię i Nazwisko">
+                                    <input type="tel" placeholder="Telefon">
+                                    <input type="email" placeholder="E-mail">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="required">Rzeczoznawca (Osoba na miejscu)</label>
+                                <div class="form-row-3">
+                                    <input type="text" placeholder="Imię i Nazwisko" required>
+                                    <input type="tel" placeholder="Telefon">
+                                    <input type="email" placeholder="E-mail">
+                                </div>
+                            </div>
+
+                            <label style="margin-top: 25px; display:block;">Scoring Rzeczoznawcy (Doświadczenia serwisu):</label>
+                            <div class="scoring-group">
+                                <label class="score-option">
+                                    <input type="radio" name="scoring" value="zly">
+                                    <span class="score-label"><i class="fa-solid fa-face-angry"></i> Zły (Tnie koszty)</span>
+                                </label>
+                                <label class="score-option">
+                                    <input type="radio" name="scoring" value="sredni">
+                                    <span class="score-label"><i class="fa-solid fa-face-meh"></i> Średni (Rygorystyczny)</span>
+                                </label>
+                                <label class="score-option">
+                                    <input type="radio" name="scoring" value="dobry" checked>
+                                    <span class="score-label"><i class="fa-solid fa-face-smile"></i> Dobry (Da się dogadać)</span>
+                                </label>
+                                <label class="score-option">
+                                    <input type="radio" name="scoring" value="nie_wiadomo">
+                                    <span class="score-label"><i class="fa-solid fa-circle-question"></i> Nowy / Nieznany</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA 4: TECHNICZNE I WNIOSKI -->
+                        <div class="form-section">
+                            <div class="section-title"><span class="section-number">4</span> Wstępne Wnioski i Procedury</div>
+                            
+                            <div class="form-group">
+                                <label style="color: var(--warning);"><i class="fa-solid fa-triangle-exclamation"></i> Na co zwrócić szczególną uwagę?</label>
+                                <textarea placeholder="Wskazówki dla mechanika: np. pokazać pęknięte mocowania lampy pod zderzakiem..."></textarea>
+                            </div>
+
+                            <label style="margin-top:20px; display:block;">Kluczowe decyzje techniczne:</label>
+                            <div class="checklist-grid">
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="check_pomiary" onchange="checkProcedure(this)">
+                                    <label for="check_pomiary">Konieczność pomiarów zawieszenia</label>
+                                </div>
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="check_demontaz">
+                                    <label for="check_demontaz">Oględziny po demontażu elementów</label>
+                                </div>
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="check_inne" onchange="checkProcedure(this)">
+                                    <label for="check_inne">Konieczność wykazania innych uszkodzeń</label>
+                                </div>
+                            </div>
+
+                            <div id="additionalSection" class="additional-list" style="display:none;">
+                                <label style="color:#4a9eff">Planowane dodatkowe terminy oględzin:</label>
+                                <div id="additionalItems"></div>
+                                <button type="button" class="btn btn-secondary btn-small" style="margin-top:10px" onclick="addAdditionalRow()">+ Dodaj kolejny termin oględzin</button>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA 5: NOTATNIK I WYNIK (ROZLICZENIE) -->
+                        <div class="form-section">
+                            <div class="section-title"><span class="section-number">5</span> Wynik i Wstępne Rozliczenie</div>
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label>Wynik Oględzin (Wnioski końcowe rzeczoznawcy)</label>
+                                    <textarea placeholder="Wpisz co ustalił rzeczoznawca..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Numer nadanego kosztorysu</label>
+                                    <input type="text" placeholder="np. K/2026/088/1">
+                                    
+                                    <label style="margin-top: 15px;">Kwota kosztorysu z oględzin (PLN Brutto)</label>
+                                    <input type="number" step="0.01" placeholder="0.00" style="font-weight:800; color:#4a9eff; font-size: 18px;">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Uwagi Wewnętrzne Biura</label>
+                                <textarea placeholder="Informacje biurowe, uwagi do dokumentacji, status promesy..."></textarea>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:15px; margin-top:30px;">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('inspectionForm').reset()">Zresetuj pola</button>
+                            <button type="submit" class="btn btn-primary" style="padding:15px 50px;">Zapisz i Zaplanuj Oględziny →</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODALE PROCEDUR -->
+    <div class="modal-overlay" id="procedureModal">
+        <div class="modal-box">
+            <h2><i class="fa-solid fa-shield-halved"></i> Procedura: Wykazanie Uszkodzeń Ukrytych</h2>
+            <ol>
+                <li><strong>Dokumentacja foto:</strong> Wykonać zdjęcia detali, VIN i licznika przed demontażem.</li>
+                <li><strong>Wniosek do TU:</strong> Złożyć pismo o zgodę na demontaż elementów (niezbędne do uznania kosztów).</li>
+                <li><strong>Zasada "Przed-naprawą":</strong> Nie roztaczać prac naprawczych przed oględzinami II-go stopnia.</li>
+                <li><strong>Protokół warsztatowy:</strong> Przygotować listę ujawnionych wad dla rzeczoznawcy.</li>
+                <li><strong>Geometria:</strong> W przypadku podejrzenia skrzywienia ramy/zawieszenia – obowiązkowy wydruk pomiarowy.</li>
+            </ol>
+            <div style="margin-top:30px; text-align:right;">
+                <button class="btn btn-primary" onclick="closeModal()">Rozumiem, proceduję</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skrypty -->
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
+            const isHidden = submenu.style.display === "none" || submenu.style.display === "";
+            submenu.style.display = isHidden ? "block" : "none";
+            if(icon) icon.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        }
+
+        function toggleViews(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Pokaż sekcję dodatkową w formularzu jeśli to oględziny uzupełniające
+            const additionalSection = document.getElementById('additionalSection');
+            if(viewId === 'view-form' && additionalSection) {
+                additionalSection.style.display = 'block';
+            }
+        }
+
+        function showDetails(nr) {
+            document.getElementById('detail-nr').innerText = nr;
+            toggleViews('view-details');
+        }
+
+        // --- TRYB EDYCJI W KARCIE DETALI ---
+        let isEditMode = false;
+        function toggleEditMode() {
+            const btn = document.getElementById('editDetailsBtn');
+            const fields = document.querySelectorAll('#view-details .info-edit');
+            isEditMode = !isEditMode;
+
+            fields.forEach(f => {
+                f.setAttribute('contenteditable', isEditMode);
+            });
+
+            if (isEditMode) {
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Zapisz Kartę';
+                btn.classList.remove('btn-warning');
+                btn.classList.add('btn-success');
+                alert("TRYB ADMINISTRATORA: Możesz teraz edytować dane bezpośrednio w karcie. Kliknij Zapisz, aby zatwierdzić zmiany.");
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edytuj Kartę';
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-warning');
+                alert("Zmiany w Karcie Oględzin zostały zapisane w systemie.");
+            }
+        }
+
+        function checkProcedure(checkbox) {
+            if(checkbox.checked) {
+                document.getElementById('procedureModal').style.display = 'flex';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('procedureModal').style.display = 'none';
+        }
+
+        function addAdditionalRow() {
+            const container = document.getElementById('additionalItems');
+            const row = document.createElement('div');
+            row.className = 'additional-item';
+            row.innerHTML = `
+                <span>Data: <input type="date" style="padding:4px; font-size:11px;"> Godz: <input type="time" style="padding:4px; font-size:11px;"></span>
+                <i class="fa-solid fa-trash" style="color:var(--danger); cursor:pointer" onclick="this.parentElement.remove()"></i>
+            `;
+            container.appendChild(row);
+        }
+
+        document.getElementById('inspectionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Pomyślnie zaplanowano oględziny i dodano do kalendarza spraw!');
+            toggleViews('view-list');
+            this.reset();
+        });
+    </script>
+</body>
+</html>
