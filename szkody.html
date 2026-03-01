@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTD Serwis - Lista Szkód i Zgłoszenia</title>
+    
+    <!-- Biblioteki Zewnętrzne -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           GLOBALNE ZMIENNE I RESET (Część Jasna)
+           ========================================= */
+        :root {
+            --bg-body: #f4f7fb;
+            --bg-sidebar: #171b29;
+            --sidebar-hover: #23293e;
+            --accent-blue: #3b82f6;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            
+            --priority-medium: #3b82f6;
+            --priority-high: #f59e0b;
+            --priority-critical: #ef4444;
+            --success-green: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { display: flex; height: 100vh; background-color: var(--bg-body); overflow: hidden; }
+
+        /* =========================================
+           MENU BOCZNE (SIDEBAR)
+           ========================================= */
+        .sidebar { width: 270px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        
+        .sidebar-header { padding: 25px 20px; font-size: 24px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: 0.5px;}
+        .sidebar-header span { color: var(--accent-blue); }
+        .nav-menu { flex: 1; padding: 15px 0; }
+        
+        .nav-item { padding: 12px 20px; margin: 2px 10px; border-radius: 8px; display: flex; align-items: center; gap: 12px; color: #a1a1aa; text-decoration: none; font-weight: 500; font-size: 13px; transition: 0.2s; cursor: pointer; border-left: 3px solid transparent; user-select: none;}
+        .nav-item:hover { background-color: var(--sidebar-hover); color: white; }
+        .nav-item.active { background-color: rgba(59, 130, 246, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600;}
+        .nav-item i { width: 20px; text-align: center; font-size: 15px; }
+
+        .has-submenu { justify-content: space-between; cursor: pointer; }
+        .submenu { background-color: rgba(0,0,0,0.15); margin-bottom: 5px; }
+        .submenu-label { padding: 10px 20px 5px 50px; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px;}
+        .submenu-item { padding: 8px 20px 8px 50px; display: block; color: #a1a1aa; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
+        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
+
+        /* =========================================
+           TOPBAR
+           ========================================= */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .search-bar { background: var(--bg-body); padding: 10px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px; width: 350px; color: var(--text-muted); }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; }
+        .user-info { display: flex; align-items: center; gap: 20px; font-size: 14px; font-weight: 500; color: var(--text-dark); }
+        .btn-logout { background: var(--bg-body); padding: 8px 15px; border-radius: 6px; color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s;}
+        .btn-logout:hover { background: #e2e8f0; }
+
+        /* =========================================
+           KONTENERY WIDOKÓW
+           ========================================= */
+        .content-area { padding: 30px; overflow-y: auto; flex: 1; position: relative;}
+        
+        .view-panel { display: none; animation: fadeIn 0.3s ease; }
+        .view-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .page-title { font-size: 22px; font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 12px; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s; border: none; display: flex; align-items: center; gap: 8px; }
+        .btn-primary { background-color: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+        .btn-primary:hover { background-color: #2563eb; transform: translateY(-2px); }
+        .btn-secondary { background-color: white; color: var(--text-dark); border: 1px solid var(--border-light); }
+        .btn-secondary:hover { background-color: #f8fafc; }
+
+        .card { background: white; border-radius: 12px; border: 1px solid var(--border-light); box-shadow: 0 4px 6px rgba(0,0,0,0.02); overflow: hidden; margin-bottom: 25px; }
+        
+        /* Tabela Listy Szkód */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-light); }
+        td { padding: 15px 20px; border-bottom: 1px solid var(--border-light); color: var(--text-dark); vertical-align: middle; }
+        tr:hover td { background-color: #f1f5f9; cursor: pointer; }
+        
+        .badge { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; }
+        .badge-info { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd;}
+        .badge-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;}
+        .badge-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a;}
+        .badge-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;}
+        .badge-neutral { background: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border-light); }
+
+        /* =========================================
+           WIDOK: PEŁNA KARTA SZKODY (OBSZERNY DETAILS)
+           ========================================= */
+        .live-search-container { background: white; border: 1px solid var(--accent-blue); padding: 12px 20px; border-radius: 8px; display: flex; align-items: center; gap: 15px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1); }
+        .live-search-container input { border: none; outline: none; width: 100%; font-size: 15px; color: var(--text-dark); font-weight: 500; }
+        .live-search-container i { color: var(--accent-blue); font-size: 18px; }
+
+        .details-masonry { column-count: 2; column-gap: 25px; }
+        @media (max-width: 1100px) { .details-masonry { column-count: 1; } }
+        
+        .details-section { break-inside: avoid; background: white; border-radius: 12px; border: 1px solid var(--border-light); padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .details-header { font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--border-light); display: flex; align-items: center; gap: 12px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .details-header i { color: var(--accent-blue); font-size: 18px; }
+        
+        .info-row { display: flex; margin-bottom: 12px; font-size: 13.5px; border-bottom: 1px dashed #f1f5f9; padding-bottom: 8px;}
+        .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        .info-label { width: 170px; flex-shrink: 0; color: var(--text-muted); font-weight: 600; }
+        .info-value { flex: 1; color: var(--text-dark); font-weight: 500; word-break: break-word;}
+        
+        .long-text-box { background: #f8fafc; border-left: 4px solid var(--accent-blue); padding: 15px; border-radius: 0 8px 8px 0; font-size: 13px; color: var(--text-dark); margin-top: 5px; margin-bottom: 15px; line-height: 1.6;}
+        
+        .roszczenie-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border: 1px solid var(--border-light); border-radius: 8px; margin-bottom: 10px; background: #fafafa; }
+        .roszczenie-item strong { display: block; margin-bottom: 4px; color: var(--text-dark); font-size: 14px;}
+
+        /* Style dla edycji w Karcie Szkody (Inline Edit) */
+        #view-details [contenteditable="true"] {
+            background-color: #fffbeb;
+            border: 1px dashed #fbbf24;
+            padding: 2px 6px;
+            border-radius: 4px;
+            outline: none;
+            transition: all 0.2s;
+            cursor: text;
+        }
+        #view-details [contenteditable="true"]:focus {
+            background-color: white;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* =========================================
+           WIDOK: KREATOR ZGŁOSZENIA (DARK THEME - Z PLIKU)
+           ========================================= */
+        .v2-form-wrapper {
+            --bg-dark: #0f1419;
+            --bg-panel: #1a1f26;
+            --bg-input: #232a33;
+            --border-color: #2a3136;
+            --accent-blue: #4a9eff;
+            --accent-hover: #3a8eef;
+            --text-main: #e0e0e0;
+            --text-muted: #8a8a8a;
+            --error-red: #ff4757;
+            --success-green: #2ed573;
+            --warning-orange: #ffa502;
+
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .v2-form-wrapper .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .v2-form-wrapper .logo { font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: 1px;}
+        .v2-form-wrapper .logo-accent { color: var(--accent-blue); }
+        .v2-form-wrapper .header-contact { text-align: right; font-size: 13px; color: var(--text-muted); }
+        .v2-form-wrapper h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #ffffff; }
+        .v2-form-wrapper .subtitle { color: var(--text-muted); margin-bottom: 30px; font-size: 15px; }
+
+        .v2-form-wrapper .section-container { display: block; animation: fadeIn 0.4s ease; margin-bottom: 35px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 10px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .v2-form-wrapper .section-title { font-size: 18px; font-weight: 600; color: var(--accent-blue); margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid rgba(74, 158, 255, 0.1); display: flex; align-items: center; gap: 12px; }
+        .v2-form-wrapper .section-number { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background-color: var(--accent-blue); color: var(--bg-dark); border-radius: 50%; font-weight: 800; font-size: 14px; }
+        
+        .v2-form-wrapper .form-group { display: flex; flex-direction: column; margin-bottom: 20px; position: relative; }
+        .v2-form-wrapper label.input-label { font-size: 13px; font-weight: 600; color: #b0b0b0; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .v2-form-wrapper .required::after { content: ' *'; color: var(--error-red); }
+        
+        .v2-form-wrapper input[type="text"], .v2-form-wrapper input[type="email"], .v2-form-wrapper input[type="tel"], .v2-form-wrapper input[type="date"], .v2-form-wrapper input[type="time"], .v2-form-wrapper input[type="number"], .v2-form-wrapper input[type="datetime-local"], .v2-form-wrapper select, .v2-form-wrapper textarea {
+            padding: 14px 16px; background-color: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-size: 15px; font-family: inherit; transition: all 0.3s ease; width: 100%;
+        }
+        .v2-form-wrapper input:focus, .v2-form-wrapper select:focus, .v2-form-wrapper textarea:focus { outline: none; border-color: var(--accent-blue); background-color: var(--bg-input); box-shadow: 0 0 0 4px rgba(74, 158, 255, 0.1); }
+        .v2-form-wrapper input:disabled, .v2-form-wrapper select:disabled, .v2-form-wrapper textarea:disabled { opacity: 0.4; cursor: not-allowed; }
+        .v2-form-wrapper textarea { resize: vertical; min-height: 90px; }
+        
+        .v2-form-wrapper .is-invalid { border-color: var(--error-red) !important; background-color: rgba(255, 71, 87, 0.05) !important; }
+        .v2-form-wrapper .is-valid { border-color: var(--success-green) !important; background-color: rgba(46, 213, 115, 0.05) !important; }
+        .v2-form-wrapper .error-feedback { display: none; color: var(--error-red); font-size: 12px; font-weight: 600; margin-top: 6px; animation: fadeIn 0.3s; }
+        .v2-form-wrapper .is-invalid ~ .error-feedback { display: block; }
+        
+        .v2-form-wrapper .form-row { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .v2-form-wrapper .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .v2-form-wrapper .form-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .v2-form-wrapper .form-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        
+        .v2-form-wrapper .grid-checkboxes, .v2-form-wrapper .radio-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 5px; }
+        .v2-form-wrapper .radio-group.inline-group { display: flex; flex-wrap: wrap; gap: 12px; }
+        
+        .v2-form-wrapper .custom-option { position: relative; display: block; }
+        .v2-form-wrapper .custom-option input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+        .v2-form-wrapper .custom-option-label { 
+            display: flex; align-items: center; justify-content: center; text-align: center;
+            padding: 12px 16px; background-color: var(--bg-dark); border: 2px solid var(--border-color); 
+            border-radius: 8px; color: var(--text-muted); font-weight: 500; font-size: 14px; cursor: pointer; transition: all 0.2s ease; user-select: none;
+        }
+        .v2-form-wrapper .custom-option:hover input ~ .custom-option-label { border-color: #4a9eff80; color: #fff; background-color: var(--bg-input); }
+        .v2-form-wrapper .custom-option input:checked ~ .custom-option-label { border-color: var(--accent-blue); background-color: rgba(74, 158, 255, 0.1); color: var(--accent-blue); font-weight: 600; box-shadow: 0 4px 10px rgba(74, 158, 255, 0.15); }
+        .v2-form-wrapper .custom-option input:disabled ~ .custom-option-label { opacity: 0.4; cursor: not-allowed; }
+
+        .v2-form-wrapper .button-group { display: flex; gap: 15px; margin-top: 40px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid var(--border-color); }
+        .v2-form-wrapper button { padding: 15px 30px; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+        .v2-form-wrapper .btn-submit { background-color: var(--accent-blue); color: #ffffff; }
+        .v2-form-wrapper .btn-submit:hover { background-color: var(--accent-hover); box-shadow: 0 6px 20px rgba(74, 158, 255, 0.4); transform: translateY(-2px); }
+        .v2-form-wrapper .btn-reset { background-color: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
+        .v2-form-wrapper .btn-reset:hover { background-color: var(--bg-input); }
+        .v2-form-wrapper .btn-secondary { background-color: var(--bg-input); color: var(--accent-blue); border: 1px dashed var(--accent-blue); padding: 12px 20px; font-size: 14px; width: 100%; text-align: center; margin-top: 10px; border-radius: 8px;}
+        .v2-form-wrapper .btn-secondary:hover { background-color: rgba(74, 158, 255, 0.1); }
+        .v2-form-wrapper .btn-danger { background-color: rgba(255, 71, 87, 0.1); color: var(--error-red); border: 1px solid var(--error-red); padding: 8px 16px; font-size: 13px; border-radius: 6px; margin-top: 10px; width: fit-content;}
+        .v2-form-wrapper .btn-danger:hover { background-color: var(--error-red); color: white; }
+        
+        .v2-form-wrapper .info-box { background-color: rgba(74, 158, 255, 0.05); border-left: 4px solid var(--accent-blue); padding: 16px; margin-bottom: 25px; border-radius: 0 8px 8px 0; font-size: 13px; color: #a0b0c0; line-height: 1.5; }
+        .v2-form-wrapper .info-box strong { color: var(--accent-blue); }
+        .v2-form-wrapper .claims-box { background-color: rgba(74, 158, 255, 0.04); border: 2px dashed var(--accent-blue); padding: 25px; border-radius: 10px; margin-bottom: 25px; }
+        .v2-form-wrapper .conditional-section { display: none; background-color: var(--bg-dark); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; margin-top: 10px; }
+        .v2-form-wrapper .success-message { display: none; background-color: rgba(46, 213, 115, 0.1); border: 1px solid var(--success-green); border-radius: 10px; padding: 25px; margin-bottom: 30px; color: var(--success-green); text-align: center; font-weight: 600; font-size: 18px; }
+        .v2-form-wrapper .global-error-message { display: none; background-color: rgba(255, 71, 87, 0.1); border: 1px solid var(--error-red); border-radius: 10px; padding: 15px; margin-bottom: 20px; color: var(--error-red); text-align: center; font-weight: 600; }
+        
+        .v2-form-wrapper .attachment-wrapper { display: flex; flex-direction: column; gap: 8px; background: var(--bg-dark); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-color); transition: border-color 0.3s; }
+        .v2-form-wrapper .attachment-wrapper:hover { border-color: #3a4248; }
+        .v2-form-wrapper .file-upload-container { display: none; padding: 15px; background-color: var(--bg-input); border: 1px dashed var(--accent-blue); border-radius: 6px; margin-top: 8px; animation: fadeIn 0.3s ease; }
+        .v2-form-wrapper .file-upload-container input[type="file"] { font-size: 13px; color: #a0b0c0; width: 100%; padding: 0; background: none; border: none; }
+        .v2-form-wrapper .file-upload-container input[type="file"]::file-selector-button { background-color: var(--accent-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-right: 15px; font-weight: 600; font-size: 12px; transition: background-color 0.3s; }
+        .v2-form-wrapper .file-upload-container input[type="file"]::file-selector-button:hover { background-color: var(--accent-hover); }
+        .v2-form-wrapper .dynamic-item { background: var(--bg-input); padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color); animation: fadeIn 0.3s ease; position: relative; }
+
+        @media (max-width: 850px) { .v2-form-wrapper .form-row-3, .v2-form-wrapper .form-row-4 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .v2-form-wrapper .form-row-2, .v2-form-wrapper .form-row-3, .v2-form-wrapper .form-row-4 { grid-template-columns: 1fr; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- GŁÓWNY SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span>DTD</span> Serwis
+        </div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            
+            <a href="szkody.html" class="nav-item active"><i class="fa-solid fa-clipboard-list"></i> Lista szkód</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-samochody')">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-car"></i> Samochody
+                </div>
+                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px; transition: transform 0.3s;"></i>
+            </div>
+            
+            <div class="submenu" id="submenu-samochody" style="display: none;">
+                <div class="submenu-label">Najmy</div>
+                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+                
+                <div class="submenu-label">Flota własna</div>
+                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+            </div>
+
+            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
+            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+            <a href="czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i części</a>
+            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-wrench"></i> Naprawy
+                </div>
+                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px; transition: transform 0.3s;"></i>
+            </div>
+            
+            <div class="submenu" id="submenu-naprawy" style="display: none;">
+                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            </div>
+
+            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+        </div>
+    </div>
+
+    <!-- GŁÓWNA ZAWARTOŚĆ -->
+    <div class="main-wrapper">
+        <div class="topbar">
+            <div class="search-bar">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" placeholder="Szukaj szkody, VIN, numer rej...">
+            </div>
+            <div class="user-info">
+                <i class="fa-regular fa-bell" style="font-size: 18px; cursor: pointer;"></i>
+                <span>admin@dtdserwis.pl</span>
+                <a href="#" class="btn-logout">Wyloguj</a>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- WIDOK 1: LISTA SZKÓD -->
+            <div id="view-list" class="view-panel active">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-clipboard-list" style="color: var(--accent-blue);"></i> Rejestr Szkód</div>
+                    <button class="btn btn-primary" onclick="toggleViews('view-form')"><i class="fa-solid fa-plus"></i> Nowe Zgłoszenie (Kreator)</button>
+                </div>
+
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nr Szkody TU lub info nienadano</th>
+                                <th>Data Zgłoszenia</th>
+                                <th>Poszkodowany / Klient</th>
+                                <th>Pojazd Uszkodzony</th>
+                                <th>TU Sprawcy</th>
+                                <th>Status Etapu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Każdy wiersz wywołuje pełną Kartę Szkody (szczegóły) -->
+                            <tr onclick="showDetails('DTD-2026-090')">
+                                <td><strong>PL/2026/088192</strong> <br> <span class="text-muted" style="font-size:11px; color:var(--text-muted)">DTD-2026-090</span></td>
+                                <td>01.03.2026</td>
+                                <td>Jan Kowalski</td>
+                                <td>Audi A4 (WA 11223)</td>
+                                <td>PZU S.A.</td>
+                                <td><span class="badge badge-info">Zgłoszona w TU</span></td>
+                            </tr>
+                            <tr onclick="showDetails('DTD-2026-089')">
+                                <td><span style="color: var(--priority-critical); font-weight:600;">Nie nadano (Nowa)</span> <br> <span class="text-muted" style="font-size:11px; color:var(--text-muted)">DTD-2026-089</span></td>
+                                <td>28.02.2026</td>
+                                <td>Firma Transportowa XYZ</td>
+                                <td>Ford Transit (KR 4455X)</td>
+                                <td>Warta</td>
+                                <td><span class="badge badge-warning">Weryfikacja / Oględziny</span></td>
+                            </tr>
+                            <tr onclick="showDetails('DTD-2026-082')">
+                                <td><strong>8812-PZ-441</strong> <br> <span class="text-muted" style="font-size:11px; color:var(--text-muted)">DTD-2026-082</span></td>
+                                <td>25.02.2026</td>
+                                <td>Anna Nowak</td>
+                                <td>Toyota Yaris (PO 99881)</td>
+                                <td>Link4</td>
+                                <td><span class="badge badge-success">Kosztorys zaakceptowany</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WIDOK 2: PEŁNA KARTA SZKODY (OBSZERNE ŹRÓDŁO WIEDZY) -->
+            <div id="view-details" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-folder-open" style="color: var(--accent-blue);"></i> Karta Szkody: <span id="detail-nr-szkody" style="color:var(--text-muted);">DTD-2026-090</span></div>
+                    <div>
+                        <button class="btn btn-secondary" onclick="toggleViews('view-list')" style="display:inline-flex;"><i class="fa-solid fa-arrow-left"></i> Wróć</button>
+                        <button class="btn btn-primary" id="editDetailsBtn" onclick="toggleEditMode()" style="display:inline-flex; margin-left: 10px;"><i class="fa-solid fa-pen-to-square"></i> Edytuj Akta</button>
+                    </div>
+                </div>
+
+                <!-- WYSZUKIWARKA W KARCIE SZKODY -->
+                <div class="live-search-container">
+                    <i class="fa-solid fa-filter"></i>
+                    <input type="text" id="searchDetails" onkeyup="filterDetails()" placeholder="Wyszukaj dowolną informację w aktach tej szkody (np. NIP, VIN, nazwa banku, kwota)...">
+                </div>
+
+                <div class="details-masonry">
+                    
+                    <!-- SEKCYJA 1: Podstawy i Status -->
+                    <div class="details-section">
+                        <div class="details-header"><i class="fa-solid fa-circle-info"></i> 1. Obecny Status Sprawy</div>
+                        <div class="info-row"><div class="info-label">Etap zgłoszenia:</div><div class="info-value"><span class="badge badge-info">Zgłoszona w toku</span> (Czeka na decyzję)</div></div>
+                        <div class="info-row"><div class="info-label">Data zgł. w TU:</div><div class="info-value">01.03.2026</div></div>
+                        <div class="info-row"><div class="info-label">Ubezpieczyciel (TU):</div><div class="info-value">PZU S.A.</div></div>
+                        <div class="info-row"><div class="info-label">Nr Szkody w TU:</div><div class="info-value" style="color: var(--accent-blue); font-weight:800;">PL/2026/088192</div></div>
+                        <div class="info-row"><div class="info-label">Oględziny w TU:</div><div class="info-value text-muted">Nie odbyły się</div></div>
+                        <div class="info-row"><div class="info-label">Wstępny kosztorys:</div><div class="info-value text-muted">Brak (Oczekujemy)</div></div>
+                        <div class="info-row"><div class="info-label">Docelowe rozliczenie:</div><div class="info-value"><strong>Naprawa bezgotówkowa (Warsztat)</strong></div></div>
+                        <div class="info-row"><div class="info-label">Typ polisy:</div><div class="info-value">OC Sprawcy (Tradycyjne)</div></div>
+                    </div>
+
+                    <!-- SEKCYJA 2: Uruchomione Roszczenia -->
+                    <div class="details-section" style="background: #f8fafc; border-color: var(--accent-blue);">
+                        <div class="details-header"><i class="fa-solid fa-clipboard-check"></i> 2. Aktywne Roszczenia (Zakres)</div>
+                        <div class="roszczenie-item">
+                            <div><strong>🚗 Naprawa Pojazdu</strong><span class="text-muted" style="font-size:12px;">Zgłoszono z OC sprawcy.</span></div>
+                            <span class="badge badge-warning">Czeka na kosztorys</span>
+                        </div>
+                        <div class="roszczenie-item">
+                            <div><strong>🚚 Holowanie / Laweta</strong><span class="text-muted" style="font-size:12px;">Hol-Trans (Koszt: 500,00 PLN)</span></div>
+                            <span class="badge badge-success">Dokumentacja kompletna</span>
+                        </div>
+                        <div class="roszczenie-item">
+                            <div><strong>🚙 Auto Zastępcze (Najem)</strong><span class="text-muted" style="font-size:12px;">Od: 01.03.2026 (Wydano: Skoda Fabia)</span></div>
+                            <span class="badge badge-info">Najem Trwa</span>
+                        </div>
+                        <div class="roszczenie-item">
+                            <div><strong>🅿️ Płatne Parkowanie</strong><span class="text-muted" style="font-size:12px;">Parking DTD Serwis. Od 01.03.2026 (W toku)</span></div>
+                            <span class="badge badge-info">Postój trwa</span>
+                        </div>
+                    </div>
+
+                    <!-- SEKCYJA 3: Zgłaszający i Poszkodowany -->
+                    <div class="details-section">
+                        <div class="details-header"><i class="fa-solid fa-user-shield"></i> 3. Zgłaszający i Poszkodowany</div>
+                        <div class="info-row"><div class="info-label">Rodzaj podmiotu:</div><div class="info-value">Osoba Fizyczna</div></div>
+                        <div class="info-row"><div class="info-label">Imię i Nazwisko:</div><div class="info-value">Jan Kowalski</div></div>
+                        <div class="info-row"><div class="info-label">PESEL / NIP:</div><div class="info-value">85010112345</div></div>
+                        <div class="info-row"><div class="info-label">Telefon kom.:</div><div class="info-value">+48 500 600 700</div></div>
+                        <div class="info-row"><div class="info-label">Adres e-mail:</div><div class="info-value">jan.kowalski@email.com</div></div>
+                        <div class="info-row"><div class="info-label">Adres Właściciela:</div><div class="info-value">ul. Zmyślona 14/2, 00-111 Warszawa</div></div>
+                        <div class="info-row"><div class="info-label">Zgłaszający to wł.:</div><div class="info-value">TAK</div></div>
+                        <div class="info-row"><div class="info-label">Współwłaściciele:</div><div class="info-value">Brak (1 Właściciel)</div></div>
+                    </div>
+
+                    <!-- SEKCYJA 4: Pojazd i Status Prawny -->
+                    <div class="details-section">
+                        <div class="details-header"><i class="fa-solid fa-car-burst"></i> 4. Pojazd Poszkodowanego</div>
+                        <div class="info-row"><div class="info-label">Pojazd:</div><div class="info-value"><strong>Audi A4 (2018)</strong></div></div>
+                        <div class="info-row"><div class="info-label">Numer Rejestracyjny:</div><div class="info-value">WA 11223</div></div>
+                        <div class="info-row"><div class="info-label">Numer VIN:</div><div class="info-value" style="letter-spacing: 1px; font-family: monospace; font-size:14px; font-weight:700;">WAUZZZ8K9AA123456</div></div>
+                        <div class="info-row"><div class="info-label">Przebieg pojazdu:</div><div class="info-value">150 000 km</div></div>
+                        
+                        <div style="border-top: 1px dashed var(--border-light); margin: 15px 0;"></div>
+                        <div style="font-weight:700; margin-bottom:10px; font-size:12px; color:var(--text-muted); text-transform:uppercase;">Status Prawny i Finansowy</div>
+                        
+                        <div class="info-row"><div class="info-label">W Leasingu:</div><div class="info-value" style="color:var(--priority-critical); font-weight:700;">TAK</div></div>
+                        <div class="info-row"><div class="info-label">Nazwa Banku/Leasingu:</div><div class="info-value">mBank Leasing (NIP: 5260215088)</div></div>
+                        <div class="info-row"><div class="info-label">Zarej. na firmę:</div><div class="info-value">Nie</div></div>
+                        <div class="info-row"><div class="info-label">Odliczenie VAT:</div><div class="info-value">Brak prawa (0%) - Kwota BRUTTO</div></div>
+                        <div class="info-row"><div class="info-label">Zastaw bankowy:</div><div class="info-value">Nie</div></div>
+                        <div class="info-row"><div class="info-label">Cesja praw:</div><div class="info-value">Nie</div></div>
+                    </div>
+
+                    <!-- SEKCYJA 5: Zdarzenie i Sprawca -->
+                    <div class="details-section">
+                        <div class="details-header"><i class="fa-solid fa-location-dot"></i> 5. Zdarzenie i Sprawca</div>
+                        <div class="info-row"><div class="info-label">Data i czas:</div><div class="info-value">28.02.2026, godz. 14:30</div></div>
+                        <div class="info-row"><div class="info-label">Miejsce:</div><div class="info-value">Polska, Warszawa (Al. Jerozolimskie / Emilii Plater)</div></div>
+                        <div class="info-row"><div class="info-label">Pojazdów w zdarzeniu:</div><div class="info-value">2</div></div>
+                        
+                        <div style="border-top: 1px dashed var(--border-light); margin: 15px 0;"></div>
+                        
+                        <div class="info-row"><div class="info-label">Sprawca (TU):</div><div class="info-value"><strong>PZU S.A.</strong></div></div>
+                        <div class="info-row"><div class="info-label">Polisa sprawcy:</div><div class="info-value">998877665544</div></div>
+                        <div class="info-row"><div class="info-label">Nr Rej. sprawcy:</div><div class="info-value">WX 99881</div></div>
+                        <div class="info-row"><div class="info-label">Imię/Nazwisko sprawcy:</div><div class="info-value">Piotr Nowak</div></div>
+                        <div class="info-row"><div class="info-label">Oświadczenie spisane:</div><div class="info-value">Nie</div></div>
+                        
+                        <div style="border-top: 1px dashed var(--border-light); margin: 15px 0;"></div>
+                        
+                        <div class="info-row"><div class="info-label">Interwencja Policji:</div><div class="info-value" style="color:var(--accent-blue); font-weight:700;">TAK</div></div>
+                        <div class="info-row"><div class="info-label">Jednostka Policji:</div><div class="info-value">KRP Warszawa I</div></div>
+                        <div class="info-row"><div class="info-label">Notatka nr:</div><div class="info-value">Ruch/1234/26</div></div>
+                        <div class="info-row"><div class="info-label">Inne Służby:</div><div class="info-value">Pogotowie Ratunkowe</div></div>
+                    </div>
+
+                    <!-- SEKCYJA 6: Uszkodzenia i Naprawa -->
+                    <div class="details-section">
+                        <div class="details-header"><i class="fa-solid fa-hammer"></i> 6. Uszkodzenia i Przebieg</div>
+                        
+                        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:5px;">Dokładny opis przebiegu zdarzenia (Oświadczenie)</div>
+                        <div class="long-text-box">Pojazd poszkodowanego zatrzymał się przed przejściem dla pieszych. Kierujący pojazdem sprawcy nie zachował bezpiecznej odległości i z dużą siłą uderzył w tył pojazdu poszkodowanego, wpychając go częściowo na pasy.</div>
+                        
+                        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:5px;">Wskazanie winy (Uzasadnienie)</div>
+                        <div class="long-text-box">Wyłączną winę ponosi kierujący pojazdem B. Policja ukarała go mandatem karnym w wysokości 1500 zł, który sprawca przyjął na miejscu.</div>
+                        
+                        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:5px;">Zgłaszane uszkodzenia pojazdu</div>
+                        <div class="long-text-box">Zderzak tylny całkowicie roztrzaskany, wgnieciona klapa bagażnika (nie da się otworzyć), pęknięta lewa i prawa lampa tył. Pojawił się błąd czujników parkowania na desce rozdzielczej.</div>
+                        
+                        <div class="info-row"><div class="info-label">Wcześniejsze uszk.:</div><div class="info-value">TAK (Wgniotka na prawych drzwiach, rysa na masce - bez związku ze szkodą).</div></div>
+                        <div class="info-row"><div class="info-label">Czy pojazd jezdny:</div><div class="info-value" style="color:var(--priority-critical); font-weight:700;">NIE (Zagrożenie w ruchu / zatrzymany DR)</div></div>
+                        <div class="info-row"><div class="info-label">Miejsce postoju:</div><div class="info-value">Plac DTD Serwis, ul. Przykładowa 1</div></div>
+                        <div class="info-row"><div class="info-label">Rozpoczęto naprawę?:</div><div class="info-value">NIE (Czekamy na oględziny TU)</div></div>
+                    </div>
+
+                    <!-- SEKCYJA 7: Zasadność Auta Zastępczego -->
+                    <div class="details-section">
+                        <div class="details-header"><i class="fa-solid fa-key"></i> 7. Argumentacja: Auto Zastępcze</div>
+                        <div class="info-row"><div class="info-label">Kierowców w domu:</div><div class="info-value">2</div></div>
+                        <div class="info-row"><div class="info-label">Aut w domu:</div><div class="info-value">1 (Tylko pojazd uszkodzony)</div></div>
+                        <div class="info-row"><div class="info-label">Cele użycia:</div><div class="info-value">Dojazdy do pracy, Dowożenie dzieci, Jedyny środek komunikacji</div></div>
+                        <div class="info-row"><div class="info-label">Pojazd specyficzny:</div><div class="info-value">TAK (Zgłoszono uzasadnienie)</div></div>
+                        
+                        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-top:10px; margin-bottom:5px;">Uzasadnienie braku alternatywy (Dla TU)</div>
+                        <div class="long-text-box">Uszkodzony pojazd to auto typu Kombi z hakiem, wykorzystywane codziennie do przewozu wózka inwalidzkiego oraz dojazdów do placówki medycznej oddalonej o 40 km, do której nie dojeżdża komunikacja miejska.</div>
+                    </div>
+
+                    <!-- SEKCYJA 8: Finanse i Rozliczenie Warsztatu -->
+                    <div class="details-section">
+                        <div class="details-header"><i class="fa-solid fa-building-columns"></i> 8. Dane Rozliczeniowe</div>
+                        <div class="info-row"><div class="info-label">Wybrany Warsztat:</div><div class="info-value"><strong>DTD Serwis Blacharski</strong></div></div>
+                        <div class="info-row"><div class="info-label">Adres serwisu:</div><div class="info-value">ul. Serwisowa 1, 00-001 Warszawa</div></div>
+                        <div class="info-row"><div class="info-label">Numer rachunku do wypłaty (IBAN):</div><div class="info-value" style="font-family:monospace; font-size:14px; letter-spacing: 1px;">PL 12 1140 2004 0000 3302 1234 5678</div></div>
+                        
+                        <div style="border-top: 1px dashed var(--border-light); margin: 15px 0;"></div>
+                        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:5px;">Dodatkowe Notatki dla Rzeczoznawcy</div>
+                        <div class="long-text-box">Klient zostawił upoważnienie RODO w biurze. Policja ma dosłać notatkę urzędową w ciągu 7 dni (sprawca obcokrajowiec, wydłużone procedury).</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDOK 3: KREATOR ZGŁOSZENIA (DARK THEME - PEŁNY Z PLIKU) -->
+            <div id="view-form" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-file-medical" style="color: var(--accent-blue);"></i> Kreator Zgłoszenia Szkody</div>
+                    <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-arrow-left"></i> Anuluj i Wróć</button>
+                </div>
+
+                <div class="v2-form-wrapper">
+                    
+                    <div class="header">
+                        <div class="logo"><span class="logo-accent">DTD</span> Serwis</div>
+                        <div class="header-contact">
+                            Eksperckie Wsparcie Poszkodowanych<br>
+                            <strong>Zgłoszenia Szkód Komunikacyjnych</strong>
+                        </div>
+                    </div>
+
+                    <h1>Formularz Zgłoszenia Szkody</h1>
+                    <p class="subtitle">Wypełnij precyzyjnie poniższe dane. Nasz system na bieżąco analizuje wprowadzane informacje, aby uchronić Cię przed błędami, które towarzystwo ubezpieczeniowe mogłoby wykorzystać przeciwko Tobie.</p>
+
+                    <div class="success-message" id="successMessage">✓ Zgłoszenie wolne od błędów zostało pomyślnie i bezpiecznie przesłane! Rozpoczynamy analizę.</div>
+                    <div class="global-error-message" id="globalErrorMessage">W formularzu znajdują się błędy (podświetlone na czerwono) lub brakuje wymaganych danych. Popraw je przed wysłaniem!</div>
+
+                    <form id="damageForm" enctype="multipart/form-data" novalidate>
+
+                        <div class="section-container" id="sec-status">
+                            <div class="section-title"><span class="section-number">1</span> Obecny Status Szkody</div>
+                            <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Informacja o etapie sprawy pozwala nam natychmiast podjąć właściwe kroki – od pierwszego zgłoszenia ubezpieczycielowi po odwołanie od bezpodstawnie zaniżonej wyceny.</div>
+                            
+                            <div class="form-group">
+                                <label class="input-label required">Na jakim etapie jest obecnie Twoja sprawa?</label>
+                                <select name="claimStatus" id="claimStatusSel" required>
+                                    <option value="">-- Wybierz status z listy --</option>
+                                    <option value="niezgloszona">Szkoda NIE BYŁA jeszcze zgłaszana (DTD Serwis zajmie się zgłoszeniem do TU)</option>
+                                    <option value="zgloszona">Szkoda ZGŁOSZONA (w toku) - czekam na oględziny / wycenę / decyzję</option>
+                                    <option value="wyplacona">Szkoda WYCENIONA / WYPŁACONA - zgłaszam do weryfikacji kosztorysu i walczę o dopłatę</option>
+                                </select>
+                            </div>
+
+                            <div id="statusReportedDetails" class="conditional-section" style="border-color: var(--accent-blue);">
+                                <h3 style="color: var(--accent-blue); font-size: 14px; margin-bottom: 15px;">Dane z dokonanego zgłoszenia:</h3>
+                                <div class="form-row-3">
+                                    <div class="form-group"><label class="input-label required">Do jakiego TU zgłoszono?</label><input type="text" name="reportedTU" placeholder="np. PZU, Warta, Hestia"></div>
+                                    <div class="form-group"><label class="input-label required">Data zgłoszenia do TU</label><input type="date" name="reportedDate" max=""></div>
+                                    <div class="form-group"><label class="input-label required">Nadany Numer Szkody</label><input type="text" name="claimNumber" placeholder="Z SMSa/maila od TU"></div>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label class="input-label required">Czy odbyły się już fizyczne oględziny pojazdu?</label>
+                                        <div class="radio-group inline-group">
+                                            <label class="custom-option"><input type="radio" name="wasInspected" value="tak"><span class="custom-option-label">Tak</span></label>
+                                            <label class="custom-option"><input type="radio" name="wasInspected" value="nie" checked><span class="custom-option-label">Nie</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="input-label required">Czy otrzymałeś już wstępny kosztorys?</label>
+                                        <div class="radio-group inline-group">
+                                            <label class="custom-option"><input type="radio" name="receivedEstimate" value="tak"><span class="custom-option-label">Tak (Załącz go na dole)</span></label>
+                                            <label class="custom-option"><input type="radio" name="receivedEstimate" value="nie" checked><span class="custom-option-label">Nie</span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="statusPaidDetails" class="conditional-section" style="border-color: var(--success-green);">
+                                <h3 style="color: var(--success-green); font-size: 14px; margin-bottom: 15px;">Dane z otrzymanej decyzji / wyceny:</h3>
+                                <div class="form-row-3">
+                                    <div class="form-group"><label class="input-label required">Jakie TU wydało wycenę?</label><input type="text" name="paidTU" placeholder="np. PZU, Warta"></div>
+                                    <div class="form-group"><label class="input-label required">Nadany Numer Szkody</label><input type="text" name="paidClaimNumber"></div>
+                                    <div class="form-group"><label class="input-label required">Data wydania decyzji</label><input type="date" name="decisionDate" max=""></div>
+                                </div>
+                                <div class="form-row-3">
+                                    <div class="form-group"><label class="input-label required">Przyznana kwota z kosztorysu (PLN)</label><input type="number" step="0.01" name="payoutAmount" placeholder="0.00"></div>
+                                    <div class="form-group">
+                                        <label class="input-label required">Czy środki wpłynęły już na konto?</label>
+                                        <div class="radio-group inline-group">
+                                            <label class="custom-option"><input type="radio" name="moneyReceived" value="tak" checked><span class="custom-option-label">Tak</span></label>
+                                            <label class="custom-option"><input type="radio" name="moneyReceived" value="nie"><span class="custom-option-label">Nie (tylko wycena)</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="input-label required" style="color: var(--error-red);">Czy zawarłeś ugodę z TU?</label>
+                                        <div class="radio-group inline-group">
+                                            <label class="custom-option"><input type="radio" name="signedSettlement" value="tak"><span class="custom-option-label" style="border-color: var(--error-red);">Tak (To zamyka drogę)</span></label>
+                                            <label class="custom-option"><input type="radio" name="signedSettlement" value="nie" checked><span class="custom-option-label">Nie</span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="tuCorrespondenceInstruction" class="conditional-section" style="background-color: rgba(255, 165, 2, 0.05); border: 1px solid var(--warning-orange);">
+                                <h3 style="color: var(--warning-orange); font-size: 15px; margin-bottom: 12px;">Wymagana Korespondencja z Ubezpieczycielem</h3>
+                                <p style="font-size: 13.5px; color: var(--text-main); margin-bottom: 12px;">Abyśmy mogli skutecznie działać i podważyć ustalenia Towarzystwa Ubezpieczeń, w sekcji "Załączniki" (na dole formularza) <strong>musisz wgrać całą dotychczasową korespondencję z TU</strong> (szczególnie maile, kosztorysy PDF i decyzje).</p>
+                                <div style="background-color: var(--bg-dark); padding: 15px; border-radius: 8px; border: 1px dashed var(--border-color);">
+                                    <strong style="color: var(--text-main); font-size: 13px;">Jak zapisać wiadomość e-mail jako plik PDF?</strong><br>
+                                    <ol style="font-size: 12.5px; color: var(--text-muted); margin-top: 8px; margin-left: 20px; line-height: 1.8;">
+                                        <li>Otwórz wiadomość e-mail od TU (np. na komputerze w Gmail lub Outlook).</li>
+                                        <li>Kliknij ikonę <strong>Drukarki</strong> (Drukuj / Drukuj wszystko) w prawym górnym rogu wiadomości.</li>
+                                        <li>W oknie opcji drukowania, jako "Drukarkę docelową" wybierz opcję <strong>"Zapisz jako PDF"</strong> (lub "Save as PDF").</li>
+                                        <li>Kliknij Zapisz i załącz pobrany plik na dole tego formularza.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-container" id="sec-podstawowe">
+                            <div class="section-title"><span class="section-number">2</span> Przedmiot i Zakres Zgłoszenia</div>
+                            <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> TU nigdy nie wypłaci Ci pieniędzy za koszty, o które jawnie nie wystąpisz w zgłoszeniu. Zaznaczamy i rejestrujemy wszystko od samego początku, aby zabezpieczyć Twoje roszczenia.</div>
+                            
+                            <div class="claims-box">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label class="input-label required" style="color: #ffffff; font-size: 16px; margin-bottom: 15px;">Zaznacz wszystkie poniesione straty i roszczenia, o które występujemy:</label>
+                                    <div class="grid-checkboxes">
+                                        <label class="custom-option"><input type="checkbox" name="claimType" value="samochod" checked><span class="custom-option-label">Samochód (Uszkodzenia)</span></label>
+                                        <label class="custom-option"><input type="checkbox" name="claimType" value="mienie"><span class="custom-option-label">Szkody na mieniu (np. fotelik, telefon)</span></label>
+                                        <label class="custom-option"><input type="checkbox" name="claimType" value="zastepczy"><span class="custom-option-label">Pojazd zastępczy (Najem)</span></label>
+                                        <label class="custom-option"><input type="checkbox" name="claimType" value="holowanie"><span class="custom-option-label">Koszty Holowania / Lawety</span></label>
+                                        <label class="custom-option"><input type="checkbox" name="claimType" value="parkowanie"><span class="custom-option-label">Płatne Parkowanie po zdarzeniu</span></label>
+                                        <label class="custom-option"><input type="checkbox" name="claimType" value="dochody"><span class="custom-option-label">Utracone dochody (Złotówy/Kurierzy/Firma)</span></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label class="input-label required">Z jakiej polisy będziemy dochodzić roszczeń?</label>
+                                    <select name="policyType" id="policyType" required>
+                                        <option value="">-- Wybierz rodzaj ubezpieczenia --</option>
+                                        <option value="oc">OC Sprawcy (Tradycyjne zgłoszenie z polisy winnego)</option>
+                                        <option value="oc_bls">OC BLS (Bezpośrednia Likwidacja u Twojego ubezpieczyciela)</option>
+                                        <option value="ac">AC (Z Twojego Autocasco)</option>
+                                        <option value="inne">INNE OC (np. zarządcy drogi, firmy budowlanej)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="input-label required">Czy uszkodzony pojazd posiada współwłaścicieli?</label>
+                                    <div class="radio-group inline-group">
+                                        <label class="custom-option"><input type="radio" name="hasCoowners" value="nie" checked><span class="custom-option-label">Nie (1 właściciel)</span></label>
+                                        <label class="custom-option"><input type="radio" name="hasCoowners" value="tak"><span class="custom-option-label">Tak (Są współwłaściciele)</span></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="inneOcSection" class="conditional-section">
+                                <div class="form-group">
+                                    <label class="input-label required">Określ dokładnie rodzaj polisy INNE OC</label>
+                                    <input type="text" name="otherPolicyDetails" placeholder="np. OC Zarządcy Drogi, OC Spółdzielni, OC w życiu prywatnym rowerzysty">
+                                </div>
+                            </div>
+
+                            <div id="coownersSection" class="conditional-section">
+                                <div id="coownersList"></div>
+                                <button type="button" id="addCoowner" class="btn-secondary">+ Dodaj współwłaściciela (zgodnie z dowodem rejestracyjnym)</button>
+                            </div>
+                        </div>
+
+                        <div class="section-container" id="sec-zdarzenie">
+                            <div class="section-title"><span class="section-number">3</span> Dane zdarzenia</div>
+                            <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Ubezpieczyciel zawsze weryfikuje podane miejsce i czas z notatkami policji, systemami monitoringu miejskiego czy danymi instytutów pogodowych, aby wykluczyć próby wyłudzenia. Dokładność chroni Cię przed oskarżeniami.</div>
+                            
+                            <div class="form-row-3">
+                                <div class="form-group">
+                                    <label class="input-label required">Data zdarzenia</label>
+                                    <input type="date" name="eventDate" id="eventDate" required>
+                                    <div class="error-feedback">Data nie może być z przyszłości!</div>
+                                </div>
+                                <div class="form-group"><label class="input-label required">Godzina zdarzenia (w przybliżeniu)</label><input type="time" name="eventTime" required></div>
+                                <div class="form-group"><label class="input-label required">Kraj zdarzenia</label><input type="text" name="eventCountry" value="Polska" required></div>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group"><label class="input-label required">Miejscowość</label><input type="text" name="eventCity" required></div>
+                                <div class="form-group"><label class="input-label required">Ulica / Nr drogi / Skrzyżowanie</label><input type="text" name="eventStreet" required></div>
+                            </div>
+                            
+                            <div class="form-row-3">
+                                <div class="form-group"><label class="input-label required">Łączna liczba pojazdów w zdarzeniu</label><input type="number" name="vehicleCount" min="1" value="2" required></div>
+                                <div class="form-group">
+                                    <label class="input-label required">Czy interweniowała Policja?</label>
+                                    <div class="radio-group inline-group">
+                                        <label class="custom-option"><input type="radio" name="policePresent" value="tak"><span class="custom-option-label">Tak</span></label>
+                                        <label class="custom-option"><input type="radio" name="policePresent" value="nie" checked><span class="custom-option-label">Nie</span></label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="input-label">Inne służby (Pogotowie, Straż)</label>
+                                    <div class="radio-group inline-group">
+                                        <label class="custom-option"><input type="checkbox" id="otherServicesBtn"><span class="custom-option-label">Zaznacz, jeśli były</span></label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="policeSection" class="conditional-section">
+                                <div class="form-row-3">
+                                    <div class="form-group"><label class="input-label required">Jednostka Policji (np. KRP Warszawa II)</label><input type="text" name="policeUnit"></div>
+                                    <div class="form-group"><label class="input-label">Adres jednostki (opcjonalnie)</label><input type="text" name="policeAddress"></div>
+                                    <div class="form-group"><label class="input-label">Numer sprawy / notatki (jeśli znasz)</label><input type="text" name="policeNumber"></div>
+                                </div>
+                            </div>
+                            <div id="otherServicesTextSection" class="conditional-section">
+                                <div class="form-group"><label class="input-label required">Jakie inne służby były na miejscu?</label><input type="text" name="otherServicesText" placeholder="np. Pogotowie ratunkowe, Nadzór Ruchu ZTM"></div>
+                            </div>
+                        </div>
+
+                        <div class="section-container" id="sec-zglaszajacy">
+                            <div class="section-title"><span class="section-number">4</span> Zgłaszający i Poszkodowany</div>
+                            <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Weryfikacja tożsamości poszkodowanego jest niezbędna TU do wydania decyzji o wypłacie. Błędy w NIP/PESEL blokują systemy bankowe ubezpieczyciela.</div>
+                            
+                            <div class="form-row-2">
+                                <div class="form-group"><label class="input-label required">Imię i Nazwisko / Nazwa Firmy Zgłaszającej</label><input type="text" name="reporterName" required autocomplete="name"></div>
+                                <div class="form-group">
+                                    <label class="input-label required">PESEL lub NIP Zgłaszającego</label>
+                                    <input type="text" name="reporterIdentity" id="reporterIdentity" data-validate="pesel-nip" required>
+                                    <div class="error-feedback">Błędny format lub zła suma kontrolna numeru PESEL/NIP!</div>
+                                </div>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group"><label class="input-label required">Telefon kontaktowy</label><input type="tel" name="reporterPhone" placeholder="np. 500 000 000" required></div>
+                                <div class="form-group"><label class="input-label required">Adres e-mail</label><input type="email" name="reporterEmail" data-validate="email" required>
+                                    <div class="error-feedback">Podaj poprawny adres e-mail (np. kowalski@mail.pl)!</div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="input-label required">Czy Właściciel mienia/pojazdu (Poszkodowany) to ta sama osoba co Zgłaszający?</label>
+                                <div class="radio-group inline-group">
+                                    <label class="custom-option"><input type="radio" name="isSamePerson" value="tak" checked><span class="custom-option-label">Tak, to moje dane</span></label>
+                                    <label class="custom-option"><input type="radio" name="isSamePerson" value="nie"><span class="custom-option-label">Nie (Zgłaszam w imieniu kogoś)</span></label>
+                                </div>
+                            </div>
+                            <div id="injuredSection" class="conditional-section">
+                                <div class="form-row-2">
+                                    <div class="form-group"><label class="input-label required">Imię i Nazwisko / Nazwa Firmy Właściciela</label><input type="text" name="injuredName"></div>
+                                    <div class="form-group">
+                                        <label class="input-label required">PESEL / NIP Właściciela</label>
+                                        <input type="text" name="injuredIdentity" data-validate="pesel-nip">
+                                        <div class="error-feedback">Błędny format lub suma kontrolna numeru PESEL/NIP!</div>
+                                    </div>
+                                </div>
+                                <div class="form-group"><label class="input-label required">Dokładny adres właściciela</label><input type="text" name="injuredAddress" placeholder="Ulica, nr domu, kod pocztowy, miasto (zgodnie z DR)"></div>
+                            </div>
+                        </div>
+
+                        <div id="dynamic-group-samochod">
+                            <div id="sec-samochod-1" class="section-container">
+                                <div class="section-title"><span class="section-number">5</span> Pojazd Poszkodowanego – Identyfikacja</div>
+                                <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Dokładny numer VIN decyduje o wartości rynkowej pojazdu (co ma znaczenie przy unikaniu tzw. "szkody całkowitej") i precyzuje ceny części w kosztorysie naprawy.</div>
+                                <div class="form-row-3">
+                                    <div class="form-group"><label class="input-label required">Marka</label><input type="text" name="vehicleMake"></div>
+                                    <div class="form-group"><label class="input-label required">Model / Wersja</label><input type="text" name="vehicleModel"></div>
+                                    <div class="form-group"><label class="input-label required">Numer Rejestracyjny</label><input type="text" name="vehicleReg"></div>
+                                </div>
+                                <div class="form-row-3">
+                                    <div class="form-group">
+                                        <label class="input-label required">Numer VIN (Zawsze 17 znaków)</label>
+                                        <input type="text" name="vehicleVin" maxlength="17" placeholder="WAUZZZ..." data-validate="vin" style="text-transform: uppercase;">
+                                        <div class="error-feedback">Numer VIN musi mieć 17 znaków. Litery I, O, Q są prawnie niedozwolone w VIN!</div>
+                                    </div>
+                                    <div class="form-group"><label class="input-label required">Rok produkcji</label><input type="number" name="vehicleYear" min="1900"></div>
+                                    <div class="form-group"><label class="input-label">Przebieg (km) w chwili szkody</label><input type="number" name="vehicleMileage" min="0"></div>
+                                </div>
+                            </div>
+
+                            <div id="sec-samochod-status" class="section-container">
+                                <div class="section-title"><span class="section-number">6</span> Status prawny pojazdu i Rozliczenie VAT</div>
+                                <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Zła deklaracja VAT ułatwia TU zaniżenie odszkodowania o 23%. Z kolei w autach leasingowych odszkodowanie prawnie należy się bankowi – musimy wystąpić do nich o promesę/zgodę na naprawę na Twoje ręce.</div>
+                                <div class="form-row-4">
+                                    <div class="form-group">
+                                        <label class="input-label required">W Leasingu / Wynajmie długoterm.?</label>
+                                        <select name="isLeasing" id="isLeasingSel">
+                                            <option value="nie">Nie</option>
+                                            <option value="tak">Tak</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="input-label required">Pojazd zadeklarowany na firmę?</label>
+                                        <select name="isBusiness" id="isBusinessSel">
+                                            <option value="nie">Nie (Prywatny)</option>
+                                            <option value="tak">Tak (Na firmę)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="input-label required">Cesja praw na inny podmiot?</label>
+                                        <select name="isCession" id="isCessionSel">
+                                            <option value="nie">Nie</option>
+                                            <option value="tak">Tak</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="input-label required">Zastaw bankowy w dowodzie?</label>
+                                        <select name="isLien" id="isLienSel">
+                                            <option value="nie">Nie</option>
+                                            <option value="tak">Tak</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label class="input-label required">Prawo odliczenia VAT z kosztów naprawy (zadeklarowane w US)</label>
+                                        <select name="vatDeduction">
+                                            <option value="0">Brak prawa (0%) - TU wypłaca całą kwotę BRUTTO</option>
+                                            <option value="50">Częściowe (50%)</option>
+                                            <option value="100">Pełne (100%) - TU wypłaca do serwisu kwotę NETTO</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div id="leasingDetails" class="conditional-section" style="margin-top: 0;">
+                                    <div class="form-row-2">
+                                        <div class="form-group"><label class="input-label required">Nazwa Leasingodawcy / Banku</label><input type="text" name="leasingName"></div>
+                                        <div class="form-group"><label class="input-label">NIP Leasingodawcy</label><input type="text" name="leasingNip" data-validate="nip-only">
+                                            <div class="error-feedback">Niepoprawny NIP!</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="cessionDetails" class="conditional-section" style="margin-top: 0;">
+                                    <div class="form-group"><label class="input-label required">Na kogo dokonano cesji (Nazwa podmiotu)?</label><input type="text" name="cessionEntity"></div>
+                                </div>
+                                <div id="lienDetails" class="conditional-section" style="margin-top: 0;">
+                                    <div class="form-group"><label class="input-label required">Dane podmiotu zastawu (Nazwa, adres)</label><input type="text" name="lienEntity"></div>
+                                </div>
+                            </div>
+
+                            <div id="sec-samochod-2" class="section-container">
+                                <div class="section-title"><span class="section-number">7</span> Dane Ubezpieczenia i Sprawcy Zdarzenia</div>
+                                <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Bezpośrednie wskazanie polisy sprawcy odpala procedurę odpowiedzialności. Jeśli sprawca uciekł – wpisz "Nieznany" (sprawa trafi do Ubezpieczeniowego Funduszu Gwarancyjnego).</div>
+                                <div class="form-row-2">
+                                    <div class="form-group"><label class="input-label required">Zakład Ubezpieczeń Sprawcy</label><input type="text" name="perpInsurer" placeholder="np. PZU, Warta, UFG, Nieznany"></div>
+                                    <div class="form-group"><label class="input-label">Numer Polisy OC Sprawcy</label><input type="text" name="perpPolicy" placeholder="Jeśli posiadasz"></div>
+                                </div>
+                                <div class="form-row-3">
+                                    <div class="form-group"><label class="input-label required">Nr rejestracyjny pojazdu sprawcy</label><input type="text" name="perpReg" placeholder="lub wpisz: Nieznany"></div>
+                                    <div class="form-group"><label class="input-label">Imię i Nazwisko sprawcy</label><input type="text" name="perpDriverName" placeholder="Kierujący autem sprawcy"></div>
+                                    <div class="form-group">
+                                        <label class="input-label required">Czy spisano oświadczenie sprawcy?</label>
+                                        <select name="perpStatement">
+                                            <option value="nie">Nie</option>
+                                            <option value="tak">Tak (Zostaniesz poproszony o skan niżej)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row-2" style="margin-top: 15px;">
+                                    <div class="form-group"><label class="input-label">Świadkowie zdarzenia (Imię, nazwisko, telefon)</label><textarea name="witnesses" placeholder="Zabezpiecz się. Jeśli byli świadkowie, podaj ich dane kontaktowe..."></textarea></div>
+                                    <div class="form-group"><label class="input-label">Podmioty z dowodami (np. monitoring kamer)</label><textarea name="evidenceProviders" placeholder="Wymień miejsca, które mogły nagrać wypadek, np. Sklep ABC, Kamera na rogu..."></textarea></div>
+                                </div>
+                            </div>
+
+                            <div id="sec-samochod-3" class="section-container">
+                                <div class="section-title"><span class="section-number">8</span> Opis Przebiegu i Uszkodzeń</div>
+                                <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Dokładny opis służy udowodnieniu "związku przyczynowego". TU bardzo często odrzuca wycenę drogich elementów (np. lamp lub systemów asystujących), twierdząc absurdalnie, że "nie mogły ulec uszkodzeniu w opisywanym schemacie zderzenia". Ucinamy to dokładnym wyjaśnieniem.</div>
+                                <div class="form-group">
+                                    <label class="input-label required">Dokładny opis przebiegu zdarzenia (Z Twojej perspektywy)</label>
+                                    <textarea name="eventDescription" placeholder="Pojazd A (mój) zatrzymał się przed pasami. Pojazd B uderzył z dużą siłą w tył mojego pojazdu, wgniatając bagażnik..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="input-label required">Kto ponosi winę i dlaczego? (Wskazanie odpowiedzialności)</label>
+                                    <textarea name="responsibility" placeholder="Wyłączną winę ponosi kierujący pojazdem B za niezachowanie bezpiecznej odległości. Przyznał się do winy..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="input-label required">Wypisz uszkodzenia pojazdu (Każde widoczne pęknięcie, rysa, kontrolka błędu)</label>
+                                    <textarea name="damageDescription" placeholder="Zderzak tył do wymiany, klapa nie zamyka się, błąd radaru martwego pola na desce..."></textarea>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label class="input-label required">Czy pojazd posiadał uszkodzenia sprzed kolizji?</label>
+                                        <div class="radio-group inline-group">
+                                            <label class="custom-option"><input type="radio" name="prevDamage" value="nie" checked><span class="custom-option-label">Nie</span></label>
+                                            <label class="custom-option"><input type="radio" name="prevDamage" value="tak"><span class="custom-option-label">Tak</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="input-label required">Czy pojazd jest prawnie i technicznie jezdny?</label>
+                                        <select name="isDrivable" id="isDrivableSel">
+                                            <option value="tak">Tak, bez problemu porusza się o własnych siłach</option>
+                                            <option value="nie">Nie (zagrożenie w ruchu drogowym / policja zabrała dowód)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="prevDamageSection" class="conditional-section">
+                                    <div class="form-group"><label class="input-label required">Opisz wcześniejsze uszkodzenia, aby rzeczoznawca nie pomylił ich ze szkodą</label><textarea name="prevDamageDesc" placeholder="np. Zarysowane prawe drzwi pasażera, wgniotka na masce."></textarea></div>
+                                </div>
+                                <div class="form-group"><label class="input-label required">W jakim miejscu dokładnie stoi pojazd do oględzin rzeczoznawcy?</label><input type="text" name="vehicleParkLocation" placeholder="np. Parking DTD Serwis, ul. Przykładowa 1"></div>
+                            </div>
+
+                            <div id="sec-samochod-warsztat" class="section-container">
+                                <div class="section-title"><span class="section-number">9</span> Stan Naprawy</div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label class="input-label required">Czy fizyczna naprawa pojazdu została już rozpoczęta przez blacharza?</label>
+                                        <div class="radio-group inline-group">
+                                            <label class="custom-option"><input type="radio" name="repairStarted" value="nie" checked><span class="custom-option-label">Nie</span></label>
+                                            <label class="custom-option"><input type="radio" name="repairStarted" value="tak"><span class="custom-option-label">Tak (już coś rozebrano)</span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="repairStartedDesc" class="conditional-section" style="margin-top:0;">
+                                    <div class="form-group"><label class="input-label required">Podaj zakres prowadzonych już prac i datę</label><input type="text" name="repairScope" placeholder="np. rozpoczęto częściowy demontaż poszycia tylnego w celu weryfikacji ukrytych wad - 12.10.2023..."></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="sec-holowanie-parkowanie" class="section-container" style="display: none;">
+                            <div class="section-title"><span class="section-number">10</span> Roszczenie: Holowanie i Parkowanie</div>
+                            <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Jesteś prawnie chroniony przed ponoszeniem kosztów zabezpieczenia uszkodzonego majątku po wypadku. Podając precyzyjne trasy i dane, wymuszamy na TU akceptację w pełni uargumentowanych rynkowych kosztów lawety oraz postoju na placu.</div>
+                            
+                            <div id="holowanieSpecificFields" style="display: none; margin-bottom: 30px;">
+                                <h3 style="color: var(--warning-orange); font-size: 15px; margin-bottom: 15px;">Koszty Holowania / Przewozu na Lawecie:</h3>
+                                <div id="towingList">
+                                    <div class="dynamic-item">
+                                        <div class="form-row-2">
+                                            <div class="form-group"><label class="input-label required">Trasa (Miejsce zderzenia → Miejsce zrzutu)</label><input type="text" name="towingRoute[]"></div>
+                                            <div class="form-group"><label class="input-label required">Nazwa firmy holującej</label><input type="text" name="towingCompany[]"></div>
+                                        </div>
+                                        <div class="form-row-3">
+                                            <div class="form-group"><label class="input-label">Telefon firmy holującej</label><input type="tel" name="towingPhone[]"></div>
+                                            <div class="form-group"><label class="input-label">E-mail firmy holującej</label><input type="email" name="towingEmail[]"></div>
+                                            <div class="form-group"><label class="input-label required">Całkowity Koszt (Brutto PLN)</label><input type="number" name="towingCost[]" step="0.01"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" id="addTowingBtn" class="btn-secondary">+ Dodaj kolejną trasę (np. auto wieziono najpierw pod dom, a potem do warsztatu)</button>
+                            </div>
+                            
+                            <div id="parkowanieSpecificFields" style="display: none; padding-top: 15px; border-top: 1px dashed var(--border-color);">
+                                <h3 style="color: var(--warning-orange); font-size: 15px; margin-bottom: 15px;">Koszty płatnego Parkowania (Plac strzeżony/Serwis):</h3>
+                                <div class="form-row-3">
+                                    <div class="form-group"><label class="input-label required">Nazwa podmiotu / Adres parkingu</label><input type="text" name="parkingLocation"></div>
+                                    <div class="form-group"><label class="input-label">Telefon do parkingu</label><input type="tel" name="parkingPhone"></div>
+                                    <div class="form-group"><label class="input-label">E-mail parkingu</label><input type="email" name="parkingEmail"></div>
+                                </div>
+                                <div class="form-row-4">
+                                    <div class="form-group">
+                                        <label class="input-label required">Data rozp. postoju</label>
+                                        <input type="date" name="parkingStartDate" id="parkingStartDate">
+                                    </div>
+                                    <div class="form-group" style="justify-content: center; padding-top: 25px;">
+                                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color:var(--text-main)"><input type="checkbox" id="parkingOngoing" value="tak"> Parkowanie wciąż trwa</label>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="input-label required" id="parkingEndLabel">Data zakończenia</label>
+                                        <input type="date" name="parkingEndDate" id="parkingEndDate" data-compare="parkingStartDate">
+                                        <div class="error-feedback">Data zakończenia nie może być wcześniejsza niż data rozpoczęcia!</div>
+                                    </div>
+                                    <div class="form-group"><label class="input-label required">Koszt za każdą dobę (Brutto PLN)</label><input type="number" name="parkingCostPerDay" step="0.01"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="sec-zastepczy" class="section-container" style="display: none;">
+                            <div class="section-title"><span class="section-number">11</span> Ankieta Zasadności Najmu Pojazdu Zastępczego</div>
+                            <div class="info-box" style="border-left-color: var(--success-green);"><strong>CEL ZBIERANIA DANYCH:</strong> Ubezpieczyciele nagminnie odmawiają zwrotu za wynajem auta zastępczego z wypożyczalni, powołując się na "brak uciążliwości" (jeśli wg nich posiadasz inne auto w domu). Naszym celem jest zebranie potężnych argumentów (specyfika uszkodzonego auta, liczba kierowców, codzienne obowiązki), udowadniając, że auto było Ci niezbędne każdego dnia na cały technologiczny czas naprawy.</div>
+                            
+                            <div class="form-row-4">
+                                <div class="form-group"><label class="input-label required">Od kiedy wynajmujesz?</label><input type="date" name="rentStartDate" id="rentStartDate"></div>
+                                <div class="form-group">
+                                    <label class="input-label">Do kiedy (jeśli oddałeś)?</label>
+                                    <input type="date" name="rentEndDate" id="rentEndDate" data-compare="rentStartDate">
+                                    <div class="error-feedback">Błędna chronologia dat! Zakończenie nie może być przed wynajęciem.</div>
+                                </div>
+                                <div class="form-group"><label class="input-label required">Ilu dorosłych w domu ma prawo jazdy?</label><input type="number" name="driversCount" min="0" value="1"></div>
+                                <div class="form-group">
+                                    <label class="input-label required">Ilość aut zarej. na mieszkańców domu</label>
+                                    <input type="number" name="vehiclesCount" id="vehiclesCount" min="0" value="1">
+                                    <div class="error-feedback" id="conflictVehiclesError">UWAGA SPRZECZNOŚĆ! Niżej zaznaczyłeś, że to "Jedyny pojazd", a tu deklarujesz istnienie innego auta. TU na pewno to zauważy i odrzuci wniosek!</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label class="input-label required" style="color: var(--warning-orange);">KLUCZOWE PYTANIE: Czy uszkodzony pojazd był unikatowy z punktu widzenia Twoich potrzeb (i ewentualne inne auto w domu NIE MOGŁO go zastąpić)?</label>
+                                <select name="isUniqueVehicle" id="isUniqueVehicleSel">
+                                    <option value="nie">Nie (To jedyne auto w ogóle LUB to bez znaczenia dla sprawy)</option>
+                                    <option value="tak">TAK - Posiadam inne auto, ale stanowczo nie wystarczyło do moich celów</option>
+                                </select>
+                            </div>
+                            <div id="uniqueVehicleReasonSection" class="conditional-section" style="margin-top: 0; border-color: var(--warning-orange);">
+                                <div class="form-group">
+                                    <label class="input-label required">Z jakiego konkretnie powodu inne pojazdy kompletynie nie wchodziły w grę?</label>
+                                    <textarea name="uniqueReason" placeholder="Argumenty wygrywające z TU: np. Drugie auto w rodzinie jest popsute (podaj warsztat); Inne auto to mały hatchback, a ja muszę przewozić ogromne klatki na zwierzęta (podaj ich wymiary np. 100x80x60); Potrzebuję haka do pracy; Rozbity pojazd był V-klasą na 8 osób... Bądź bardzo dokładny!"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-top: 20px;">
+                                <label class="input-label required">Do jakich absolutnie koniecznych celów używałeś auta przed wypadkiem?</label>
+                                <div class="grid-checkboxes">
+                                    <label class="custom-option"><input type="checkbox" name="vehUsage" value="praca"><span class="custom-option-label">Codzienne dojazdy do pracy</span></label>
+                                    <label class="custom-option"><input type="checkbox" name="vehUsage" value="biznes"><span class="custom-option-label">Obsługa firmy (klienci, sprzęt)</span></label>
+                                    <label class="custom-option"><input type="checkbox" name="vehUsage" value="szkola"><span class="custom-option-label">Dowożenie dzieci do szkół</span></label>
+                                    <label class="custom-option"><input type="checkbox" name="vehUsage" value="lekarz"><span class="custom-option-label">Zabiegi / dojazdy do lekarza</span></label>
+                                    <label class="custom-option"><input type="checkbox" name="vehUsage" id="chkJedynyPojazd" value="jedyny"><span class="custom-option-label">Jedyny środek komunikacji</span></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="sec-mienie" class="section-container" style="display: none;">
+                            <div class="section-title"><span class="section-number">12</span> Roszczenie: Zniszczone Mienie Dodatkowe</div>
+                            <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Polisa sprawcy pokrywa też rzeczy wewnątrz auta. Pamiętaj, że <strong>foteliki dziecięce podlegają bezwzględnej wymianie na całkowicie nowe!</strong> Zawsze o to walczymy, gdyż struktura styropianu ukryta pod tapicerką może pęknąć podczas przeciążenia, tracąc właściwości ochronne, nawet gdy plastikowa powłoka wygląda nienaruszenie.</div>
+                            
+                            <div id="mienieList"></div>
+                            <button type="button" id="addMienie" class="btn-secondary" style="border-color: var(--warning-orange); color: var(--warning-orange);">+ Dodaj zniszczony przedmiot (np. Fotelik Cybex, Telefon, Okulary, Wózek w bagażniku)</button>
+                        </div>
+
+                        <div id="sec-dochody" class="section-container" style="display: none;">
+                            <div class="section-title"><span class="section-number">13</span> Roszczenie firmowe: Utracone Dochody (Lucrum Cessans)</div>
+                            <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Dotyczy firm i kurierów / taxi. TU zapłaci za przestoje w pracy (utracone korzyści), jeśli szczegółowo udowodnimy Twoją średnią rentowność. Wymaga to załączenia dokumentów podatkowych w ostatnim etapie formularza.</div>
+                            <div class="form-group">
+                                <label class="input-label required">Uzasadnienie roszczenia - wyliczenie średniej dziennej straty</label>
+                                <textarea name="lostIncomeDesc" placeholder="Wyjaśnij powód: np. Samochód to Taxi na specjalnej licencji. Średni dochód dzienny z ostatnich 3 miesięcy to 450 zł. Przestój trwa od 12 dni. Roszczenie to 5400 zł pomniejszone o zaoszczędzone paliwo ok 800 zł. Domagam się 4600 zł rekompensaty..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="section-container" id="sec-wyplata">
+                            <div class="section-title"><span class="section-number">14</span> Docelowa Forma Rozliczenia Szkody</div>
+                            <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Wskazujesz ostateczny cel likwidacji. Formularz ten informuje ubezpieczyciela, kto jest odbiorcą przelewu.</div>
+                            <div class="form-group">
+                                <label class="input-label required">Wybierz, w jaki sposób chcesz rozliczyć tę szkodę i uzyskać pieniądze:</label>
+                                <select name="paymentOrder" id="paymentOrderSel" required>
+                                    <option value="">-- Zdecyduj --</option>
+                                    <option value="gotowka">Nie chcę naprawiać samochodu, chcę odzyskać odszkodowanie w pieniądzu (Zwykły Kosztorys)</option>
+                                    <option value="warsztat">Będę naprawiał samochód (Rozliczenie rachunkowe w oparciu o faktury)</option>
+                                </select>
+                            </div>
+                            
+                            <div id="workshopDetailsSection" class="conditional-section" style="border-color: var(--success-green);">
+                                <h3 style="color: var(--success-green); font-size: 14px; margin-bottom: 15px;">Dane wybranego serwisu (Wypełnij, jeśli będziesz już wstawiał auto na warsztat):</h3>
+                                <div class="form-row-3">
+                                    <div class="form-group"><label class="input-label">Pełna nazwa serwisu blacharskiego</label><input type="text" name="workshopName"></div>
+                                    <div class="form-group"><label class="input-label">Dokładny adres</label><input type="text" name="workshopAddress"></div>
+                                    <div class="form-group"><label class="input-label">Telefon kontaktowy warsztatu</label><input type="tel" name="workshopPhone"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-row-2" style="margin-top: 15px;">
+                                <div class="form-group">
+                                    <label class="input-label required">Numer Twojego rachunku bankowego (weryfikowany IBAN - 26 cyfr)</label>
+                                    <input type="text" name="bankAccount" data-validate="iban" placeholder="PL 00 0000 0000 0000 0000 0000 0000" required>
+                                    <div class="error-feedback">BŁĄD BANKOWY: Numer konta przypisany w Polsce musi mieć dokładnie 26 cyfr!</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-container" id="sec-zalaczniki">
+                            <div class="section-title"><span class="section-number">15</span> Dokumentacja Dowodowa i Załączniki PDF/JPG</div>
+                            <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Kompletność dowodów na etapie samego zgłoszenia odbiera Towarzystwu Ubezpieczeniowemu możliwość wysyłania listów wzywających o "uzupełnienie braków", co technicznie zawiesza im terminy ustawowe. Załączając wszystko z góry, zmuszamy TU do natychmiastowego wyliczenia kwot w ciągu 30 dni.</div>
+
+                            <div style="font-weight: 600; margin-bottom: 10px; font-size: 15px; color: var(--text-main);">Zaznacz odpowiedni kafelek, aby odblokować przycisk wgrywania pliku.</div>
+                            <div class="grid-checkboxes">
+                                
+                                <div class="attachment-wrapper" id="att-korespondencjaTU" style="display: none; border-color: var(--warning-orange); background: rgba(255, 165, 2, 0.05);">
+                                    <label class="custom-option">
+                                        <input type="checkbox" name="attachment" value="korespondencjaTU" data-target="upload-korespondencjaTU" checked>
+                                        <span class="custom-option-label" style="justify-content: flex-start; color: var(--warning-orange); border-color: var(--warning-orange); font-weight: 700;">📧 Skany maili z TU i Decyzje z kosztorysem</span>
+                                    </label>
+                                    <div id="upload-korespondencjaTU" class="file-upload-container" style="display: block; border-color: var(--warning-orange);">
+                                        <input type="file" name="file_korespondencjaTU" accept=".pdf,.eml" multiple>
+                                    </div>
+                                </div>
+
+                                <div class="attachment-wrapper">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="pelnomocnictwo" data-target="upload-pelnomocnictwo"><span class="custom-option-label" style="justify-content: flex-start;">📄 Upoważnienie / Pełnomocnictwo RODO</span></label>
+                                    <div id="upload-pelnomocnictwo" class="file-upload-container"><input type="file" name="file_pelnomocnictwo" accept=".pdf,image/*" multiple></div>
+                                </div>
+                                <div class="attachment-wrapper">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="dowod" data-target="upload-dowod"><span class="custom-option-label" style="justify-content: flex-start;">📄 Skan Dowodu Rej. (Awers i Rewers)</span></label>
+                                    <div id="upload-dowod" class="file-upload-container"><input type="file" name="file_dowod" accept=".pdf,image/*" multiple></div>
+                                </div>
+                                <div class="attachment-wrapper">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="prawoJazdy" data-target="upload-prawo"><span class="custom-option-label" style="justify-content: flex-start;">🪪 Prawa Jazdy Kierującego pojazdem</span></label>
+                                    <div id="upload-prawo" class="file-upload-container"><input type="file" name="file_prawo" accept=".pdf,image/*" multiple></div>
+                                </div>
+                                <div class="attachment-wrapper">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="oswiadczenie" data-target="upload-oswiadczenie"><span class="custom-option-label" style="justify-content: flex-start;">📝 Oświadczenie z miejsca / Wniosek Policji</span></label>
+                                    <div id="upload-oswiadczenie" class="file-upload-container"><input type="file" name="file_oswiadczenie" accept=".pdf,image/*" multiple></div>
+                                </div>
+                                
+                                <div class="attachment-wrapper" id="att-zdjOgolne">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="zdjOgolne" data-target="upload-zdjogolne"><span class="custom-option-label" style="justify-content: flex-start;">🚗 Zdjęcia ogólne pojazdu przed demontażem</span></label>
+                                    <div id="upload-zdjogolne" class="file-upload-container"><input type="file" name="file_zdjogolne" accept="image/*" multiple></div>
+                                </div>
+                                <div class="attachment-wrapper" id="att-zdjUszkodzen">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="zdjUszkodzen" data-target="upload-zdjuszkodzen"><span class="custom-option-label" style="justify-content: flex-start;">🔍 Zbliżenia i detale uszkodzeń + Foto nr VIN</span></label>
+                                    <div id="upload-zdjuszkodzen" class="file-upload-container"><input type="file" name="file_zdjuszkodzen" accept="image/*" multiple></div>
+                                </div>
+                                
+                                <div class="attachment-wrapper" id="att-fakturyHolowanie" style="display: none;">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="fakturyHol" data-target="upload-fakturyhol"><span class="custom-option-label" style="justify-content: flex-start;">🧾 Faktury VAT za Holowanie i Parkowanie auta</span></label>
+                                    <div id="upload-fakturyhol" class="file-upload-container"><input type="file" name="file_fakturyhol" accept=".pdf,image/*" multiple></div>
+                                </div>
+                                
+                                <div class="attachment-wrapper" id="att-zdjMienia" style="display: none;">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="zdjMienia" data-target="upload-zdjMienia"><span class="custom-option-label" style="justify-content: flex-start; color: var(--warning-orange); border-color: var(--warning-orange);">📱 Zdjęcia uszkodzonych rzeczy (Foteliki, Tel.)</span></label>
+                                    <div id="upload-zdjMienia" class="file-upload-container"><input type="file" name="file_zdjMienia" accept="image/*" multiple></div>
+                                </div>
+                                <div class="attachment-wrapper" id="att-fakturyMienie" style="display: none;">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="fakturyMienie" data-target="upload-fakturyMienie"><span class="custom-option-label" style="justify-content: flex-start; color: var(--warning-orange); border-color: var(--warning-orange);">🧾 Paragony i Faktury za zniszczone mienie</span></label>
+                                    <div id="upload-fakturyMienie" class="file-upload-container"><input type="file" name="file_fakturyMienie" accept=".pdf,image/*" multiple></div>
+                                </div>
+
+                                <div class="attachment-wrapper" id="att-dokDochody1" style="display: none;">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="dokDochodyPit" data-target="upload-dokDochody1"><span class="custom-option-label" style="justify-content: flex-start; border-color: var(--error-red);">📊 Księgowość: Zeznanie PIT za zeszły rok</span></label>
+                                    <div id="upload-dokDochody1" class="file-upload-container"><input type="file" name="file_dokDochodyPit" accept=".pdf,image/*" multiple></div>
+                                </div>
+                                <div class="attachment-wrapper" id="att-dokDochody2" style="display: none;">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="dokDochodyKpir" data-target="upload-dokDochody2"><span class="custom-option-label" style="justify-content: flex-start; border-color: var(--error-red);">📖 Księgowość: KPiR (Poprzedni i obecny rok)</span></label>
+                                    <div id="upload-dokDochody2" class="file-upload-container"><input type="file" name="file_dokDochodyKpir" accept=".pdf,image/*" multiple></div>
+                                </div>
+                                <div class="attachment-wrapper" id="att-dokDochody3" style="display: none;">
+                                    <label class="custom-option"><input type="checkbox" name="attachment" value="dokDochodyKasa" data-target="upload-dokDochody3"><span class="custom-option-label" style="justify-content: flex-start; border-color: var(--error-red);">🧾 Księgowość: Wydruki i Raporty z Kasy Fis.</span></label>
+                                    <div id="upload-dokDochody3" class="file-upload-container"><input type="file" name="file_dokDochodyKasa" accept=".pdf,image/*" multiple></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-top: 30px;">
+                                <label class="input-label">Dodatkowe wiadomości i notatki dla Rzeczoznawców DTD Serwis</label>
+                                <textarea name="additionalInfo" placeholder="Tu wpisz wszystkie nietypowe sytuacje (np. Sprawca w trakcie oświadczenia zbiegł, Policja nie wydała jeszcze notatki z powodu dochodzenia na komendzie)..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="section-container" id="sec-umowa">
+                            <div class="section-title"><span class="section-number">16</span> Umowa z klientem</div>
+                            <div class="info-box"><strong>CEL ZBIERANIA DANYCH:</strong> Precyzyjne ustalenia z klientem co do formy i wysokości rozliczenia gwarantują brak nieporozumień po zakończeniu procesu.</div>
+                            
+                            <div class="form-group">
+                                <label class="input-label required">Wybierz typ umowy z klientem:</label>
+                                <select name="clientAgreementType" id="clientAgreementTypeSel" required>
+                                    <option value="">-- Wybierz ustalenia --</option>
+                                    <option value="kasa">Kasa (tylko wypłata)</option>
+                                    <option value="kasa_naprawa">Kasa plus naprawa</option>
+                                    <option value="naprawa">Naprawa bez kasy</option>
+                                    <option value="inne">Inne</option>
+                                </select>
+                            </div>
+
+                            <div id="agreementKasa" class="conditional-section" style="border-color: var(--accent-blue);">
+                                <div class="form-group">
+                                    <label class="input-label required">Ile kasy (PLN):</label>
+                                    <input type="number" step="0.01" name="agreementAmountKasa" placeholder="Wpisz kwotę...">
+                                </div>
+                            </div>
+
+                            <div id="agreementKasaNaprawa" class="conditional-section" style="border-color: var(--accent-blue);">
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label class="input-label required">Zakres naprawy:</label>
+                                        <input type="text" name="agreementRepairScope" placeholder="Co dokładnie naprawiamy?">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="input-label required">Ile kasy (PLN):</label>
+                                        <input type="number" step="0.01" name="agreementAmountKasaNaprawa" placeholder="Wpisz kwotę...">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="agreementInne" class="conditional-section" style="border-color: var(--accent-blue);">
+                                <div class="form-group">
+                                    <label class="input-label required">Jakie (opisz szczegóły):</label>
+                                    <textarea name="agreementOtherDetails" placeholder="Opisz nietypowe ustalenia z klientem..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="button-group">
+                            <button type="reset" class="btn-reset">Wyczyść i zacznij od nowa</button>
+                            <button type="submit" class="btn-submit">Zatwierdź Prawnie i Prześlij Zgłoszenie →</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Skrypty -->
+    <script>
+        // Obsługa menu bocznego (Dropdown)
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
+            if (submenu.style.display === "none") {
+                submenu.style.display = "block";
+                icon.style.transform = "rotate(180deg)";
+            } else {
+                submenu.style.display = "none";
+                icon.style.transform = "rotate(0deg)";
+            }
+        }
+
+        // Przełączanie widoków w głównym kontenerze (Lista -> Detale -> Formularz)
+        function toggleViews(viewId) {
+            document.querySelectorAll('.view-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(viewId).classList.add('active');
+            
+            // Jeśli otwieramy detale - czyść wyszukiwarkę
+            if(viewId === 'view-details') {
+                const searchInput = document.getElementById('searchDetails');
+                if(searchInput) {
+                    searchInput.value = '';
+                    filterDetails();
+                }
+            }
+            
+            // Reset błędów jeśli wchodzimy na formularz na nowo
+            if(viewId === 'view-form') {
+                const globalError = document.getElementById('globalErrorMessage');
+                const successMsg = document.getElementById('successMessage');
+                if(globalError) globalError.style.display = 'none';
+                if(successMsg) successMsg.style.display = 'none';
+            }
+        }
+
+        // Funkcja otwierająca Kartę Szkody z tabeli
+        function showDetails(nrSzkody) {
+            document.getElementById('detail-nr-szkody').innerText = nrSzkody;
+            toggleViews('view-details');
+        }
+
+        // Tryb edycji w samej Karcie Szkody (Inline Edit)
+        let isEditMode = false;
+        function toggleEditMode() {
+            const btn = document.getElementById('editDetailsBtn');
+            // Zbieramy wszystkie komórki danych, które mają być edytowalne
+            const editableElements = document.querySelectorAll('#view-details .info-value, #view-details .long-text-box, #view-details .badge');
+
+            isEditMode = !isEditMode;
+
+            if (isEditMode) {
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Zapisz Zmiany';
+                btn.style.backgroundColor = 'var(--success-green)';
+                editableElements.forEach(el => {
+                    el.setAttribute('contenteditable', 'true');
+                });
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edytuj Akta';
+                btn.style.backgroundColor = '';
+                editableElements.forEach(el => {
+                    el.removeAttribute('contenteditable');
+                });
+                console.log('Zapisano zedytowane komórki w Karcie Szkody');
+            }
+        }
+
+        // Wyszukiwarka Live w Karcie Szkody
+        function filterDetails() {
+            const query = document.getElementById('searchDetails').value.toLowerCase();
+            const sections = document.querySelectorAll('.details-section');
+
+            sections.forEach(sec => {
+                let hasVisibleContent = false;
+                const headerText = sec.querySelector('.details-header').innerText.toLowerCase();
+                
+                // Sprawdzamy wszystkie wiersze z danymi, notatki tekstowe i roszczenia
+                const rows = sec.querySelectorAll('.info-row, .roszczenie-item, .long-text-box, .text-muted');
+                
+                rows.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    // Jeśli wpisujemy tekst, chowamy te wiersze, które nie pasują
+                    if (text.includes(query) || headerText.includes(query)) {
+                        row.style.display = '';
+                        hasVisibleContent = true;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Ukrywamy całą sekcję, jeśli nie ma w niej ani jednego pasującego wiersza (i nagłówek też nie pasuje)
+                if (hasVisibleContent || query === '') {
+                    sec.style.display = 'block';
+                    // Przywracamy separator jeśli był ukryty
+                    sec.querySelectorAll('div[style*="border-top"]').forEach(d => d.style.display = '');
+                } else {
+                    sec.style.display = 'none';
+                }
+            });
+        }
+
+        // ==========================================
+        // LOGIKA KREATORA ZGŁOSZENIA (Z PLIKU ORYGINALNEGO)
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('damageForm');
+            if(!form) return;
+            
+            // --- 0. OCHRONA DAT (Brak dat z przyszłości) ---
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(inp => {
+                if(inp.name !== 'rentEndDate' && inp.name !== 'parkingEndDate') inp.max = today;
+            });
+            
+            // Walidacja daty zdarzenia
+            const eventDateInput = document.getElementById('eventDate');
+            if(eventDateInput) {
+                eventDateInput.addEventListener('change', function() {
+                    if(this.value > today) { this.classList.add('is-invalid'); this.value = ''; }
+                    else { this.classList.remove('is-invalid'); this.classList.add('is-valid'); }
+                });
+            }
+
+            // --- 1. INTELIGENTNE POKAZYWANIE I UKRYWANIE (Blokada błędów HTML5 Validation w ukrytych DIV) ---
+            function toggleEl(id, show) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                
+                if (show) {
+                    el.style.display = 'block';
+                    const inputs = el.querySelectorAll('input:not([type="file"]), select, textarea');
+                    inputs.forEach(inp => {
+                        inp.disabled = false;
+                        if(inp.dataset.wasRequired === 'true') inp.required = true;
+                    });
+                } else {
+                    el.style.display = 'none';
+                    const inputs = el.querySelectorAll('input:not([type="file"]), select, textarea');
+                    inputs.forEach(inp => {
+                        if(inp.required) inp.dataset.wasRequired = 'true';
+                        inp.required = false;
+                        inp.disabled = true;
+                        inp.classList.remove('is-invalid');
+                    });
+                }
+            }
+
+            // --- 2. ZARZĄDZANIE STRUKTURĄ ZGŁOSZENIA ---
+            function updateFormStructure() {
+                // Odczyty z checklisty roszczeń w sekcji 2
+                const chkSamochod = document.querySelector('input[name="claimType"][value="samochod"]')?.checked;
+                const chkMienie = document.querySelector('input[name="claimType"][value="mienie"]')?.checked;
+                const chkZastepczy = document.querySelector('input[name="claimType"][value="zastepczy"]')?.checked;
+                const chkHolowanie = document.querySelector('input[name="claimType"][value="holowanie"]')?.checked;
+                const chkParkowanie = document.querySelector('input[name="claimType"][value="parkowanie"]')?.checked;
+                const chkDochody = document.querySelector('input[name="claimType"][value="dochody"]')?.checked;
+
+                // Logika wyświetlania sekcji 5 do 13
+                toggleEl('dynamic-group-samochod', chkSamochod);
+                toggleEl('sec-holowanie-parkowanie', chkHolowanie || chkParkowanie);
+                toggleEl('holowanieSpecificFields', chkHolowanie);
+                toggleEl('parkowanieSpecificFields', chkParkowanie);
+                toggleEl('sec-zastepczy', chkZastepczy);
+                toggleEl('sec-mienie', chkMienie);
+                toggleEl('sec-dochody', chkDochody);
+
+                // Automatyczne pokazywanie miejsc na załączniki
+                toggleEl('att-zdjMienia', chkMienie);
+                toggleEl('att-fakturyMienie', chkMienie);
+                toggleEl('att-fakturyHolowanie', chkHolowanie || chkParkowanie);
+                toggleEl('att-dokDochody1', chkDochody);
+                toggleEl('att-dokDochody2', chkDochody);
+                toggleEl('att-dokDochody3', chkDochody);
+
+                // Re-numeracja nagłówków H1
+                let count = 1;
+                document.querySelectorAll('.v2-form-wrapper .section-container').forEach(container => {
+                    if (container.style.display !== 'none' && container.parentElement.style.display !== 'none') {
+                        const numberSpan = container.querySelector('.section-number');
+                        if (numberSpan) numberSpan.textContent = count++;
+                    }
+                });
+            }
+            document.querySelectorAll('input[name="claimType"]').forEach(cb => cb.addEventListener('change', updateFormStructure));
+
+            // --- 3. OBSŁUGA STATUSU I POD-ROZWIJAŃ (RADIOS, SELECTS) ---
+            document.getElementById('claimStatusSel').addEventListener('change', (e) => {
+                const val = e.target.value;
+                toggleEl('statusReportedDetails', val === 'zgloszona');
+                toggleEl('statusPaidDetails', val === 'wyplacona');
+                toggleEl('tuCorrespondenceInstruction', val === 'zgloszona' || val === 'wyplacona');
+                toggleEl('att-korespondencjaTU', val === 'zgloszona' || val === 'wyplacona');
+            });
+
+            function setupRadioToggle(radioName, sectionId, showValue) {
+                document.querySelectorAll(`input[name="${radioName}"]`).forEach(radio => {
+                    radio.addEventListener('change', (e) => toggleEl(sectionId, e.target.value === showValue));
+                });
+            }
+            setupRadioToggle('hasCoowners', 'coownersSection', 'tak');
+            setupRadioToggle('policePresent', 'policeSection', 'tak');
+            setupRadioToggle('isSamePerson', 'injuredSection', 'nie');
+            setupRadioToggle('prevDamage', 'prevDamageSection', 'tak');
+            setupRadioToggle('repairStarted', 'repairStartedDesc', 'tak');
+
+            document.getElementById('policyType').addEventListener('change', (e) => toggleEl('inneOcSection', e.target.value === 'inne'));
+            document.getElementById('isLeasingSel').addEventListener('change', (e) => toggleEl('leasingDetails', e.target.value === 'tak'));
+            document.getElementById('isCessionSel').addEventListener('change', (e) => toggleEl('cessionDetails', e.target.value === 'tak'));
+            document.getElementById('isLienSel').addEventListener('change', (e) => toggleEl('lienDetails', e.target.value === 'tak'));
+            document.getElementById('isUniqueVehicleSel').addEventListener('change', (e) => toggleEl('uniqueVehicleReasonSection', e.target.value === 'tak'));
+            document.getElementById('otherServicesBtn').addEventListener('change', (e) => toggleEl('otherServicesTextSection', e.target.checked));
+            
+            document.getElementById('paymentOrderSel').addEventListener('change', (e) => {
+                toggleEl('workshopDetailsSection', e.target.value === 'warsztat');
+            });
+            
+            document.getElementById('clientAgreementTypeSel').addEventListener('change', (e) => {
+                const val = e.target.value;
+                toggleEl('agreementKasa', val === 'kasa');
+                toggleEl('agreementKasaNaprawa', val === 'kasa_naprawa');
+                toggleEl('agreementInne', val === 'inne');
+            });
+            
+            // Opcja "Parkowanie trwa" zdejmuje required z daty zakończenia
+            const parkingOngoingCb = document.getElementById('parkingOngoing');
+            const parkingEndDateInput = document.getElementById('parkingEndDate');
+            const parkingEndLabel = document.getElementById('parkingEndLabel');
+            if(parkingOngoingCb) {
+                parkingOngoingCb.addEventListener('change', (e) => {
+                    if(e.target.checked) {
+                        parkingEndDateInput.disabled = true; parkingEndDateInput.required = false; parkingEndDateInput.value = '';
+                        parkingEndLabel.classList.remove('required'); parkingEndDateInput.classList.remove('is-invalid');
+                    } else {
+                        parkingEndDateInput.disabled = false; parkingEndDateInput.required = true;
+                        parkingEndLabel.classList.add('required');
+                    }
+                });
+            }
+
+            // --- 4. DYNAMICZNE DODAWANIE KLOCKÓW DOM (Holowanie, Współwłaściciele, Przedmioty) ---
+            document.getElementById('addCoowner').addEventListener('click', function() {
+                const div = document.createElement('div'); div.className = "dynamic-item";
+                div.innerHTML = `<div class="form-row-2"><div class="form-group"><label class="input-label required">Imię i Nazwisko / Nazwa Firmy</label><input type="text" name="coownerName[]" required></div><div class="form-group"><label class="input-label required">PESEL / NIP (Tylko 10 lub 11 cyfr)</label><input type="text" name="coownerIdentity[]" data-validate="pesel-nip" required><div class="error-feedback">Błędny NIP lub PESEL!</div></div></div><button type="button" onclick="this.parentElement.remove()" class="btn-danger">Usuń wpis współadministratora</button>`;
+                document.getElementById('coownersList').appendChild(div);
+                bindValidatorToDynamicField(div.querySelector('[data-validate]'));
+            });
+
+            document.getElementById('addTowingBtn').addEventListener('click', function() {
+                const div = document.createElement('div'); div.className = "dynamic-item";
+                div.innerHTML = `<div class="form-row-2"><div class="form-group"><label class="input-label required">Następna Trasa</label><input type="text" name="towingRoute[]" required></div><div class="form-group"><label class="input-label required">Nazwa firmy przewozowej</label><input type="text" name="towingCompany[]" required></div></div><div class="form-row-3"><div class="form-group"><label class="input-label">Telefon przewoźnika</label><input type="tel" name="towingPhone[]"></div><div class="form-group"><label class="input-label">E-mail</label><input type="email" name="towingEmail[]"></div><div class="form-group"><label class="input-label required">Kwota na dokumencie (PLN)</label><input type="number" name="towingCost[]" step="0.01" required></div></div><button type="button" onclick="this.parentElement.remove()" class="btn-danger">Usuń dodatkową trasę</button>`;
+                document.getElementById('towingList').appendChild(div);
+            });
+
+            document.getElementById('addMienie').addEventListener('click', function() {
+                const div = document.createElement('div'); div.className = "dynamic-item"; div.style.borderColor = "var(--warning-orange)";
+                div.innerHTML = `<div class="form-row-3"><div class="form-group"><label class="input-label required">Oznaczenie (Marka, model)</label><input type="text" name="propName[]" required></div><div class="form-group"><label class="input-label required">Deklarowany Rok Zakupu</label><input type="number" name="propYear[]" required></div><div class="form-group"><label class="input-label required">Początkowa Wartość z FV (PLN)</label><input type="number" name="propValue[]" step="0.01" required></div></div><div class="form-group"><label class="input-label required">Fizyczny i dokładny obraz zniszczeń</label><textarea name="propDamage[]" required></textarea></div><button type="button" onclick="this.parentElement.remove()" class="btn-danger">Usuń ten element</button>`;
+                document.getElementById('mienieList').appendChild(div);
+            });
+
+            // Mechanika odblokowywania Pól Plików w checkboaxach Załączników
+            document.querySelectorAll('input[name="attachment"]').forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const uploadDiv = document.getElementById(this.getAttribute('data-target'));
+                    if (uploadDiv) { uploadDiv.style.display = this.checked ? 'block' : 'none'; if(!this.checked) uploadDiv.querySelector('input').value = ''; }
+                });
+            });
+
+            // --- 5. WALIDATORY I ZABEZPIECZENIA ALGORYTMICZNE W TLE ---
+            const validators = {
+                'pesel-nip': function(val) {
+                    val = val.replace(/[\s-]/g, '');
+                    if(val.length === 11) { // PESEL Suma
+                        let weight = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];
+                        let sum = 0; for(let i=0; i<10; i++) sum += parseInt(val[i]) * weight[i];
+                        let control = 10 - (sum % 10); if(control === 10) control = 0;
+                        return control === parseInt(val[10]);
+                    } else if(val.length === 10) { // NIP Suma
+                        let weight = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+                        let sum = 0; for(let i=0; i<9; i++) sum += parseInt(val[i]) * weight[i];
+                        return (sum % 11) === parseInt(val[9]);
+                    }
+                    return false;
+                },
+                'nip-only': function(val) {
+                    val = val.replace(/[\s-]/g, ''); if(val.length !== 10) return false;
+                    let weight = [6, 5, 7, 2, 3, 4, 5, 6, 7]; let sum = 0;
+                    for(let i=0; i<9; i++) sum += parseInt(val[i]) * weight[i];
+                    return (sum % 11) === parseInt(val[9]);
+                },
+                'vin': function(val) { return /^[A-HJ-NPR-Z0-9]{17}$/i.test(val); },
+                'iban': function(val) { val = val.replace(/[\sA-Za-z]/g, ''); return val.length === 26; },
+                'email': function(val) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val); }
+            };
+
+            function bindValidatorToDynamicField(input) {
+                input.addEventListener('blur', function() {
+                    const type = this.getAttribute('data-validate');
+                    if(!this.value) { this.classList.remove('is-invalid', 'is-valid'); return; }
+                    if(validators[type](this.value)) { this.classList.remove('is-invalid'); this.classList.add('is-valid'); } 
+                    else { this.classList.remove('is-valid'); this.classList.add('is-invalid'); }
+                });
+            }
+
+            document.querySelectorAll('[data-validate]').forEach(input => bindValidatorToDynamicField(input));
+
+            document.querySelectorAll('[data-compare]').forEach(endInput => {
+                endInput.addEventListener('change', function() {
+                    const startInput = document.getElementById(this.getAttribute('data-compare'));
+                    if (this.value && startInput.value && this.value < startInput.value) {
+                        this.classList.add('is-invalid'); this.value = '';
+                    } else { this.classList.remove('is-invalid'); }
+                });
+            });
+
+            // Analiza Logiki Oszustw - Konlikt aut "Jedyny Pojazd" vs Ilość Aut w DOMU
+            const chkJedyny = document.getElementById('chkJedynyPojazd');
+            const vehiclesCount = document.getElementById('vehiclesCount');
+            const conflictError = document.getElementById('conflictVehiclesError');
+            
+            function checkVehicleConflict() {
+                if (chkJedyny && chkJedyny.checked && parseInt(vehiclesCount.value) > 1) {
+                    vehiclesCount.classList.add('is-invalid'); conflictError.style.display = 'block'; return true;
+                } else {
+                    if(vehiclesCount) vehiclesCount.classList.remove('is-invalid'); 
+                    if(conflictError) conflictError.style.display = 'none'; 
+                    return false;
+                }
+            }
+            if(chkJedyny) chkJedyny.addEventListener('change', checkVehicleConflict);
+            if(vehiclesCount) vehiclesCount.addEventListener('input', checkVehicleConflict);
+
+            // --- INICJALIZACJA FUNKCJI DOMYŚLNYCH ---
+            updateFormStructure();
+            toggleEl('statusReportedDetails', false); toggleEl('statusPaidDetails', false); toggleEl('tuCorrespondenceInstruction', false);
+            toggleEl('inneOcSection', false); toggleEl('leasingDetails', false); toggleEl('uniqueVehicleReasonSection', false); 
+            toggleEl('otherServicesTextSection', false); toggleEl('cessionDetails', false); toggleEl('lienDetails', false); 
+            toggleEl('prevDamageSection', false); toggleEl('repairStartedDesc', false); toggleEl('workshopDetailsSection', false);
+            toggleEl('agreementKasa', false); toggleEl('agreementKasaNaprawa', false); toggleEl('agreementInne', false);
+
+            // --- WYSYŁKA ---
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const globalError = document.getElementById('globalErrorMessage');
+                
+                // Ostateczne filtry blokujące
+                const hasConflicts = checkVehicleConflict();
+                const hasInvalidFields = document.querySelectorAll('.is-invalid').length > 0;
+                let hasEmptyRequired = false;
+                
+                form.querySelectorAll('input[required]:not(:disabled), select[required]:not(:disabled), textarea[required]:not(:disabled)').forEach(f => {
+                    if(!f.value) { f.classList.add('is-invalid'); hasEmptyRequired = true; }
+                });
+
+                if (hasConflicts || hasInvalidFields || hasEmptyRequired) {
+                    globalError.style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return; 
+                }
+
+                globalError.style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                console.log("SUKCES - WALIDACJE ZAKOŃCZONE POMYŚLNIE. Zgłoszenie leci do systemu DTD.");
+                setTimeout(() => { 
+                    document.getElementById('successMessage').style.display = 'none';
+                    form.reset();
+                    // Zwiń otwarte podsekcje
+                    toggleEl('statusReportedDetails', false);
+                    toggleEl('sec-zastepczy', false);
+                    toggleEl('sec-mienie', false);
+                    // Wróc na listę
+                    toggleViews('view-list');
+                }, 4000);
+            });
+        });
+    </script>
+</body>
+</html>
