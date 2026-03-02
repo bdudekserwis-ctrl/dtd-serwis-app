@@ -452,7 +452,7 @@
                 <div class="card" style="box-shadow:none;">
                     <div class="main-tabs" style="margin-bottom:0; padding:10px 20px 0 20px; background:#f8fafc; border-bottom:1px solid var(--border-color);">
                         <button class="main-tab-btn active" style="font-size:12px;" onclick="app.switchDetTab('parts', this)">Zamówienia Części</button>
-                        <button class="main-tab-btn" style="font-size:12px;" onclick="app.switchDetTab('costs', this)">Koszty i Kalkulacja</button>
+                        <button class="main-tab-btn" style="font-size:12px;" onclick="app.switchDetTab('costs', this)">Koszty i Estymacje</button>
                         <button class="main-tab-btn" style="font-size:12px;" onclick="app.switchDetTab('audit', this)">Historia Zmian</button>
                     </div>
                     <div class="card-body">
@@ -483,6 +483,10 @@
 
                         <!-- ZAKŁADKA DETALI: AUDIT -->
                         <div id="dtab-audit" class="det-tab-content" style="display:none;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                                <h4 style="font-size:14px; color:var(--text-main);">Historia / Audit Log</h4>
+                                <button class="btn btn-secondary btn-small" onclick="app.openAuditModal()"><i class="fa-solid fa-plus"></i> Dodaj Wpis</button>
+                            </div>
                             <table style="font-size:12px;">
                                 <thead><tr><th>Data i Czas</th><th>Użytkownik</th><th>Akcja</th><th>Szczegóły</th></tr></thead>
                                 <tbody id="det-audit-tbody"></tbody>
@@ -694,6 +698,68 @@
         </div>
     </div>
 
+    <!-- MODAL: DODAJ KOSZT -->
+    <div class="modal-overlay" id="costModal">
+        <div class="modal-card" style="width: 500px;">
+            <div class="modal-header"><span><i class="fa-solid fa-file-invoice-dollar"></i> Dodaj Koszt / Estymację</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="app.closeModal('costModal')"></i></div>
+            <div class="modal-body">
+                <form id="costForm">
+                    <div class="form-group">
+                        <label class="required">Typ Kosztu / Kategoria</label>
+                        <select id="ct_type" class="input-control" required>
+                            <option value="rbh_blach">Roboczogodziny - Blacharnia</option>
+                            <option value="rbh_przyg">Roboczogodziny - Przygotowalnia</option>
+                            <option value="rbh_lakier">Roboczogodziny - Lakiernia</option>
+                            <option value="rbh_sklad">Roboczogodziny - Składanie</option>
+                            <option value="materialy_lak">Materiały Lakiernicze</option>
+                            <option value="usluga_zewn">Usługa Zewnętrzna (np. Geometria)</option>
+                            <option value="korekta">Korekta / Rabat</option>
+                        </select>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group"><label class="required">Ilość (RBH / Sztuki)</label><input type="number" id="ct_qty" class="input-control" required min="1" value="1" oninput="app.calcCost()"></div>
+                        <div class="form-group"><label class="required">Cena Jedn. Netto (PLN)</label><input type="number" id="ct_price" step="0.01" class="input-control" required oninput="app.calcCost()"></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="required">Stawka VAT</label>
+                            <select id="ct_vatRate" class="input-control" required onchange="app.calcCost()">
+                                <option value="23">23%</option>
+                                <option value="8">8%</option>
+                                <option value="0">0%</option>
+                                <option value="zw">zw</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Wartość Brutto (Auto)</label><input type="number" id="ct_gross" class="input-control" disabled></div>
+                    </div>
+                    <div class="form-group"><label>Notatka / Opis</label><input type="text" id="ct_note" class="input-control" placeholder="np. Szyba czołowa - Wymiana zewnętrzna"></div>
+                    
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                        <button type="button" class="btn btn-secondary" onclick="app.closeModal('costModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">Zapisz Koszt</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DODAJ AUDIT / HISTORIĘ -->
+    <div class="modal-overlay" id="auditModal">
+        <div class="modal-card" style="width: 500px;">
+            <div class="modal-header"><span><i class="fa-solid fa-clock-rotate-left"></i> Dodaj wpis do historii</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="app.closeModal('auditModal')"></i></div>
+            <div class="modal-body">
+                <form id="auditForm">
+                    <div class="form-group"><label class="required">Rodzaj Akcji</label><input type="text" id="au_action" class="input-control" required placeholder="np. Wstrzymanie naprawy"></div>
+                    <div class="form-group"><label class="required">Szczegóły</label><textarea id="au_details" class="input-control" required placeholder="np. Klient nie dostarczył dowodu rejestracyjnego. Czekamy na kontakt..."></textarea></div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                        <button type="button" class="btn btn-secondary" onclick="app.closeModal('auditModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">Zapisz Wpis</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- TOASTY SYSTEMOWE -->
     <div id="toast-container"></div>
 
@@ -822,6 +888,7 @@
             },
 
             closeModal: (id) => { document.getElementById(id).style.display = 'none'; },
+            openModal: (id) => { document.getElementById(id).style.display = 'flex'; },
 
             // --- DASHBOARD ---
             renderDashboard: () => {
@@ -1039,11 +1106,46 @@
                             <td>${p.supplier||'-'}</td>
                             <td><span class="badge badge-neutral">${p.status.replace('_',' ').toUpperCase()}</span><br><small class="text-muted">ETA: ${app.fmtDate(p.etaDate)}</small></td>
                             <td style="text-align:right">
-                                <button class="btn btn-secondary btn-small"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn btn-danger btn-small" onclick="app.deletePart('${p.id}')"><i class="fa-solid fa-trash"></i></button>
                             </td>
                         </tr>
                     `;
                 });
+            },
+
+            openPartModal: () => {
+                document.getElementById('partForm').reset();
+                app.openModal('partModal');
+            },
+
+            savePart: (e) => {
+                e.preventDefault();
+                let parts = app.get(KEYS.PARTS);
+                parts.push({
+                    id: app.uuid(),
+                    orderId: app.state.currentOrderId,
+                    name: document.getElementById('pt_name').value,
+                    partNo: document.getElementById('pt_no').value,
+                    qty: Number(document.getElementById('pt_qty').value),
+                    source: document.getElementById('pt_source').value,
+                    priority: document.getElementById('pt_prio').value,
+                    status: document.getElementById('pt_status').value,
+                    etaDate: document.getElementById('pt_eta').value,
+                    estPriceGross: Number(document.getElementById('pt_price').value) || 0
+                });
+                app.set(KEYS.PARTS, parts);
+                app.addAudit(app.state.currentOrderId, 'Dodano część', document.getElementById('pt_name').value);
+                app.toast('Część dodana do listy.', 'success');
+                app.closeModal('partModal');
+                app.renderOrderParts();
+            },
+
+            deletePart: (id) => {
+                if(confirm("Usunąć tę część?")) {
+                    app.set(KEYS.PARTS, app.get(KEYS.PARTS).filter(p => p.id !== id));
+                    app.toast("Część usunięta", "success");
+                    app.renderOrderParts();
+                }
             },
 
             renderOrderCosts: () => {
@@ -1057,10 +1159,64 @@
                             <td>${c.qty}</td>
                             <td>${app.fmtMoney(c.unitPrice)}</td>
                             <td style="font-weight:800; color:var(--accent-blue);">${app.fmtMoney(c.grossAmount)}</td>
-                            <td style="text-align:right"><button class="btn btn-danger btn-small"><i class="fa-solid fa-trash"></i></button></td>
+                            <td style="text-align:right"><button class="btn btn-danger btn-small" onclick="app.deleteCost('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
                         </tr>
                     `;
                 });
+            },
+
+            calcCost: () => {
+                let qty = Number(document.getElementById('ct_qty').value) || 0;
+                let price = Number(document.getElementById('ct_price').value) || 0;
+                let vRate = document.getElementById('ct_vatRate').value;
+                
+                let net = qty * price;
+                let vat = (vRate === 'zw' || vRate === '0') ? 0 : net * (Number(vRate)/100);
+                document.getElementById('ct_gross').value = (net + vat).toFixed(2);
+            },
+
+            openCostModal: () => {
+                document.getElementById('costForm').reset();
+                app.calcCost();
+                app.openModal('costModal');
+            },
+
+            saveCost: (e) => {
+                e.preventDefault();
+                let qty = Number(document.getElementById('ct_qty').value);
+                let price = Number(document.getElementById('ct_price').value);
+                let vRate = document.getElementById('ct_vatRate').value;
+                let net = qty * price;
+                let vat = (vRate === 'zw' || vRate === '0') ? 0 : net * (Number(vRate)/100);
+
+                let costs = app.get(KEYS.COSTS);
+                costs.push({
+                    id: app.uuid(),
+                    orderId: app.state.currentOrderId,
+                    type: document.getElementById('ct_type').value,
+                    qty: qty,
+                    unitPrice: price,
+                    vatRate: vRate,
+                    netAmount: net,
+                    vatAmount: vat,
+                    grossAmount: net + vat,
+                    note: document.getElementById('ct_note').value
+                });
+                app.set(KEYS.COSTS, costs);
+                app.addAudit(app.state.currentOrderId, 'Dodano koszt', `Kwota: ${app.fmtMoney(net+vat)}`);
+                app.toast('Koszt / Estymacja zapisana.', 'success');
+                app.closeModal('costModal');
+                app.renderOrderCosts();
+                app.showOrderDetails(app.state.currentOrderId); // refresh totals
+            },
+
+            deleteCost: (id) => {
+                if(confirm("Usunąć koszt z estymacji?")) {
+                    app.set(KEYS.COSTS, app.get(KEYS.COSTS).filter(c => c.id !== id));
+                    app.toast("Koszt usunięty", "success");
+                    app.renderOrderCosts();
+                    app.showOrderDetails(app.state.currentOrderId);
+                }
             },
 
             renderOrderAudit: () => {
@@ -1071,6 +1227,20 @@
                     tbody.innerHTML += `<tr><td>${app.fmtDate(a.at)}</td><td>${a.user}</td><td><strong>${a.action}</strong></td><td>${a.details}</td></tr>`;
                 });
             },
+
+            openAuditModal: () => {
+                document.getElementById('auditForm').reset();
+                app.openModal('auditModal');
+            },
+
+            saveAudit: (e) => {
+                e.preventDefault();
+                app.addAudit(app.state.currentOrderId, document.getElementById('au_action').value, document.getElementById('au_details').value);
+                app.toast('Wpis dodany do historii', 'success');
+                app.closeModal('auditModal');
+                app.renderOrderAudit();
+            },
+
 
             // --- TERMINARZ (KALENDARZ) ---
             renderCalendar: () => {
@@ -1302,45 +1472,50 @@
                 document.getElementById('qa_inDate').value = new Date().toISOString().split('T')[0];
                 app.openModal('quickAddModal');
             },
-            
-            openModal: (id) => { document.getElementById(id).style.display = 'flex'; }
+
+            // Form Submit Listeners attachment logic
+            initEventListeners: () => {
+                document.getElementById('partForm').addEventListener('submit', app.savePart);
+                document.getElementById('costForm').addEventListener('submit', app.saveCost);
+                document.getElementById('auditForm').addEventListener('submit', app.saveAudit);
+
+                document.getElementById('quickAddForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const ords = app.get(KEYS.ORDERS);
+                    const inD = document.getElementById('qa_inDate').value;
+                    let d = new Date(inD); d.setDate(d.getDate()+7); // auto ETD +7 dni
+                    
+                    const newOrder = {
+                        id: app.uuid(),
+                        vehiclePlate: document.getElementById('qa_reg').value.toUpperCase(),
+                        vehicleMakeModel: document.getElementById('qa_car').value,
+                        customerName: document.getElementById('qa_client').value,
+                        vin: document.getElementById('qa_vin').value,
+                        customerPhone: document.getElementById('qa_phone').value,
+                        claimId: document.getElementById('qa_claim').value,
+                        intakeDatePlanned: inD,
+                        etdPlanned: d.toISOString().split('T')[0],
+                        status: 'do_wyceny',
+                        description: document.getElementById('qa_desc').value,
+                        blockers: [], archived: false, createdAt: new Date().toISOString()
+                    };
+
+                    ords.push(newOrder);
+                    app.set(KEYS.ORDERS, ords);
+                    app.addAudit(newOrder.id, 'Utworzenie Zlecenia', 'Dodano z szybkiego formularza');
+                    
+                    app.toast('Zlecenie zapisane w buforze warsztatu.', 'success');
+                    app.closeModal('quickAddModal');
+                    if(app.state.tab === 'orders') app.renderOrdersTable();
+                    if(app.state.tab === 'dashboard') app.renderDashboard();
+                });
+            }
         };
-
-        // Form submits
-        document.getElementById('quickAddForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const ords = app.get(KEYS.ORDERS);
-            const inD = document.getElementById('qa_inDate').value;
-            let d = new Date(inD); d.setDate(d.getDate()+7); // auto ETD +7 dni
-            
-            const newOrder = {
-                id: app.uuid(),
-                vehiclePlate: document.getElementById('qa_reg').value.toUpperCase(),
-                vehicleMakeModel: document.getElementById('qa_car').value,
-                customerName: document.getElementById('qa_client').value,
-                vin: document.getElementById('qa_vin').value,
-                customerPhone: document.getElementById('qa_phone').value,
-                claimId: document.getElementById('qa_claim').value,
-                intakeDatePlanned: inD,
-                etdPlanned: d.toISOString().split('T')[0],
-                status: 'do_wyceny',
-                description: document.getElementById('qa_desc').value,
-                blockers: [], archived: false, createdAt: new Date().toISOString()
-            };
-
-            ords.push(newOrder);
-            app.set(KEYS.ORDERS, ords);
-            app.addAudit(newOrder.id, 'Utworzenie Zlecenia', 'Dodano z szybkiego formularza');
-            
-            app.toast('Zlecenie zapisane w buforze warsztatu.', 'success');
-            app.closeModal('quickAddModal');
-            if(app.state.tab === 'orders') app.renderOrdersTable();
-            if(app.state.tab === 'dashboard') app.renderDashboard();
-        });
 
         // Initialize
         window.onload = () => {
             app.initStorage();
+            app.initEventListeners();
             app.switchTab('dashboard');
         };
 
