@@ -226,44 +226,59 @@
 <body>
 
     <!-- SIDEBAR -->
-    <div class="sidebar no-print">
-        <div class="sidebar-header"><span>DTD</span> Serwis</div>
-        <div class="nav-menu">
-            <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-car-burst"></i> Lista szkód</a>
-            <a href="infolinia.html" class="nav-item"><i class="fa-solid fa-car-side"></i> Samochody</a>
-
-            <div class="menu-label">Najmy</div>
-            <div class="submenu" style="display: block;">
-                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
-                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
-                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
-
-                <div class="submenu-label">Flota własna</div>
-                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
-                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
-                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
-                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
-            </div>
-
-            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
-            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
-            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
-            <a href="czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
-            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
-            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
-
-            <div class="menu-label">Naprawy</div>
-            <div class="submenu" style="display: block;">
-                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
-                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
-                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
-                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
-            </div>
-
-            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+    <div class="sidebar">
+    <div class="sidebar-header"><span>DTD</span> Serwis</div>
+    <div class="nav-menu">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+        <a href="szkody_zakonczone.html" class="nav-item"><i class="fa-solid fa-file-circle-check"></i> Szkody zakończone</a>
+        
+        <a href="samochody.html" class="nav-item"><i class="fa-solid fa-car"></i> Samochody</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-najmy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-key"></i> Najmy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-najmy" style="font-size: 10px;"></i>
         </div>
+        <div class="submenu" id="submenu-najmy" style="display:none;">
+            <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+            <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+            <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+        </div>
+
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-flota')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car-side"></i> Flota własna</div>
+            <i class="fa-solid fa-chevron-down" id="icon-flota" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-flota" style="display:none;">
+            <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+            <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+            <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+            <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+        </div>
+
+        <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+        <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
+        <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+        <a href="magazyn_czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
+        <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+        <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-naprawy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-naprawy" style="display: none;">
+            <a href="naprawy_blacharnia.html" class="submenu-item active">Warsztat blacharsko-lakierniczy</a>
+            <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+            <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+            <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            <a href="naprawy_zakonczone.html" class="submenu-item">Naprawy zakończone</a>
+        </div>
+
+        <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+        <a href="infolinia.html" class="nav-item"><i class="fa-solid fa-headset"></i> Infolinia / SLA</a>
     </div>
+</div>
 
     <div class="main-wrapper">
         <div class="topbar">
@@ -444,6 +459,7 @@
                         <div class="info-row" style="border-bottom-color: rgba(255,255,255,0.1);"><div class="info-label" style="color:#94a3b8;">Plan. Wjazd:</div><div class="info-value" id="det-in"></div></div>
                         <div class="info-row" style="border-bottom-color: rgba(255,255,255,0.1);"><div class="info-label" style="color:#94a3b8;">Wydanie (ETD):</div><div class="info-value text-green" id="det-out"></div></div>
                         <div class="info-row" style="border-bottom-color: rgba(255,255,255,0.1);"><div class="info-label" style="color:#94a3b8;">Wartość Kosztorysu:</div><div class="info-value" id="det-est"></div></div>
+                        <div class="info-row" style="border:none;"><div class="info-label" style="color:#94a3b8;">Koszt przewidywany podany klientowi:</div><div class="info-value" id="det-budget"></div></div>
                         <div class="info-row" style="border:none;"><div class="info-label" style="color:#94a3b8;">Dostępność Części:</div><div class="info-value" id="det-parts-stat"></div></div>
                     </div>
                 </div>
@@ -473,6 +489,7 @@
                             <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
                                 <h4 style="font-size:14px; color:var(--text-main);">Estymacja Kosztów Wewnętrznych (Podkładka)</h4>
                                 <button class="btn btn-secondary btn-small" onclick="app.openCostModal()"><i class="fa-solid fa-plus"></i> Dodaj pozycję kosztową</button>
+                                <button class="btn btn-primary btn-small" onclick="app.openAcquiredPartModal()"><i class="fa-solid fa-box-open"></i> Część pozyskana</button>
                             </div>
                             <table>
                                 <thead><tr><th>Typ / Kategoria</th><th>Ilość/Rbh</th><th>Cena Jedn. Netto</th><th>Wartość Brutto</th><th style="text-align:right">Opcje</th></tr></thead>
@@ -577,6 +594,7 @@
                         <div class="form-group"><label>Powiązanie ze szkodą (ID)</label><input type="text" id="qa_claim" class="input-control" placeholder="np. CLM-123"></div>
                         <div class="form-group"><label class="required">Planowana data przyjęcia</label><input type="date" id="qa_inDate" class="input-control" required></div>
                         <div class="form-group full"><label>Krótki opis zlecenia</label><textarea id="qa_desc" class="input-control" rows="2"></textarea></div>
+                        <div class="form-group"><label>Ustalona kwota akceptacji (Próg zgody w PLN)</label><input type="number" id="ord_budget" class="input-control"></div>
                     </div>
                     <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
                         <button type="button" class="btn btn-secondary" onclick="app.closeModal('quickAddModal')">Anuluj</button>
@@ -743,7 +761,17 @@
     </div>
 
     <!-- MODAL: DODAJ AUDIT / HISTORIĘ -->
-    <div class="modal-overlay" id="auditModal">
+    
+    <div class="modal-overlay" id="acquiredPartModal">
+        <div class="modal-card" style="width: 500px;">
+            <div class="modal-header"><span><i class="fa-solid fa-box-open"></i> Część pozyskana</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="app.closeModal('acquiredPartModal')"></i></div>
+            <div class="modal-body">
+                <form id="acquiredPartForm"><div class="form-group"><label class="required">Skąd pozyskano</label><input type="text" id="acq_source" class="input-control" required></div><div class="form-grid"><div class="form-group"><label class="required">Za ile</label><input type="number" id="acq_price" step="0.01" class="input-control" required></div><div class="form-group"><label class="required">Waluta</label><select id="acq_currency" class="input-control"><option value="PLN Netto">PLN Netto</option><option value="PLN Brutto">PLN Brutto</option></select></div></div><div class="form-group"><label class="required">Kiedy pozyskano</label><input type="date" id="acq_date" class="input-control" required></div><div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;"><button type="button" class="btn btn-secondary" onclick="app.closeModal('acquiredPartModal')">Anuluj</button><button type="submit" class="btn btn-primary">Dodaj do kosztorysu</button></div></form>
+            </div>
+        </div>
+    </div>
+
+<div class="modal-overlay" id="auditModal">
         <div class="modal-card" style="width: 500px;">
             <div class="modal-header"><span><i class="fa-solid fa-clock-rotate-left"></i> Dodaj wpis do historii</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="app.closeModal('auditModal')"></i></div>
             <div class="modal-body">
@@ -1013,6 +1041,7 @@
                 
                 const est = app.get(KEYS.COSTS).filter(c => c.orderId === id).reduce((sum,c)=>sum+Number(c.grossAmount),0);
                 document.getElementById('det-est').innerText = app.fmtMoney(est);
+                document.getElementById('det-budget').innerText = o.budget ? `${app.fmtMoney(o.budget)} PLN` : 'Nie ustalono';
 
                 const parts = app.get(KEYS.PARTS).filter(p => p.orderId === id);
                 document.getElementById('det-parts-stat').innerText = `${parts.filter(p=>p.status==='dostarczone').length} / ${parts.length} szt.`;
@@ -1180,6 +1209,12 @@
                 app.openModal('costModal');
             },
 
+            openAcquiredPartModal: () => {
+                document.getElementById('acquiredPartForm').reset();
+                document.getElementById('acq_date').value = new Date().toISOString().split('T')[0];
+                app.openModal('acquiredPartModal');
+            },
+
             saveCost: (e) => {
                 e.preventDefault();
                 let qty = Number(document.getElementById('ct_qty').value);
@@ -1207,6 +1242,18 @@
                 app.closeModal('costModal');
                 app.renderOrderCosts();
                 app.showOrderDetails(app.state.currentOrderId); // refresh totals
+            },
+
+            saveAcquiredPart: (e) => {
+                e.preventDefault();
+                const raw = Number(document.getElementById('acq_price').value || 0);
+                const currency = document.getElementById('acq_currency').value;
+                const gross = currency.includes('Brutto') ? raw : raw * 1.23;
+                let costs = app.get(KEYS.COSTS);
+                costs.push({ id: app.uuid(), orderId: app.state.currentOrderId, type: 'Część pozyskana', qty: 1, unitPrice: raw, vatRate: '23', netAmount: raw, vatAmount: gross - raw, grossAmount: gross, note: `${document.getElementById('acq_source').value} | ${document.getElementById('acq_date').value}` });
+                app.set(KEYS.COSTS, costs);
+                app.closeModal('acquiredPartModal');
+                app.showOrderDetails(app.state.currentOrderId);
             },
 
             deleteCost: (id) => {
@@ -1477,6 +1524,7 @@
                 document.getElementById('partForm').addEventListener('submit', app.savePart);
                 document.getElementById('costForm').addEventListener('submit', app.saveCost);
                 document.getElementById('auditForm').addEventListener('submit', app.saveAudit);
+                document.getElementById('acquiredPartForm').addEventListener('submit', app.saveAcquiredPart);
 
                 document.getElementById('quickAddForm').addEventListener('submit', function(e) {
                     e.preventDefault();
@@ -1496,6 +1544,7 @@
                         etdPlanned: d.toISOString().split('T')[0],
                         status: 'do_wyceny',
                         description: document.getElementById('qa_desc').value,
+                        budget: Number(document.getElementById('ord_budget').value || 0),
                         blockers: [], archived: false, createdAt: new Date().toISOString()
                     };
 

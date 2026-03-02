@@ -126,7 +126,7 @@
            SZYBKIE AKCJE / MINI MODUŁY
            ========================================= */
         .quick-actions-header { margin-bottom: 12px; font-weight: 700; color: var(--text-dark); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .quick-actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .quick-actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .action-card { background: white; border: 1px solid var(--border-light); border-radius: 10px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; transition: all 0.2s; text-decoration: none; color: var(--text-dark); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .action-card:hover { transform: translateY(-4px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); border-color: var(--accent-blue); }
         .action-icon { width: 42px; height: 42px; border-radius: 10px; background: rgba(59, 130, 246, 0.1); color: var(--accent-blue); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 12px; transition: 0.3s;}
@@ -138,43 +138,58 @@
 
     <!-- GŁÓWNY SIDEBAR -->
     <div class="sidebar">
-        <div class="sidebar-header"><span>DTD</span> Serwis</div>
-        <div class="nav-menu">
-            <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-car-burst"></i> Lista szkód</a>
-            <a href="infolinia.html" class="nav-item"><i class="fa-solid fa-car-side"></i> Samochody</a>
-
-            <div class="menu-label">Najmy</div>
-            <div class="submenu" style="display: block;">
-                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
-                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
-                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
-
-                <div class="submenu-label">Flota własna</div>
-                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
-                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
-                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
-                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
-            </div>
-
-            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
-            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
-            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
-            <a href="czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
-            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
-            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
-
-            <div class="menu-label">Naprawy</div>
-            <div class="submenu" style="display: block;">
-                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
-                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
-                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
-                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
-            </div>
-
-            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+    <div class="sidebar-header"><span>DTD</span> Serwis</div>
+    <div class="nav-menu">
+        <a href="index.html" class="nav-item active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+        <a href="szkody_zakonczone.html" class="nav-item"><i class="fa-solid fa-file-circle-check"></i> Szkody zakończone</a>
+        
+        <a href="samochody.html" class="nav-item"><i class="fa-solid fa-car"></i> Samochody</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-najmy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-key"></i> Najmy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-najmy" style="font-size: 10px;"></i>
         </div>
+        <div class="submenu" id="submenu-najmy" style="display:none;">
+            <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+            <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+            <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+        </div>
+
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-flota')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car-side"></i> Flota własna</div>
+            <i class="fa-solid fa-chevron-down" id="icon-flota" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-flota" style="display:none;">
+            <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+            <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+            <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+            <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+        </div>
+
+        <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+        <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
+        <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+        <a href="magazyn_czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
+        <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+        <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-naprawy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-naprawy" style="display: none;">
+            <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+            <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+            <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+            <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            <a href="naprawy_zakonczone.html" class="submenu-item">Naprawy zakończone</a>
+        </div>
+
+        <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+        <a href="infolinia.html" class="nav-item"><i class="fa-solid fa-headset"></i> Infolinia / SLA</a>
     </div>
+</div>
 
     <div class="main-wrapper">
         
@@ -207,9 +222,17 @@
                     <div class="action-icon"><i class="fa-solid fa-file-medical"></i></div>
                     <div class="action-title">Nowa Szkoda</div>
                 </a>
-                <a href="najmy_trwajace.html" class="action-card">
+                <a href="najmy_zaplanowane.html" class="action-card">
                     <div class="action-icon"><i class="fa-solid fa-key"></i></div>
-                    <div class="action-title">Wydaj Auto</div>
+                    <div class="action-title">Nowy Najem</div>
+                </a>
+                <a href="najmy_trwajace.html" class="action-card">
+                    <div class="action-icon"><i class="fa-solid fa-arrow-right-to-bracket"></i></div>
+                    <div class="action-title">Zakończ Wynajem</div>
+                </a>
+                <a href="naprawy_inne.html" class="action-card">
+                    <div class="action-icon"><i class="fa-solid fa-wrench"></i></div>
+                    <div class="action-title">Nowa Naprawa</div>
                 </a>
                 <a href="holowania.html" class="action-card">
                     <div class="action-icon"><i class="fa-solid fa-truck-fast"></i></div>

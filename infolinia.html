@@ -196,43 +196,58 @@
 
     <!-- SIDEBAR KOMPLETNY (Z INNYCH MODUŁÓW) -->
     <div class="sidebar">
-        <div class="sidebar-header"><span>DTD</span> Serwis</div>
-        <div class="nav-menu">
-            <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-car-burst"></i> Lista szkód</a>
-            <a href="infolinia.html" class="nav-item"><i class="fa-solid fa-car-side"></i> Samochody</a>
-
-            <div class="menu-label">Najmy</div>
-            <div class="submenu" style="display: block;">
-                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
-                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
-                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
-
-                <div class="submenu-label">Flota własna</div>
-                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
-                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
-                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
-                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
-            </div>
-
-            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
-            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
-            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
-            <a href="czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
-            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
-            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
-
-            <div class="menu-label">Naprawy</div>
-            <div class="submenu" style="display: block;">
-                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
-                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
-                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
-                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
-            </div>
-
-            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+    <div class="sidebar-header"><span>DTD</span> Serwis</div>
+    <div class="nav-menu">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+        <a href="szkody_zakonczone.html" class="nav-item"><i class="fa-solid fa-file-circle-check"></i> Szkody zakończone</a>
+        
+        <a href="samochody.html" class="nav-item"><i class="fa-solid fa-car"></i> Samochody</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-najmy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-key"></i> Najmy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-najmy" style="font-size: 10px;"></i>
         </div>
+        <div class="submenu" id="submenu-najmy" style="display:none;">
+            <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+            <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+            <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+        </div>
+
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-flota')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car-side"></i> Flota własna</div>
+            <i class="fa-solid fa-chevron-down" id="icon-flota" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-flota" style="display:none;">
+            <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+            <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+            <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+            <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+        </div>
+
+        <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+        <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
+        <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+        <a href="magazyn_czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
+        <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+        <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-naprawy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-naprawy" style="display: none;">
+            <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+            <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+            <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+            <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            <a href="naprawy_zakonczone.html" class="submenu-item">Naprawy zakończone</a>
+        </div>
+
+        <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+        <a href="infolinia.html" class="nav-item active"><i class="fa-solid fa-headset"></i> Infolinia / SLA</a>
     </div>
+</div>
 
     <div class="main-wrapper">
         <div class="topbar">
@@ -241,8 +256,8 @@
                 <input type="text" id="globalSearch" placeholder="Szukaj szkody, zadania, TU..." oninput="renderTasks()">
             </div>
             <div class="user-info">
-                <button class="btn btn-secondary" onclick="openTaskModal()"><i class="fa-solid fa-calendar-plus"></i> Zaplanuj Kontakt</button>
-                <button class="btn btn-primary" onclick="openCallModalDirect()"><i class="fa-solid fa-phone"></i> Szybki Telefon (Ad-hoc)</button>
+                <button class="btn btn-primary" onclick="openTaskModal()"><i class="fa-solid fa-calendar-plus"></i> Zaplanuj Kontakt</button>
+                <button class="btn btn-secondary btn-small" onclick="openCallModalDirect()"><i class="fa-solid fa-phone"></i> Szybki Kontakt</button>
             </div>
         </div>
 
@@ -410,7 +425,7 @@
                 <div class="tam-grid">
                     <a href="#" class="tam-btn-big tam-primary" id="btn-start-call">
                         <i class="fa-solid fa-headset"></i>
-                        Zadzwoń (Split-Screen)
+                        Szybki Kontakt
                     </a>
                     
                     <a href="#" class="tam-btn-big tam-secondary" id="btn-goto-claim">
@@ -423,9 +438,9 @@
                         Wygeneruj Dokument
                     </a>
 
-                    <div class="tam-btn-big" style="border-color:#cbd5e1; color:var(--text-muted);" onclick="alert('Edycja zadania (w przygotowaniu)')">
+                    <div class="tam-btn-big" style="border-color:#cbd5e1; color:var(--text-muted);" onclick="openEditTaskModal()">
                         <i class="fa-solid fa-pen"></i>
-                        Edytuj Termin / Zmień Status
+                        Edytuj zaplanowany kontakt
                     </div>
                 </div>
             </div>
@@ -554,6 +569,27 @@
     </div>
 
     <!-- MODAL PLANOWANIA ZADANIA -->
+
+    <div class="modal-overlay" id="editTaskModal">
+        <div class="modal-card">
+            <div class="modal-header"><span><i class="fa-solid fa-pen"></i> Edycja zaplanowanego kontaktu</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('editTaskModal')"></i></div>
+            <div class="modal-body">
+                <form id="editTaskForm">
+                    <input type="hidden" id="et_id">
+                    <div class="form-grid">
+                        <div class="form-group"><label class="creator-label">Nowa data kontaktu</label><input type="datetime-local" id="et_deadline" class="creator-input" required></div>
+                        <div class="form-group"><label class="creator-label">Priorytet</label><select id="et_priority" class="creator-input"><option value="normalny">Normalny</option><option value="wysoki">Wysoki</option><option value="krytyczny">Krytyczny</option></select></div>
+                    </div>
+                    <div class="form-group"><label class="creator-label">Pracownik / dział</label><input type="text" id="et_owner" class="creator-input" placeholder="np. Biuro - Anna"></div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('editTaskModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="taskModal">
         <div class="modal-card">
             <div class="modal-header"><span><i class="fa-solid fa-calendar-plus text-accent-blue"></i> Zaplanuj Kontakt (Zadanie)</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('taskModal')"></i></div>
@@ -677,6 +713,7 @@
             document.getElementById('tam-deadline-text').innerText = isOverdue ? `Termin minął: ${fmtDate(t.deadlineAt)}` : `Termin: ${fmtDate(t.deadlineAt)}`;
 
             // Podpinanie akcji pod przyciski w modalu
+            app.state.activeTaskId = taskId;
             const btnStartCall = document.getElementById('btn-start-call');
             btnStartCall.onclick = function() {
                 closeModal('taskActionModal');
@@ -706,6 +743,35 @@
         // ==========================================
         // INNE MODALE I LOGIKA
         // ==========================================
+
+        function openEditTaskModal() {
+            const taskId = app.state.activeTaskId;
+            const t = getStore(KEYS.TASKS).find(x => x.id === taskId);
+            if(!t) return;
+            document.getElementById('et_id').value = t.id;
+            document.getElementById('et_deadline').value = new Date(new Date(t.deadlineAt).getTime() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+            document.getElementById('et_priority').value = t.priority || 'normalny';
+            document.getElementById('et_owner').value = t.ownerTeam || '';
+            openModal('editTaskModal');
+        }
+
+        function saveEditedTask(e) {
+            e.preventDefault();
+            const id = document.getElementById('et_id').value;
+            const tasks = getStore(KEYS.TASKS);
+            const idx = tasks.findIndex(x => x.id === id);
+            if(idx < 0) return;
+            tasks[idx].deadlineAt = new Date(document.getElementById('et_deadline').value).toISOString();
+            tasks[idx].priority = document.getElementById('et_priority').value;
+            tasks[idx].ownerTeam = document.getElementById('et_owner').value || tasks[idx].ownerTeam;
+            tasks[idx].updatedAt = new Date().toISOString();
+            setStore(KEYS.TASKS, tasks);
+            closeModal('editTaskModal');
+            closeModal('taskActionModal');
+            renderTasks();
+            toast('Zapisano zmiany kontaktu.', 'success');
+        }
+
         function openTaskModal() {
             document.getElementById('taskForm').reset();
             document.getElementById('tf_id').value = '';
@@ -1093,6 +1159,7 @@
         
         // EVENT LISTENERS
         document.getElementById('taskForm').addEventListener('submit', saveTask);
+        document.getElementById('editTaskForm').addEventListener('submit', saveEditedTask);
         
         document.getElementById('cl_chk_reklamacja').addEventListener('change', function() {
             if(this.checked) {

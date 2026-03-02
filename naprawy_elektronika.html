@@ -207,48 +207,58 @@
 
     <!-- SIDEBAR -->
     <div class="sidebar">
-        <div class="sidebar-header"><span>DTD</span> Serwis</div>
-        <div class="nav-menu">
-            <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
-            
-            <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-samochody')">
-                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car"></i> Samochody</div>
-                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px;"></i>
-            </div>
-            <div class="submenu" id="submenu-samochody">
-                <div class="submenu-label">Najmy</div>
-                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
-                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
-                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone</a>
-                <div class="submenu-label">Flota własna</div>
-                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
-                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
-                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
-            </div>
-
-            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
-            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
-            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
-            <a href="magazyn_czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
-            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
-            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
-            
-            <div class="nav-item active has-submenu" onclick="app.toggleSubmenu('submenu-naprawy')">
-                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
-                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px; transform: rotate(180deg);"></i>
-            </div>
-            <div class="submenu" id="submenu-naprawy" style="display: block;">
-                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
-                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
-                <a href="naprawy_elektronika.html" class="submenu-item active">Warsztat elektroniki pojazdowej</a>
-                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
-            </div>
-
-            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator dokumentów</a>
-            <a href="infolinia.html" class="nav-item"><i class="fa-solid fa-headset"></i> Infolinia / SLA</a>
+    <div class="sidebar-header"><span>DTD</span> Serwis</div>
+    <div class="nav-menu">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+        <a href="szkody_zakonczone.html" class="nav-item"><i class="fa-solid fa-file-circle-check"></i> Szkody zakończone</a>
+        
+        <a href="samochody.html" class="nav-item"><i class="fa-solid fa-car"></i> Samochody</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-najmy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-key"></i> Najmy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-najmy" style="font-size: 10px;"></i>
         </div>
+        <div class="submenu" id="submenu-najmy" style="display:none;">
+            <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+            <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+            <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+        </div>
+
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-flota')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car-side"></i> Flota własna</div>
+            <i class="fa-solid fa-chevron-down" id="icon-flota" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-flota" style="display:none;">
+            <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+            <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+            <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+            <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+        </div>
+
+        <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+        <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
+        <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+        <a href="magazyn_czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
+        <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+        <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-naprawy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-naprawy" style="display: none;">
+            <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+            <a href="naprawy_elektronika.html" class="submenu-item active">Warsztat elektroniki pojazdowej</a>
+            <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+            <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            <a href="naprawy_zakonczone.html" class="submenu-item">Naprawy zakończone</a>
+        </div>
+
+        <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+        <a href="infolinia.html" class="nav-item"><i class="fa-solid fa-headset"></i> Infolinia / SLA</a>
     </div>
+</div>
 
     <!-- MAIN WRAPPER -->
     <div class="main-wrapper">
@@ -409,7 +419,8 @@
                         <div class="info-row" style="border-bottom-color: rgba(255,255,255,0.1);"><div class="info-label" style="color:#94a3b8;">Wjazd:</div><div class="info-value" id="det-in"></div></div>
                         <div class="info-row" style="border-bottom-color: rgba(255,255,255,0.1);"><div class="info-label" style="color:#94a3b8;">Odbiór (ETD):</div><div class="info-value text-green" id="det-out"></div></div>
                         <div class="info-row" style="border-bottom-color: rgba(255,255,255,0.1);"><div class="info-label" style="color:#94a3b8;">Status części:</div><div class="info-value" id="det-parts-stat"></div></div>
-                        <div class="info-row" style="border:none;"><div class="info-label" style="color:#94a3b8;">Szacowany Koszt:</div><div class="info-value" id="det-est" style="font-size:18px;"></div></div>
+                        <div class="info-row" style="border-bottom-color: rgba(255,255,255,0.1);"><div class="info-label" style="color:#94a3b8;">Szacowany Koszt:</div><div class="info-value" id="det-est" style="font-size:18px;"></div></div>
+                        <div class="info-row" style="border:none;"><div class="info-label" style="color:#94a3b8;">Koszt przewidywany podany klientowi:</div><div class="info-value" id="det-budget"></div></div>
                     </div>
                 </div>
 
@@ -489,6 +500,7 @@
                         <div class="form-group"><label class="required">Data przyjęcia</label><input type="date" id="ord_inDate" class="input-control" required></div>
                         <div class="form-group"><label class="required">Wstępny termin odbioru (ETD)</label><input type="date" id="ord_etd" class="input-control" required></div>
                         <div class="form-group full"><label class="required">Opis usterki / Kody błędów</label><textarea id="ord_desc" class="input-control" rows="2" required placeholder="np. Brak komunikacji ze sterownikiem silnika, błędy magistrali CAN."></textarea></div>
+                        <div class="form-group"><label>Ustalona kwota akceptacji (Próg zgody w PLN)</label><input type="number" id="ord_budget" class="input-control"></div>
                         <div class="form-group full">
                             <label class="required">Status początkowy</label>
                             <select id="ord_status" class="input-control" required>
@@ -935,6 +947,7 @@
                 
                 document.getElementById('det-in').innerText = app.fmtDate(o.intakeDate);
                 document.getElementById('det-out').innerText = app.fmtDate(o.etd);
+                document.getElementById('det-budget').innerText = o.budget ? `${app.fmtMoney(o.budget)} PLN` : 'Nie ustalono';
                 
                 app.renderOrderTasks();
                 app.renderOrderCosts();
@@ -1038,7 +1051,7 @@
                     vehicleMakeModel: document.getElementById('ord_car').value, customerName: document.getElementById('ord_client').value,
                     phone: document.getElementById('ord_phone').value, claimId: document.getElementById('ord_claim').value,
                     intakeDate: document.getElementById('ord_inDate').value, etd: document.getElementById('ord_etd').value,
-                    description: document.getElementById('ord_desc').value, status: document.getElementById('ord_status').value,
+                    description: document.getElementById('ord_desc').value, budget: Number(document.getElementById('ord_budget').value || 0), status: document.getElementById('ord_status').value,
                     archived: false, createdAt: new Date().toISOString()
                 };
                 ords.push(o); app.set(KEYS.ORDERS, ords);

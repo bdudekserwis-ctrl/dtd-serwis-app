@@ -187,43 +187,58 @@
 
     <!-- SIDEBAR -->
     <div class="sidebar">
-        <div class="sidebar-header"><span>DTD</span> Serwis</div>
-        <div class="nav-menu">
-            <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-car-burst"></i> Lista szkód</a>
-            <a href="infolinia.html" class="nav-item"><i class="fa-solid fa-car-side"></i> Samochody</a>
-
-            <div class="menu-label">Najmy</div>
-            <div class="submenu" style="display: block;">
-                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
-                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
-                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
-
-                <div class="submenu-label">Flota własna</div>
-                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
-                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
-                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
-                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
-            </div>
-
-            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
-            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
-            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
-            <a href="czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
-            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
-            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
-
-            <div class="menu-label">Naprawy</div>
-            <div class="submenu" style="display: block;">
-                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
-                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
-                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
-                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
-            </div>
-
-            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+    <div class="sidebar-header"><span>DTD</span> Serwis</div>
+    <div class="nav-menu">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+        <a href="szkody_zakonczone.html" class="nav-item"><i class="fa-solid fa-file-circle-check"></i> Szkody zakończone</a>
+        
+        <a href="samochody.html" class="nav-item"><i class="fa-solid fa-car"></i> Samochody</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-najmy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-key"></i> Najmy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-najmy" style="font-size: 10px;"></i>
         </div>
+        <div class="submenu" id="submenu-najmy" style="display:none;">
+            <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+            <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+            <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+        </div>
+
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-flota')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car-side"></i> Flota własna</div>
+            <i class="fa-solid fa-chevron-down" id="icon-flota" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-flota" style="display:none;">
+            <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+            <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+            <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+            <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+        </div>
+
+        <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+        <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
+        <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+        <a href="magazyn_czesci.html" class="nav-item active"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
+        <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+        <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-naprawy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-naprawy" style="display: none;">
+            <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+            <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+            <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+            <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            <a href="naprawy_zakonczone.html" class="submenu-item">Naprawy zakończone</a>
+        </div>
+
+        <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+        <a href="infolinia.html" class="nav-item"><i class="fa-solid fa-headset"></i> Infolinia / SLA</a>
     </div>
+</div>
 
     <div class="main-wrapper">
         <div class="topbar">
@@ -305,13 +320,14 @@
                 <div class="card">
                     <div class="table-tools">
                         <div class="filters">
-                            <select class="filter-input" id="f-cat-group" onchange="app.renderMaster()">
+                            <select class="filter-input" id="f-cat-group" onchange="app.renderMaster(); this.nextElementSibling.style.display = this.value === 'inne' ? 'block' : 'none'">
                                 <option value="">Wszystkie Grupy</option>
                                 <option value="blach_lak">Blacharsko-Lakiernicze</option>
                                 <option value="mechanika">Mechanika</option>
                                 <option value="elektronika">Elektronika</option>
                                 <option value="inne">Inne</option>
                             </select>
+                            <input type="text" class="input-control" style="display:none; margin-top:8px;" placeholder="Opisz...">
                             <select class="filter-input" id="f-cat-stock" onchange="app.renderMaster()">
                                 <option value="">Stan dowolny</option>
                                 <option value="in_stock">Mamy na stanie</option>
@@ -675,12 +691,13 @@
                         <div class="form-group full"><label class="creator-label required">Nazwa Części</label><input type="text" id="pm_name" class="input-control-light" required></div>
                         <div class="form-group">
                             <label class="creator-label required">Kategoria Nadrzędna</label>
-                            <select id="pm_group" class="input-control-light" required>
+                            <select id="pm_group" class="input-control-light" required onchange="this.nextElementSibling.style.display = this.value === 'inne' ? 'block' : 'none';">
                                 <option value="blach_lak">Blacharsko-Lakiernicze</option>
                                 <option value="mechanika">Mechanika</option>
                                 <option value="elektronika">Elektronika</option>
                                 <option value="inne">Inne (Płyny/Chemia)</option>
                             </select>
+                            <input type="text" class="input-control" style="display:none; margin-top:8px;" placeholder="Opisz...">
                         </div>
                         <div class="form-group"><label class="creator-label">Nr OE (Główny)</label><input type="text" id="pm_oe" class="input-control-light"></div>
                         <div class="form-group"><label class="creator-label">Producent / Marka</label><input type="text" id="pm_brand" class="input-control-light"></div>
