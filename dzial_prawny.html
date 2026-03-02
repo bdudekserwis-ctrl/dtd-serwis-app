@@ -206,49 +206,70 @@
         .toast.error { border-color: var(--danger); color: var(--danger); }
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
+
+        .tooltip { position: relative; display: inline-block; margin-left: 8px; color: var(--accent-blue); }
+        .tooltip .tooltip-table { position: absolute; right: 0; top: 20px; z-index: 100; background: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; min-width: 250px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); opacity: 0; transform: translateY(5px); pointer-events: none; transition: all .2s ease; }
+        .tooltip:hover .tooltip-table { opacity: 1; transform: translateY(0); }
+        .tooltip-table table { font-size: 11px; width: 100%; }
+
     </style>
 </head>
 <body>
 
     <!-- GŁÓWNY SIDEBAR (ZGODNY Z CAŁYM SYSTEMEM) -->
     <div class="sidebar">
-        <div class="sidebar-header"><span>DTD</span> Serwis</div>
-        <div class="nav-menu">
-            <a href="index.html" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-car-burst"></i> Lista szkód</a>
-            <a href="infolinia.html" class="nav-item"><i class="fa-solid fa-car-side"></i> Samochody</a>
-
-            <div class="menu-label">Najmy</div>
-            <div class="submenu" style="display: block;">
-                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
-                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
-                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
-
-                <div class="submenu-label">Flota własna</div>
-                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
-                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
-                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
-                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
-            </div>
-
-            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
-            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
-            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
-            <a href="czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
-            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
-            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
-
-            <div class="menu-label">Naprawy</div>
-            <div class="submenu" style="display: block;">
-                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
-                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
-                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
-                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
-            </div>
-
-            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+    <div class="sidebar-header"><span>DTD</span> Serwis</div>
+    <div class="nav-menu">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+        <a href="szkody_zakonczone.html" class="nav-item"><i class="fa-solid fa-file-circle-check"></i> Szkody zakończone</a>
+        
+        <a href="samochody.html" class="nav-item"><i class="fa-solid fa-car"></i> Samochody</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-najmy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-key"></i> Najmy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-najmy" style="font-size: 10px;"></i>
         </div>
+        <div class="submenu" id="submenu-najmy" style="display:none;">
+            <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+            <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+            <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+        </div>
+
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-flota')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car-side"></i> Flota własna</div>
+            <i class="fa-solid fa-chevron-down" id="icon-flota" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-flota" style="display:none;">
+            <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+            <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+            <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+            <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+        </div>
+
+        <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+        <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
+        <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+        <a href="magazyn_czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i Części</a>
+        <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+        <a href="dzial_prawny.html" class="nav-item active"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+        
+        <div class="nav-item has-submenu" onclick="app.toggleSubmenu('submenu-naprawy')">
+            <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+            <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px;"></i>
+        </div>
+        <div class="submenu" id="submenu-naprawy" style="display: none;">
+            <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+            <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+            <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+            <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            <a href="naprawy_zakonczone.html" class="submenu-item">Naprawy zakończone</a>
+        </div>
+
+        <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+        <a href="infolinia.html" class="nav-item"><i class="fa-solid fa-headset"></i> Infolinia / SLA</a>
     </div>
+</div>
 
     <div class="main-wrapper">
         <div class="topbar">
@@ -510,13 +531,14 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="required">Rodzaj Roszczenia (Typ Sprawy)</label>
-                            <select id="qa_casetype" class="input-control" required>
+                            <select id="qa_casetype" class="input-control" required onchange="this.nextElementSibling.style.display = this.value === 'inne' ? 'block' : 'none';">
                                 <option value="naprawa">Koszty naprawy (Zaniżenie)</option>
                                 <option value="najem">Auto zastępcze (Najem)</option>
                                 <option value="szkoda_calkowita">Szkoda całkowita (Dopłata)</option>
                                 <option value="holowanie">Koszty holowania</option>
                                 <option value="inne">Inne / Mieszane</option>
                             </select>
+                            <input type="text" class="input-control" style="display:none; margin-top:8px;" placeholder="Opisz...">
                         </div>
                         <div class="form-group">
                             <label class="required">Ubezpieczyciel (TU)</label>
@@ -589,7 +611,7 @@
                         </div>
                         <div class="form-group">
                             <label class="required">Rodzaj Czynności</label>
-                            <select id="ev_type" class="input-control" required>
+                            <select id="ev_type" class="input-control" required onchange="this.nextElementSibling.style.display = this.value === 'inne' ? 'block' : 'none';">
                                 <option value="wezwanie_przedsadowe_wyslane">Wysłano wezwanie do zapłaty</option>
                                 <option value="wezwanie_przedsadowe_odpowiedz">Odpowiedź na wezwanie (TU)</option>
                                 <option value="pozew_zlozony">Złożono pozew do sądu</option>
@@ -604,6 +626,7 @@
                                 <option value="egzekucja_wniosek">Skierowano do komornika</option>
                                 <option value="inne">Inne</option>
                             </select>
+                            <input type="text" class="input-control" style="display:none; margin-top:8px;" placeholder="Opisz...">
                         </div>
                     </div>
                     <div class="form-group full">
@@ -1027,7 +1050,7 @@
                 if(flags.isKomplet && state.currentStage === 'cesja') flagHtml += `<span class="badge badge-green" style="margin-right:4px;">Komplet Dok.</span>`;
                 if(c.status === 'braki_formalne') flagHtml += `<span class="badge badge-orange" style="margin-right:4px;">Braki Formalne</span>`;
 
-                let actionHtml = `<button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); openCaseDetails('${c.id}')">Otwórz</button>`;
+                let actionHtml = `<button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); openCaseDetails('${c.id}')">Otwórz</button><span class="tooltip"><i class="fa-solid fa-clock-rotate-left"></i><span class="tooltip-table"><table><tr><th>Data</th><th>Zdarzenie</th></tr><tr><td>18.03</td><td>Wysłano pozew</td></tr><tr><td>24.03</td><td>Uzupełniono braki formalne</td></tr><tr><td>29.03</td><td>Telefon z sekretariatu sądu</td></tr></table></span></span>`;
 
                 const tr = document.createElement('tr');
                 tr.className = 'clickable';
