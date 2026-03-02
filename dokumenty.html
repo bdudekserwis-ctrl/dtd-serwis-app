@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTD Serwis - Generator Dokumentów</title>
+    
+    <!-- Biblioteki Zewnętrzne (UI) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           GLOBALNE ZMIENNE I RESET (Zgodne z ERP)
+           ========================================= */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent-blue: #0284c7;
+            --accent-hover: #0369a1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* =========================================
+           UI SHELL: SIDEBAR & TOPBAR
+           ========================================= */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.15); z-index: 50; }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .sidebar-header { padding: 35px 25px; font-size: 24px; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px; }
+        .sidebar-header span { color: var(--accent-blue); }
+        
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 12px 25px; margin: 2px 10px; border-radius: 10px; display: flex; align-items: center; gap: 12px; color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 13px; transition: 0.2s; cursor: pointer; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: var(--sidebar-hover); color: white; }
+        .nav-item.active { background-color: rgba(2, 132, 199, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; }
+
+        .has-submenu { justify-content: space-between; }
+        .submenu { background-color: rgba(0,0,0,0.2); margin-bottom: 5px; padding: 5px 0; display: none; }
+        .submenu-label { padding: 12px 25px 5px 55px; font-size: 10px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 1px; }
+        .submenu-item { padding: 8px 25px 8px 55px; display: block; color: #94a3b8; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
+        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
+
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 0 40px; height: 80px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; }
+        .search-bar { background: #f1f5f9; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; width: 350px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 500; color: var(--text-main); }
+        
+        .content-area { padding: 40px; overflow-y: auto; flex: 1; position: relative; }
+        .view-panel { display: none; animation: fadeIn 0.3s ease; }
+        .view-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           KOMPONENTY (Karty, Tabele, Przyciski)
+           ========================================= */
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 25px; }
+        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 14px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+        .card-body { padding: 25px; }
+
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; justify-content: center;}
+        .btn-primary { background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2); }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-secondary { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-secondary:hover { background: #f1f5f9; }
+        .btn-small { padding: 6px 12px; font-size: 11px; }
+
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; display: inline-block; white-space: nowrap; }
+        .badge-projekt { background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; }
+        .badge-gotowy { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-wyslany { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-podpisany { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .badge-archiwum { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .badge-system { background: #f3e8ff; color: #6d28d9; border: 1px solid #d8b4fe; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-color); }
+        td { padding: 15px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+        tr:hover td { background-color: #f8fafc; }
+
+        .main-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); overflow-x: auto;}
+        .main-tab-btn { padding: 15px 25px; border: none; background: none; font-size: 14px; font-weight: 800; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;}
+        .main-tab-btn:hover { color: var(--text-main); }
+        .main-tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+
+        /* =========================================
+           FORMULARZE
+           ========================================= */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        @media (max-width: 800px) { .form-grid { grid-template-columns: 1fr; } }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        
+        label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .required::after { content: '*'; color: var(--danger); margin-left: 3px; }
+        .input-control { padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; color: var(--text-main); background: white; outline: none; transition: 0.2s; font-family: inherit; width: 100%; }
+        .input-control:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        textarea.input-control { resize: vertical; min-height: 80px; }
+
+        .section-divider { border-bottom: 1px dashed var(--border-color); margin: 25px 0 15px 0; padding-bottom: 5px; font-size: 14px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 10px;}
+
+        /* =========================================
+           WIZARD KREATORA DOKUMENTU
+           ========================================= */
+        .wizard-steps { display: flex; justify-content: center; margin-bottom: 30px; }
+        .w-step { display: flex; align-items: center; color: var(--text-muted); font-weight: 700; font-size: 13px; }
+        .w-step.active { color: var(--accent-blue); }
+        .w-step.completed { color: var(--success); }
+        .w-step-circle { width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: 900;}
+        .w-step.active .w-step-circle { background: var(--accent-blue); color: white; }
+        .w-step.completed .w-step-circle { background: var(--success); color: white; }
+        .w-line { width: 60px; height: 3px; background: #e2e8f0; margin: 0 15px; border-radius: 2px; }
+        .w-step.completed + .w-line { background: var(--success); }
+
+        .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .template-card { background: white; border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; cursor: pointer; transition: 0.2s; position: relative; }
+        .template-card:hover { border-color: var(--accent-blue); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(2, 132, 199, 0.1); }
+        .t-icon { font-size: 30px; color: var(--accent-blue); margin-bottom: 15px; }
+        .t-title { font-weight: 800; font-size: 15px; margin-bottom: 5px; color: var(--text-main); }
+        .t-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+        /* WIDOK KARTKI A4 (EDYTORA) */
+        .a4-container { background: #e2e8f0; padding: 40px; border-radius: 8px; display: flex; justify-content: center; overflow-x: auto; }
+        .a4-paper { background: white; width: 210mm; min-height: 297mm; padding: 20mm; box-shadow: 0 10px 30px rgba(0,0,0,0.1); color: black; font-family: 'Times New Roman', Times, serif; font-size: 11pt; line-height: 1.5; position: relative;}
+        .a4-paper p { margin-bottom: 10px; text-align: justify; }
+        .a4-paper h1, .a4-paper h2, .a4-paper h3 { text-align: center; margin-bottom: 15px; font-weight: bold; }
+        .a4-paper ul { margin-left: 20px; margin-bottom: 10px; }
+        .a4-paper li { margin-bottom: 5px; }
+        .a4-paper .signatures { display: flex; justify-content: space-between; margin-top: 50px; }
+        .a4-paper .sign-box { width: 40%; text-align: center; border-top: 1px dotted black; padding-top: 5px; margin-top: 40px; font-size: 10pt; }
+        
+        .missing-data { color: red; font-weight: bold; background: rgba(255,0,0,0.1); padding: 0 2px; }
+
+        /* =========================================
+           PRINT STYLES
+           ========================================= */
+        @media print {
+            body { background: white; padding: 0; margin: 0; display: block; overflow: visible; height: auto; }
+            .sidebar, .topbar, .main-tabs, .header-actions, .wizard-steps, .no-print, #view-settings, #view-templates, #view-drafts, #view-dictionary { display: none !important; }
+            .content-area { padding: 0; margin: 0; overflow: visible; }
+            #view-creator { display: block !important; }
+            .a4-container { background: transparent; padding: 0; border: none; overflow: visible; display: block; }
+            .a4-paper { width: 100%; min-height: auto; padding: 0; box-shadow: none; margin: 0; border: none; }
+            @page { size: A4; margin: 20mm; }
+        }
+
+        /* Toasty */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; border-left: 4px solid var(--accent-blue); padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; animation: slideInRight 0.3s ease forwards; }
+        .toast.success { border-color: var(--success); color: var(--success); }
+        .toast.error { border-color: var(--danger); color: var(--danger); }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar no-print">
+        <div class="sidebar-header"><span>DTD</span> Serwis</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-samochody')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car"></i> Samochody</div>
+                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px; transition: transform 0.3s;"></i>
+            </div>
+            <div class="submenu" id="submenu-samochody" style="display: none;">
+                <div class="submenu-label">Najmy</div>
+                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+                <div class="submenu-label">Flota własna</div>
+                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+            </div>
+
+            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
+            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+            <!-- Zaktualizowany link do modułu magazynu i części -->
+            <a href="czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i części</a>
+            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-prawne')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</div>
+                <i class="fa-solid fa-chevron-down" id="icon-prawne" style="font-size: 10px; transition: transform 0.3s;"></i>
+            </div>
+            <div class="submenu" id="submenu-prawne" style="display: none;">
+                <div class="submenu-label">Zarządzanie sprawami</div>
+                <a href="sprawy_sadowe.html" class="submenu-item">Rejestr Spraw</a>
+                <a href="sprawy_sadowe.html#terminy" class="submenu-item">Kalendarz i Terminy</a>
+                <a href="sprawy_sadowe.html#raporty" class="submenu-item">Raporty i Skuteczność</a>
+            </div>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px; transition: transform 0.3s;"></i>
+            </div>
+            <div class="submenu" id="submenu-naprawy" style="display: none;">
+                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            </div>
+
+            <a href="dokumenty.html" class="nav-item active"><i class="fa-solid fa-file-pdf"></i> Generator dokumentów</a>
+        </div>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <div class="topbar no-print">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="globalSearch" placeholder="Szukaj dokumentu, klienta, szkody..." oninput="app.renderDrafts()">
+            </div>
+            <div class="user-info">
+                <button class="btn btn-primary" onclick="app.switchTab('creator')"><i class="fa-solid fa-magic"></i> Utwórz Dokument</button>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- ZAKŁADKI GŁÓWNE -->
+            <div class="main-tabs no-print">
+                <button class="main-tab-btn active" onclick="app.switchTab('creator', this)"><i class="fa-solid fa-wand-magic-sparkles"></i> Kreator Dokumentu</button>
+                <button class="main-tab-btn" onclick="app.switchTab('drafts', this)"><i class="fa-solid fa-folder-open"></i> Baza Dokumentów (Wersje)</button>
+                <button class="main-tab-btn" onclick="app.switchTab('templates', this)"><i class="fa-solid fa-file-lines"></i> Szablony Wzorów</button>
+                <button class="main-tab-btn" onclick="app.switchTab('dictionary', this)"><i class="fa-solid fa-book"></i> Słownik Pól (Zmienne)</button>
+                <button class="main-tab-btn" onclick="app.switchTab('settings', this)"><i class="fa-solid fa-building"></i> Dane Firmy (Ustawienia)</button>
+                <div style="margin-left: auto; display: flex; gap: 10px;">
+                    <button class="btn btn-danger btn-small" onclick="app.resetDB()"><i class="fa-solid fa-trash"></i> Reset Systemu</button>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 WIDOK 1: KREATOR (WIZARD 3 KROKI)
+                 ========================================== -->
+            <div id="view-creator" class="view-panel active">
+                
+                <div class="wizard-steps no-print">
+                    <div class="w-step" id="w-step-1"><div class="w-step-circle">1</div>Wybór Szablonu</div>
+                    <div class="w-line"></div>
+                    <div class="w-step" id="w-step-2"><div class="w-step-circle">2</div>Dane i Powiązania</div>
+                    <div class="w-line"></div>
+                    <div class="w-step" id="w-step-3"><div class="w-step-circle">3</div>Podgląd i Druk</div>
+                </div>
+
+                <!-- Krok 1: Szablony -->
+                <div id="wiz-step-1" class="no-print">
+                    <h2 class="text-main" style="margin-bottom:20px; font-size:18px;">Wybierz wzór dokumentu do wygenerowania</h2>
+                    <div class="template-grid" id="wizard-template-grid">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+
+                <!-- Krok 2: Formularz Danych -->
+                <div id="wiz-step-2" style="display:none;" class="no-print">
+                    <div class="card">
+                        <div class="card-header">
+                            <span id="wiz-selected-template-name" style="color:var(--text-main);">Szablon...</span>
+                            <button class="btn btn-secondary btn-small" onclick="app.wizGotoStep(1)">Zmień Szablon</button>
+                        </div>
+                        <div class="card-body">
+                            <div style="background:#f0f9ff; border:1px solid #bae6fd; padding:15px; border-radius:8px; margin-bottom:20px;">
+                                <label style="color:#0369a1;">Szybkie uzupełnienie (Pobierz dane z bazy systemu):</label>
+                                <div class="form-grid" style="margin-top:10px; margin-bottom:0;">
+                                    <select id="wiz_auto_claim" class="input-control" onchange="app.autofillFromClaim()">
+                                        <option value="">-- Załaduj dane z konkretnej Szkody (Seed) --</option>
+                                    </select>
+                                    <select id="wiz_auto_case" class="input-control" onchange="app.autofillFromCase()">
+                                        <option value="">-- Załaduj dane ze Sprawy Sądowej (Seed) --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <form id="wizDataForm">
+                                <div class="section-divider"><i class="fa-solid fa-file-signature text-muted"></i> A. Parametry Dokumentu</div>
+                                <div class="form-grid">
+                                    <div class="form-group"><label>Numer Dokumentu / Umowy</label><input type="text" id="df_docNo" class="input-control" placeholder="np. CES/2026/01/14"></div>
+                                    <div class="form-group"><label>Data Zawarcia / Wystawienia</label><input type="date" id="df_docDate" class="input-control"></div>
+                                    <div class="form-group"><label>Miejscowość Zawarcia</label><input type="text" id="df_docPlace" class="input-control" value="Warszawa"></div>
+                                </div>
+
+                                <div class="section-divider"><i class="fa-solid fa-user text-muted"></i> B. Cedent / Klient</div>
+                                <div class="form-group mb-15">
+                                    <label>Typ Klienta</label>
+                                    <select id="df_clientType" class="input-control" onchange="app.toggleClientType()">
+                                        <option value="osoba">Osoba Fizyczna (Konsument)</option>
+                                        <option value="firma">Firma (Przedsiębiorstwo)</option>
+                                    </select>
+                                </div>
+                                <!-- Pola Osoba -->
+                                <div id="df_person_fields" class="form-grid">
+                                    <div class="form-group full"><label>Imię i Nazwisko</label><input type="text" id="df_fullName" class="input-control"></div>
+                                    <div class="form-group full"><label>Adres Zamieszkania</label><input type="text" id="df_address" class="input-control" placeholder="ul. Przykładowa 1/2, 00-000 Miasto"></div>
+                                    <div class="form-group"><label>PESEL</label><input type="text" id="df_pesel" class="input-control"></div>
+                                    <div class="form-group"><label>Seria i nr dowodu (z organem wydającym)</label><input type="text" id="df_idDoc" class="input-control" placeholder="np. ABC 123456 wyd. przez Prezydenta..."></div>
+                                </div>
+                                <!-- Pola Firma -->
+                                <div id="df_company_fields" class="form-grid" style="display:none;">
+                                    <div class="form-group full"><label>Pełna Nazwa Firmy</label><input type="text" id="df_compName" class="input-control"></div>
+                                    <div class="form-group full"><label>Adres Siedziby</label><input type="text" id="df_compSeat" class="input-control"></div>
+                                    <div class="form-group"><label>NIP</label><input type="text" id="df_nip" class="input-control"></div>
+                                    <div class="form-group"><label>REGON</label><input type="text" id="df_regon" class="input-control"></div>
+                                    <div class="form-group"><label>KRS (jeśli dotyczy)</label><input type="text" id="df_krs" class="input-control"></div>
+                                    <div class="form-group"><label>Reprezentowana przez (Osoby i Funkcje)</label><input type="text" id="df_compRep" class="input-control" placeholder="np. Jan Kowalski - Prezes Zarządu"></div>
+                                </div>
+
+                                <div class="section-divider"><i class="fa-solid fa-car-burst text-muted"></i> C. Zdarzenie (Szkoda i Pojazd Poszkodowanego)</div>
+                                <div class="form-grid">
+                                    <div class="form-group"><label>Data Szkody / Wypadku</label><input type="date" id="df_lossDate" class="input-control"></div>
+                                    <div class="form-group"><label>Numer Szkody (Nadan przez TU)</label><input type="text" id="df_claimNo" class="input-control" placeholder="np. PL/12345/26"></div>
+                                    <div class="form-group"><label>Marka i Model Pojazdu</label><input type="text" id="df_vehMake" class="input-control" placeholder="np. Toyota Yaris"></div>
+                                    <div class="form-group"><label>Numer Rejestracyjny</label><input type="text" id="df_vehReg" class="input-control" placeholder="WA 12345"></div>
+                                </div>
+
+                                <div class="section-divider"><i class="fa-solid fa-building-shield text-muted"></i> D. Dłużnik / Odpowiedzialny</div>
+                                <div class="form-group full"><label>Nazwa podmiotu odpowiedzialnego (TU / UFG / Sprawca)</label><input type="text" id="df_debtorName" class="input-control" placeholder="np. Powszechny Zakład Ubezpieczeń S.A."></div>
+
+                                <div class="section-divider"><i class="fa-solid fa-money-bill text-muted"></i> E. Warunki Finansowe (Dla umów sprzedaży)</div>
+                                <div class="form-grid">
+                                    <div class="form-group"><label>Cena Sprzedaży (PLN)</label><input type="number" id="df_salePrice" step="0.01" class="input-control" placeholder="np. 1500.00"></div>
+                                </div>
+
+                                <div class="section-divider"><i class="fa-solid fa-puzzle-piece text-muted"></i> F. Pola dodatkowe (Pełnomocnictwa, Oświadczenia, Prawnik)</div>
+                                <div class="form-grid">
+                                    <div class="form-group full"><label>Numer konta bankowego (Serwisu/Klienta)</label><input type="text" id="df_other_bankAccount" class="input-control" placeholder="PL 00 0000 0000 ..."></div>
+                                    <div class="form-group"><label>Sprawca: Imię i Nazwisko</label><input type="text" id="df_other_sprawcaImieNazwisko" class="input-control"></div>
+                                    <div class="form-group"><label>Sprawca: Nr Rejestracyjny</label><input type="text" id="df_other_sprawcaNrRej" class="input-control"></div>
+                                    <div class="form-group"><label>Sprawca: Ubezpieczyciel (TU)</label><input type="text" id="df_other_sprawcaTU" class="input-control"></div>
+                                    <div class="form-group full"><label>Krótki Opis Zdarzenia (Do oświadczenia)</label><textarea id="df_other_opisZdarzenia" class="input-control" placeholder="np. Kierujący pojazdem A nie ustąpił pierwszeństwa..."></textarea></div>
+                                    <div class="form-group"><label>Prawnik (Imię, Nazwisko, Tytuł)</label><input type="text" id="df_other_lawyerName" class="input-control" placeholder="np. Adwokat Jan Nowak"></div>
+                                    <div class="form-group"><label>Adres Kancelarii Prawnej</label><input type="text" id="df_other_lawyerAddress" class="input-control" placeholder="np. ul. Prawnicza 1, 00-000 Warszawa"></div>
+                                </div>
+
+                                <div class="section-divider"><i class="fa-solid fa-car text-muted"></i> G. Parametry Wynajmu / Użyczenia (Dla aut zastępczych)</div>
+                                <div class="form-grid">
+                                    <div class="form-group"><label>Marka wydawanego pojazdu</label><input type="text" id="df_rent_make" class="input-control" placeholder="np. Skoda"></div>
+                                    <div class="form-group"><label>Model wydawanego pojazdu</label><input type="text" id="df_rent_model" class="input-control" placeholder="np. Octavia"></div>
+                                    <div class="form-group"><label>Numer Rejestracyjny</label><input type="text" id="df_rent_regNo" class="input-control" placeholder="np. WX 99887"></div>
+                                    <div class="form-group"><label>Rok Produkcji</label><input type="number" id="df_rent_year" class="input-control" placeholder="np. 2022"></div>
+                                    <div class="form-group"><label>Limit kilometrów</label><input type="text" id="df_rent_limit" class="input-control" placeholder="np. brak, 150 km/doba"></div>
+                                    <div class="form-group"><label>Data i godzina wydania</label><input type="datetime-local" id="df_rent_startDate" class="input-control"></div>
+                                    <div class="form-group"><label>Data i godzina zwrotu</label><input type="datetime-local" id="df_rent_endDate" class="input-control"></div>
+                                    <div class="form-group"><label>Cena za dobę (Brutto PLN)</label><input type="number" id="df_rent_dailyRate" step="0.01" class="input-control" placeholder="np. 150.00"></div>
+                                </div>
+
+                                <!-- NOWA SEKCJA H: Inne podmioty (np. banki, leasingi, partnerzy) -->
+                                <div class="section-divider"><i class="fa-solid fa-building text-muted"></i> H. Inny Podmiot / Firma (np. Bank, Leasing, Partner)</div>
+                                <div class="form-grid">
+                                    <div class="form-group full"><label>Nazwa Firmy / Instytucji</label><input type="text" id="df_otherCompany_name" class="input-control" placeholder="np. mLeasing Sp. z o.o."></div>
+                                    <div class="form-group full"><label>Adres / Siedziba</label><input type="text" id="df_otherCompany_address" class="input-control" placeholder="np. ul. Prosta 1, 00-000 Warszawa"></div>
+                                    <div class="form-group"><label>NIP</label><input type="text" id="df_otherCompany_nip" class="input-control"></div>
+                                    <div class="form-group"><label>KRS</label><input type="text" id="df_otherCompany_krs" class="input-control"></div>
+                                    <div class="form-group full"><label>Reprezentowana przez</label><input type="text" id="df_otherCompany_representedBy" class="input-control" placeholder="np. Jan Nowak - Pełnomocnik"></div>
+                                </div>
+
+                                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:30px;">
+                                    <button type="button" class="btn btn-secondary" onclick="app.wizGotoStep(1)">Wróć</button>
+                                    <button type="button" class="btn btn-primary" onclick="app.wizGenerateAndGotoStep3()">Generuj Podgląd <i class="fa-solid fa-arrow-right"></i></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Krok 3: Edytor i Wydruk -->
+                <div id="wiz-step-3" style="display:none;">
+                    <div class="no-print" style="display:flex; justify-content:space-between; margin-bottom:20px; align-items:center;">
+                        <div>
+                            <button class="btn btn-secondary btn-small" onclick="app.wizGotoStep(2)"><i class="fa-solid fa-arrow-left"></i> Wróć do danych</button>
+                            <span id="validator-msg" style="margin-left:15px; font-weight:800; font-size:12px;"></span>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-success" onclick="app.saveDraft('gotowy')"><i class="fa-solid fa-floppy-disk"></i> Zapisz Gotowy Dokument</button>
+                            <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Drukuj / Zapisz PDF</button>
+                            <button class="btn btn-secondary" onclick="app.downloadHTML()"><i class="fa-solid fa-code"></i> Pobierz HTML</button>
+                        </div>
+                    </div>
+
+                    <div class="a4-container">
+                        <!-- Ten div będzie edytowalny, żeby prawnik mógł usunąć/dodać tekst przed drukiem -->
+                        <div class="a4-paper" id="a4-document-content" contenteditable="true" spellcheck="false">
+                            <!-- Treść generowana przez JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ==========================================
+                 WIDOK 2: BAZA DOKUMENTÓW (DRAFTS)
+                 ========================================== -->
+            <div id="view-drafts" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-folder-open text-accent-blue"></i> Baza Wygenerowanych Dokumentów</div>
+                </div>
+                <div class="card">
+                    <div class="table-tools">
+                        <select class="filter-input" id="f-draft-status" onchange="app.renderDrafts()">
+                            <option value="">Wszystkie Statusy</option>
+                            <option value="projekt">Projekty robocze</option>
+                            <option value="gotowy">Gotowe do druku</option>
+                            <option value="podpisany">Podpisane</option>
+                            <option value="archiwum">Archiwum</option>
+                        </select>
+                    </div>
+                    <table style="min-width: 800px;">
+                        <thead><tr><th>Typ / Szablon</th><th>Sygnatura</th><th>Dane Powiązane (Klient / Szkoda)</th><th>Status</th><th>Utworzono</th><th style="text-align:right">Akcje</th></tr></thead>
+                        <tbody id="draftsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 WIDOK 3: ZARZĄDZANIE SZABLONAMI
+                 ========================================== -->
+            <div id="view-templates" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-file-lines text-purple"></i> Zarządzanie Szablonami</div>
+                    <button class="btn btn-primary" onclick="app.openTplModal()"><i class="fa-solid fa-plus"></i> Nowy Własny Szablon</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead><tr><th>Nazwa Wzoru</th><th>Kategoria</th><th>Pochodzenie</th><th>Ostatnia Edycja</th><th style="text-align:right">Akcje</th></tr></thead>
+                        <tbody id="templatesTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 WIDOK 4: SŁOWNIK ZMIENNYCH (PLACEHOLDERY)
+                 ========================================== -->
+            <div id="view-dictionary" class="view-panel">
+                <div class="header-actions"><div class="page-title"><i class="fa-solid fa-book"></i> Słownik Dostępnych Zmiennych</div></div>
+                <div class="card">
+                    <div class="card-body">
+                        <p class="text-muted mb-15">Tworząc własne szablony, używaj poniższych zmiennych w podwójnych nawiasach klamrowych, np. <b>{{cedent.fullName}}</b>. System automatycznie je podstawi.</p>
+                        <table style="margin-top:20px;">
+                            <thead><tr><th>Klucz (Placeholder)</th><th>Opis / Mapowanie do bazy</th><th>Przykład wyjściowy</th></tr></thead>
+                            <tbody>
+                                <tr><td><strong>{{company.name}}</strong></td><td>Dane serwisu (Z zakładki Ustawienia)</td><td>DTD SERWIS BARTŁOMIEJ DUDEK</td></tr>
+                                <tr><td><strong>{{contract.number}}</strong></td><td>Nr tworzonego dokumentu</td><td>CES/2026/01</td></tr>
+                                <tr><td><strong>{{contract.date}}</strong></td><td>Data zawarcia dokumentu</td><td>14.03.2026</td></tr>
+                                <tr><td><strong>{{contract.place}}</strong></td><td>Miejscowość</td><td>Warszawa</td></tr>
+                                <tr style="background:#f1f5f9;"><td colspan="3" style="text-align:center; font-weight:800;">DANE KLIENTA (OSOBY)</td></tr>
+                                <tr><td><strong>{{cedent.fullName}}</strong></td><td>Imię i Nazwisko poszkodowanego</td><td>Jan Kowalski</td></tr>
+                                <tr><td><strong>{{cedent.address}}</strong></td><td>Pełny adres</td><td>ul. Polna 1, 00-000 Warszawa</td></tr>
+                                <tr><td><strong>{{cedent.pesel}}</strong></td><td>Nr PESEL</td><td>80010112345</td></tr>
+                                <tr><td><strong>{{cedent.idDoc}}</strong></td><td>Seria, nr i organ wydający dokument</td><td>ABC 123456 wyd. przez Prezydenta M. Warszawy</td></tr>
+                                <tr style="background:#f1f5f9;"><td colspan="3" style="text-align:center; font-weight:800;">DANE FIRMY (JEŚLI CEDENT = FIRMA)</td></tr>
+                                <tr><td><strong>{{cedent.companyName}}</strong></td><td>Pełna nazwa firmy</td><td>Firma XYZ Sp. z o.o.</td></tr>
+                                <tr><td><strong>{{cedent.nip}}</strong></td><td>Numer NIP</td><td>1112223344</td></tr>
+                                <tr><td><strong>{{cedent.krs}}</strong></td><td>Numer KRS</td><td>0000123456</td></tr>
+                                <tr><td><strong>{{cedent.representedBy}}</strong></td><td>Osoby reprezentujące spółkę</td><td>Jan Kowalski - Prezes Zarządu</td></tr>
+                                <tr style="background:#f1f5f9;"><td colspan="3" style="text-align:center; font-weight:800;">DANE SZKODY I POJAZDU POSZKODOWANEGO</td></tr>
+                                <tr><td><strong>{{claim.lossDate}}</strong></td><td>Data wypadku / szkody</td><td>01.03.2026</td></tr>
+                                <tr><td><strong>{{claim.number}}</strong></td><td>Numer nadany przez TU</td><td>PL/123/26</td></tr>
+                                <tr><td><strong>{{claim.insurer}}</strong></td><td>Zakład Ubezpieczeń</td><td>PZU S.A.</td></tr>
+                                <tr><td><strong>{{vehicle.make}}</strong></td><td>Marka i Model</td><td>Toyota Yaris</td></tr>
+                                <tr><td><strong>{{vehicle.regNo}}</strong></td><td>Numer Rejestracyjny</td><td>WA 12345</td></tr>
+                                <tr style="background:#f1f5f9;"><td colspan="3" style="text-align:center; font-weight:800;">DANE WYNAJMOWANEGO POJAZDU (ZASTĘPCZEGO)</td></tr>
+                                <tr><td><strong>{{rental.make}}</strong></td><td>Marka wynajmowanego auta</td><td>Skoda</td></tr>
+                                <tr><td><strong>{{rental.model}}</strong></td><td>Model wynajmowanego auta</td><td>Octavia</td></tr>
+                                <tr><td><strong>{{rental.regNo}}</strong></td><td>Numer rejestracyjny wynajmowanego auta</td><td>WX 99887</td></tr>
+                                <tr><td><strong>{{rental.year}}</strong></td><td>Rok produkcji wynajmowanego auta</td><td>2022</td></tr>
+                                <tr><td><strong>{{rental.limit}}</strong></td><td>Limit kilometrów</td><td>brak</td></tr>
+                                <tr><td><strong>{{rental.startDate}}</strong></td><td>Data wydania</td><td>01.03.2026 10:00</td></tr>
+                                <tr><td><strong>{{rental.endDate}}</strong></td><td>Data zwrotu</td><td>15.03.2026 10:00</td></tr>
+                                <tr><td><strong>{{rental.dailyRate}}</strong></td><td>Cena za dobę</td><td>150.00</td></tr>
+                                <tr style="background:#f1f5f9;"><td colspan="3" style="text-align:center; font-weight:800;">ROZLICZENIA / POZOSTAŁE</td></tr>
+                                <tr><td><strong>{{debtor.name}}</strong></td><td>Strona przeciwna (Dłużnik)</td><td>Warta S.A.</td></tr>
+                                <tr><td><strong>{{sale.price}}</strong></td><td>Cena sprzedaży wierzytelności (format PLN)</td><td>1 500,00 zł</td></tr>
+                                <tr style="background:#f1f5f9;"><td colspan="3" style="text-align:center; font-weight:800;">DODATKOWE (OŚWIADCZENIA / PRAWNIK)</td></tr>
+                                <tr><td><strong>{{other.bankAccount}}</strong></td><td>Numer rachunku bankowego</td><td>PL 00 1234...</td></tr>
+                                <tr><td><strong>{{other.sprawcaImieNazwisko}}</strong></td><td>Sprawca: Imię i Nazwisko</td><td>Piotr Nowak</td></tr>
+                                <tr><td><strong>{{other.sprawcaNrRej}}</strong></td><td>Sprawca: Nr Rejestracyjny</td><td>WX 99999</td></tr>
+                                <tr><td><strong>{{other.sprawcaTU}}</strong></td><td>Sprawca: Zakład Ubezpieczeń</td><td>Link4</td></tr>
+                                <tr><td><strong>{{other.opisZdarzenia}}</strong></td><td>Krótki opis kolizji</td><td>Kierujący nie wyhamował przed pasami...</td></tr>
+                                <tr><td><strong>{{other.lawyerName}}</strong></td><td>Dane pełnomocnika (Prawnika)</td><td>Adwokat Jan Nowak</td></tr>
+                                <tr><td><strong>{{other.lawyerAddress}}</strong></td><td>Adres Kancelarii Prawnej</td><td>ul. Prawnicza 1, 00-000 Warszawa</td></tr>
+                                <tr style="background:#f1f5f9;"><td colspan="3" style="text-align:center; font-weight:800;">INNY PODMIOT / FIRMA (NP. LEASING)</td></tr>
+                                <tr><td><strong>{{otherCompany.name}}</strong></td><td>Nazwa instytucji/firmy</td><td>mLeasing Sp. z o.o.</td></tr>
+                                <tr><td><strong>{{otherCompany.address}}</strong></td><td>Adres siedziby</td><td>ul. Prosta 1, Warszawa</td></tr>
+                                <tr><td><strong>{{otherCompany.nip}}</strong></td><td>NIP firmy</td><td>5213214567</td></tr>
+                                <tr><td><strong>{{otherCompany.krs}}</strong></td><td>KRS firmy</td><td>0000123456</td></tr>
+                                <tr><td><strong>{{otherCompany.representedBy}}</strong></td><td>Reprezentacja</td><td>Jan Nowak</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 WIDOK 5: USTAWIENIA FIRMY (PREFILL)
+                 ========================================== -->
+            <div id="view-settings" class="view-panel">
+                <div class="header-actions"><div class="page-title"><i class="fa-solid fa-building"></i> Dane Podmiotu (DTD Serwis)</div></div>
+                <div class="card">
+                    <div class="card-header">Globalne dane używane we wzorach umów jako Cesjonariusz / Wykonawca / Mocodawca</div>
+                    <div class="card-body">
+                        <form id="companySettingsForm">
+                            <div class="form-grid">
+                                <div class="form-group full"><label>Nazwa Firmy ({{company.name}})</label><input type="text" id="set_compName" class="input-control" required></div>
+                                <div class="form-group full"><label>Adres Siedziby ({{company.address}})</label><input type="text" id="set_compAddr" class="input-control" required></div>
+                                <div class="form-group"><label>NIP ({{company.nip}})</label><input type="text" id="set_compNip" class="input-control" required></div>
+                                <div class="form-group"><label>Osoba Reprezentująca ({{company.representedBy}})</label><input type="text" id="set_compRep" class="input-control" required></div>
+                                <div class="form-group"><label>PESEL Reprezentanta ({{company.pesel}})</label><input type="text" id="set_compPesel" class="input-control"></div>
+                            </div>
+                            <div style="margin-top:20px;"><button type="button" class="btn btn-success" onclick="app.saveSettings()">Zapisz Ustawienia</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL EDYCJI WZORU SZABLONU -->
+    <div class="modal-overlay" id="tplModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; width:900px; max-width:95vw; height:90vh; border-radius:12px; display:flex; flex-direction:column; overflow:hidden;">
+            <div style="padding:20px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; background:#f8fafc;">
+                <h3 style="font-weight:800;" id="tplModalTitle">Zarządzaj Szablonem</h3>
+                <i class="fa-solid fa-xmark" style="cursor:pointer; font-size:20px;" onclick="document.getElementById('tplModal').style.display='none'"></i>
+            </div>
+            <div style="padding:20px; flex:1; overflow-y:auto;">
+                <input type="hidden" id="mt_id">
+                <div class="form-grid">
+                    <div class="form-group"><label>Nazwa Szablonu</label><input type="text" id="mt_name" class="input-control" required></div>
+                    <div class="form-group"><label>Kategoria</label>
+                        <select id="mt_cat" class="input-control">
+                            <option value="cesje">Cesje Wierzytelności</option>
+                            <option value="najem">Umowy Najmu</option>
+                            <option value="sądowe">Pisma Sądowe / Wezwania</option>
+                            <option value="inne">Pełnomocnictwa i Oświadczenia</option>
+                        </select>
+                    </div>
+                    <div class="form-group full"><label>Opis</label><input type="text" id="mt_desc" class="input-control"></div>
+                </div>
+                <div class="form-group full" style="margin-top:10px;">
+                    <label>Treść Szablonu HTML (Używaj {{placeholder}})</label>
+                    <textarea id="mt_content" class="input-control" style="height: 400px; font-family:monospace; font-size:12px; white-space:pre;"></textarea>
+                </div>
+            </div>
+            <div style="padding:20px; border-top:1px solid var(--border-color); background:#f8fafc; text-align:right;">
+                <button class="btn btn-secondary" onclick="document.getElementById('tplModal').style.display='none'">Anuluj</button>
+                <button class="btn btn-primary" onclick="app.saveTemplate()">Zapisz Szablon</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOASTY SYSTEMOWE -->
+    <div id="toast-container"></div>
+
+    <!-- LOGIKA APLIKACJI -->
+    <script>
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
+            const isHidden = submenu.style.display === "none" || submenu.style.display === "";
+            submenu.style.display = isHidden ? "block" : "none";
+            if(icon) icon.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        }
+
+        const KEYS = {
+            VER: 'dtd_docs_ver',
+            TPL: 'dtd_docs_templates',
+            DRF: 'dtd_docs_drafts',
+            SET: 'dtd_docs_settings',
+            CLAIMS: 'dtd_docs_seed_claims',
+            CASES: 'dtd_docs_seed_cases'
+        };
+
+        const DEF_COMPANY = {
+            name: "DTD SERWIS BARTŁOMIEJ DUDEK",
+            address: "ZACHODNIA 15P/1 05-552 WOLA MROKOWSKA",
+            nip: "9482511085",
+            representedBy: "BARTŁOMIEJ DUDEK",
+            pesel: "93102910979"
+        };
+
+        // Kawałek wspólnego HTML dla protokołów by nie powtarzać w umowach
+        const protocolHtml = `
+<div style="border: 1px solid #000; padding: 15px; margin-top: 20px;">
+    <h4 style="text-align:center; font-size: 14pt; margin-bottom: 15px;">PROTOKÓŁ ZDAWCZO-ODBIORCZY SAMOCHODU</h4>
+    <div style="display:flex; justify-content:space-between; margin-bottom: 10px;">
+        <div style="width: 30%;"><strong>PROTOKÓŁ WYDANIA:</strong></div>
+        <div style="width: 35%;"><strong>Stan licznika:</strong> .................... km</div>
+        <div style="width: 30%;"><strong>Stan paliwa:</strong> ................. / 16</div>
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">
+        <div style="width: 30%;"><strong>Data i godzina:</strong> ....................</div>
+        <div style="width: 70%;"><strong>Karoseria / Wnętrze:</strong> ........................................................</div>
+    </div>
+    
+    <div style="display:flex; justify-content:space-between; margin-bottom: 10px;">
+        <div style="width: 30%;"><strong>PROTOKÓŁ ZWROTU:</strong></div>
+        <div style="width: 35%;"><strong>Stan licznika:</strong> .................... km</div>
+        <div style="width: 30%;"><strong>Stan paliwa:</strong> ................. / 16</div>
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-bottom: 15px;">
+        <div style="width: 30%;"><strong>Data i godzina:</strong> ....................</div>
+        <div style="width: 70%;"><strong>Karoseria / Wnętrze:</strong> ........................................................</div>
+    </div>
+    
+    <p><strong>Uszkodzenia (R-rysa, O-odprysk, W-wgniecenie, P-pęknięcie, B-brak):</strong><br><br>
+    .........................................................................................................................................................<br><br>
+    .........................................................................................................................................................</p>
+    
+    <div class="signatures" style="margin-top: 30px;">
+        <div class="sign-box" style="width:40%;">Podpis Wydającego/Przyjmującego</div>
+        <div class="sign-box" style="width:40%;">Podpis Najemcy</div>
+    </div>
+</div>`;
+
+        // Predefiniowane Szablony HTML
+        const SYSTEM_TEMPLATES = [
+            {
+                id: "sys_cesja_osoba", name: "Umowa cesji wierzytelności (Osoba)", category: "cesje", isSystem: true,
+                description: "Standardowa cesja bezgotówkowa (Osoba prywatna)",
+                contentHtml: `
+<h2 style="text-align:center;">Umowa cesji wierzytelności numer {{contract.number}}</h2>
+<p style="text-align:center; font-style:italic;">zawarta w dniu {{contract.date}} w miejscowości {{contract.place}} pomiędzy:</p>
+<p><strong>{{cedent.fullName}}</strong>, adres {{cedent.address}}<br>PESEL: {{cedent.pesel}}<br>SERIA I NR DOWODU: {{cedent.idDoc}}<br>zwanym dalej <strong>Cedentem</strong>,</p>
+<p style="text-align:center;">a</p>
+<p><strong>{{company.name}}</strong><br>ADRES: {{company.address}}<br>NIP: {{company.nip}}<br>REPREZENTOWANEJ PRZEZ: {{company.representedBy}}, NR PESEL: {{company.pesel}}<br>zwanym dalej <strong>Cesjonariuszem</strong></p>
+<h3>§ 1</h3>
+<p>Przedmiotem niniejszej umowy jest cesja wszystkich wierzytelności, jakie przysługuje Cedentowi w stosunku do <strong>{{debtor.name}}</strong> wynikająca ze szkody komunikacyjnej z dnia <strong>{{claim.lossDate}}</strong> na pojeździe <strong>{{vehicle.make}}</strong> o nr. rej. <strong>{{vehicle.regNo}}</strong>, w tym roszczenie o holowanie, oraz zwrot kosztów wynajmu pojazdu zastępczego w związku ze szkodą zarejestrowaną przez <strong>{{claim.insurer}}</strong> pod numerem <strong>{{claim.number}}</strong>.</p>
+<p>Przedmiotem niniejszej cesji są również wszelkie ewentualne wierzytelności wynikające ze zdarzenia, wymienionego w pkt. 1 par. 1 niniejszej umowy, wobec sprawcy szkody, kierowcy pojazdu sprawcy, Ubezpieczeniowego Funduszu Gwarancyjnego, Polskiego Biura Ubezpieczycieli Komunikacyjnych oraz wszelkich innych osób prawnych i fizycznych oraz instytucji, które ponoszą odpowiedzialność za wyżej wymienioną szkodę.</p>
+<h3>§ 2</h3>
+<p>Cedent oświadcza, że:<br>1) określona w § 1 wierzytelność istnieje, jest wymagalna, nieprzedawniona i wolna od obciążeń oraz wad prawnych...<br>2) w dniu zawarcia umowy cesji wierzytelności nie posiada względem dłużnika żadnych zobowiązań...<br>3) nie dokonał z dłużnikiem zapisu na sąd polubowny...<br>4) wierzytelność nie jest przedmiotem postępowania sądowego ani egzekucji...</p>
+<h3>§ 3</h3>
+<p>1. Strony zgodnie oświadczają, iż Cedent przelewa na rzecz Cesjonariusza wierzytelność określoną w § 1.<br>2. Na Cesjonariusza przechodzą wszelkie związane z wierzytelnością prawa.<br>3. Cedent odpowiada wobec Cesjonariusza za wpłaty dokonane przez dłużnika na rzecz Cedenta...</p>
+<h3>§ 4</h3>
+<p>1. Strony niniejszej umowy oświadczają, że sprzedaż niniejszej wierzytelności odbyła się odpłatnie, a warunki w tym cena oraz termin płatności zostały określone w osobnym dokumencie.</p>
+<h3>§ 5</h3>
+<p>1. Wszelkie zmiany i uzupełnienia niniejszej Umowy wymagają formy pisemnej.<br>2. W kwestiach nieuregulowanych zastosowanie znajdują przepisy KC.<br>3. Sądem właściwym będzie sąd właściwy dla siedziby Cesjonariusza.<br>4. Umowa została sporządzona w dwóch jednobrzmiących egzemplarzach.</p>
+<br><br><br>
+<div class="signatures">
+    <div class="sign-box">Cedent</div>
+    <div class="sign-box">Cesjonariusz</div>
+</div>`
+            },
+            {
+                id: "sys_cesja_firma", name: "Umowa cesji wierzytelności (Firma)", category: "cesje", isSystem: true,
+                description: "Standardowa cesja bezgotówkowa dla działalności gospodarczych / spółek",
+                contentHtml: `
+<h2 style="text-align:center;">Umowa cesji wierzytelności numer {{contract.number}}</h2>
+<p style="text-align:center; font-style:italic;">zawarta w dniu {{contract.date}} w miejscowości {{contract.place}} pomiędzy:</p>
+<p><strong>{{cedent.companyName}}</strong> z siedzibą w {{cedent.companySeat}}, adres {{cedent.address}}<br>KRS: {{cedent.krs}}, REGON: {{cedent.regon}}, NIP: {{cedent.nip}}<br>reprezentowaną przez: {{cedent.representedBy}}<br>zwanym dalej <strong>Cedentem</strong>,</p>
+<p style="text-align:center;">a</p>
+<p><strong>{{company.name}}</strong><br>ADRES: {{company.address}}<br>NIP: {{company.nip}}<br>REPREZENTOWANEJ PRZEZ: {{company.representedBy}}, NR PESEL: {{company.pesel}}<br>zwanym dalej <strong>Cesjonariuszem</strong></p>
+<h3>§ 1</h3>
+<p>1. Przedmiotem niniejszej umowy jest cesja wszystkich wierzytelności, jakie przysługuje Cedentowi w stosunku do <strong>{{debtor.name}}</strong> oraz od wszelkich innych osób i podmiotów które ponoszą odpowiedzialność za powstanie lub likwidację szkody... w związku ze szkodą z dnia <strong>{{claim.lossDate}}</strong> powstałą w samochodzie marki <strong>{{vehicle.make}}</strong> o nr rej. <strong>{{vehicle.regNo}}</strong>.</p>
+<h3>§ 2</h3>
+<p>Cedent oświadcza, że:<br>1) określona w § 1 wierzytelność istnieje...<br>2) nie posiada względem dłużnika żadnych zobowiązań...<br>3) nie dokonał z dłużnikiem zapisu na sąd polubowny...<br>4) wierzytelność nie jest przedmiotem postępowania sądowego...</p>
+<h3>§ 3 i § 4 i § 5</h3>
+<p>(Postanowienia zgodne ze standardowym wzorcem DTD Serwis dla podmiotów gospodarczych).</p>
+<br><br><br>
+<div class="signatures">
+    <div class="sign-box">Cedent (Podpis i Pieczęć)</div>
+    <div class="sign-box">Cesjonariusz</div>
+</div>`
+            },
+            {
+                id: "sys_sprzedaz_osoba", name: "Umowa sprzedaży wierzytelności (Osoba)", category: "cesje", isSystem: true,
+                description: "Odkup szkody komunikacyjnej za gotówkę od osoby",
+                contentHtml: `
+<h2 style="text-align:center;">Umowa sprzedaży wierzytelności</h2>
+<p style="text-align:center; font-style:italic;">zawarta w {{contract.place}} dn. {{contract.date}} pomiędzy:</p>
+<p><strong>{{cedent.fullName}}</strong><br>Adres: {{cedent.address}}<br>PESEL: {{cedent.pesel}}<br>Seria i nr dowodu: {{cedent.idDoc}}</p>
+<p style="text-align:center;">a</p>
+<p><strong>{{company.representedBy}}</strong><br>{{company.name}}<br>{{company.address}}</p>
+<h3>§ 1</h3>
+<p><strong>{{cedent.fullName}}</strong> oświadcza, iż przysługuje mu wierzytelność wobec <strong>{{debtor.name}}</strong> wynikająca ze szkody komunikacyjnej z dnia <strong>{{claim.lossDate}}</strong> na pojeździe <strong>{{vehicle.make}}</strong> nr rej. <strong>{{vehicle.regNo}}</strong> zarejestrowanej przez <strong>{{claim.insurer}}</strong> pod numerem <strong>{{claim.number}}</strong>.</p>
+<h3>§ 2</h3>
+<p><strong>{{cedent.fullName}}</strong> sprzedaje wskazaną w § 1 wierzytelność <strong>{{company.representedBy}}</strong> za kwotę <strong>{{sale.price}}</strong>, a <strong>{{company.representedBy}}</strong> za wskazaną kwotę wierzytelność tę kupuje.</p>
+<p>Strony oświadczają, iż płatność ceny nastąpiła w gotówce w dniu dzisiejszym.</p>
+<br><br><br>
+<div class="signatures">
+    <div class="sign-box">Sprzedający (Cedent)</div>
+    <div class="sign-box">Kupujący (Cesjonariusz)</div>
+</div>`
+            },
+            {
+                id: "sys_sprzedaz_firma", name: "Umowa sprzedaży wierzytelności (Firma)", category: "cesje", isSystem: true,
+                description: "Odkup szkody komunikacyjnej za gotówkę od firmy",
+                contentHtml: `
+<h2 style="text-align:center;">Umowa sprzedaży wierzytelności</h2>
+<p style="text-align:center; font-style:italic;">zawarta w {{contract.place}} dn. {{contract.date}} pomiędzy:</p>
+<p><strong>{{cedent.companyName}}</strong><br>Z siedzibą w: {{cedent.companySeat}}<br>Adres: {{cedent.address}}<br>NIP: {{cedent.nip}}<br>REGON: {{cedent.regon}}<br>KRS: {{cedent.krs}}</p>
+<p style="text-align:center;">a</p>
+<p><strong>{{company.name}}</strong><br>{{company.address}}<br>NIP: {{company.nip}}</p>
+<h3>§ 1</h3>
+<p><strong>{{cedent.companyName}}</strong> reprezentowana przez <strong>{{cedent.representedBy}}</strong> oświadcza, iż przysługuje mu wierzytelność wobec <strong>{{debtor.name}}</strong> wynikająca ze szkody komunikacyjnej z dnia <strong>{{claim.lossDate}}</strong> na pojeździe <strong>{{vehicle.make}}</strong> nr rej. <strong>{{vehicle.regNo}}</strong> zarejestrowanej przez <strong>{{claim.insurer}}</strong> pod numerem <strong>{{claim.number}}</strong>.</p>
+<h3>§ 2</h3>
+<p><strong>{{cedent.companyName}}</strong> reprezentowana przez <strong>{{cedent.representedBy}}</strong> sprzedaje wskazaną w § 1 wierzytelność <strong>{{company.representedBy}}</strong> za kwotę <strong>{{sale.price}}</strong>, a <strong>{{company.representedBy}}</strong> za wskazaną kwotę wierzytelność tę kupuje.</p>
+<p>Strony oświadczają, iż płatność ceny nastąpiła w gotówce w dniu dzisiejszym.</p>
+<br><br><br>
+<div class="signatures">
+    <div class="sign-box">Sprzedający (Pieczęć i Podpis)</div>
+    <div class="sign-box">Kupujący</div>
+</div>`
+            },
+            {
+                id: "sys_pelnomocnictwo", name: "Pełnomocnictwo (Likwidacja Szkody)", category: "inne", isSystem: true,
+                description: "Upoważnienie dla DTD Serwis do reprezentacji przed TU",
+                contentHtml: `
+<h2 style="text-align:center;">PEŁNOMOCNICTWO</h2>
+<p style="text-align:right;">{{contract.place}}, dnia {{contract.date}}</p>
+<p><strong>Mocodawca:</strong><br>{{cedent.fullName}} {{cedent.companyName}}<br>{{cedent.address}}<br>PESEL/NIP: {{cedent.pesel}} {{cedent.nip}}</p>
+<p>Ja, niżej podpisany(a), niniejszym udzielam pełnomocnictwa dla:</p>
+<p><strong>{{company.name}}</strong><br>{{company.address}}<br>NIP: {{company.nip}}</p>
+<p>do występowania w moim imieniu i reprezentowania mnie przed <strong>{{claim.insurer}}</strong> (oraz innymi instytucjami i organami) w sprawach związanych z likwidacją szkody komunikacyjnej z dnia <strong>{{claim.lossDate}}</strong>, zarejestrowanej pod numerem <strong>{{claim.number}}</strong>, dotyczącej pojazdu marki <strong>{{vehicle.make}}</strong> o numerze rejestracyjnym <strong>{{vehicle.regNo}}</strong>.</p>
+<p>Pełnomocnictwo obejmuje w szczególności prawo do zgłoszenia szkody, wglądu w akta szkodowe, uzyskiwania odpisów i kserokopii dokumentów, składania oświadczeń i wniosków, odbioru decyzji oraz zlecenia niezależnej opinii technicznej.</p>
+<br><br><br>
+<div class="signatures">
+    <div class="sign-box" style="width:100%; text-align:right; border:none; padding-right:50px;">.........................................................<br><small>Czytelny podpis Mocodawcy</small></div>
+</div>`
+            },
+            {
+                id: "sys_dyspozycja", name: "Dyspozycja wypłaty odszkodowania", category: "inne", isSystem: true,
+                description: "Wskazanie konta warsztatu do wypłaty środków z TU",
+                contentHtml: `
+<h2 style="text-align:center;">DYSPOZYCJA WYPŁATY ODSZKODOWANIA</h2>
+<p style="text-align:right;">{{contract.place}}, dnia {{contract.date}}</p>
+<p><strong>Do:</strong><br>{{claim.insurer}}</p>
+<p><strong>Poszkodowany:</strong><br>{{cedent.fullName}} {{cedent.companyName}}<br>{{cedent.address}}</p>
+<p><strong>Dotyczy szkody nr:</strong> {{claim.number}}<br><strong>Pojazd:</strong> {{vehicle.make}} (Nr rej: {{vehicle.regNo}})<br><strong>Data szkody:</strong> {{claim.lossDate}}</p>
+<h3>OŚWIADCZENIE</h3>
+<p>Niniejszym oświadczam, że jako Poszkodowany w wyżej wymienionej szkodzie, dysponuję wypłatą przyznanego z tego tytułu odszkodowania (bezspornego oraz ewentualnych dopłat) i proszę o jego przekazanie bezpośrednio na rachunek bankowy zakładu naprawczego:</p>
+<p><strong>{{company.name}}</strong><br>{{company.address}}<br>NIP: {{company.nip}}</p>
+<p><strong>Numer rachunku bankowego:</strong><br><span style="font-size:14pt; letter-spacing:1px; font-family:monospace;">{{other.bankAccount}}</span></p>
+<p>Przekazanie środków na wskazane wyżej konto wyczerpuje moje roszczenia w stosunku do Ubezpieczyciela do kwoty dokonanej wpłaty.</p>
+<br><br><br>
+<div class="signatures">
+    <div class="sign-box" style="width:100%; text-align:right; border:none; padding-right:50px;">.........................................................<br><small>Podpis Poszkodowanego</small></div>
+</div>`
+            },
+            {
+                id: "sys_oswiadczenie_sprawcy", name: "Oświadczenie sprawcy kolizji drogowej", category: "inne", isSystem: true,
+                description: "Wspólne oświadczenie o zdarzeniu (Wina sprawcy)",
+                contentHtml: `
+<h2 style="text-align:center;">WSPÓLNE OŚWIADCZENIE O ZDARZENIU DROGOWYM</h2>
+<p style="text-align:right;">Miejscowość: {{contract.place}}, Data: {{claim.lossDate}}</p>
+<div style="display:flex; justify-content:space-between; margin-top:20px;">
+    <div style="width:48%; border:1px solid black; padding:10px;">
+        <h3 style="margin-top:0;">POJAZD A (SPRAWCA)</h3>
+        <p>Imię i Nazwisko: {{other.sprawcaImieNazwisko}}</p>
+        <hr>
+        <p>Pojazd (Marka, Model): (Do weryfikacji)</p>
+        <p>Nr Rejestracyjny: {{other.sprawcaNrRej}}</p>
+        <hr>
+        <p>Ubezpieczyciel: {{other.sprawcaTU}}</p>
+    </div>
+    <div style="width:48%; border:1px solid black; padding:10px;">
+        <h3 style="margin-top:0;">POJAZD B (POSZKODOWANY)</h3>
+        <p>Imię i Nazwisko / Nazwa: {{cedent.fullName}} {{cedent.companyName}}</p>
+        <hr>
+        <p>Pojazd (Marka, Model): {{vehicle.make}}</p>
+        <p>Nr Rejestracyjny: {{vehicle.regNo}}</p>
+    </div>
+</div>
+<h3 style="margin-top:20px;">OKOLICZNOŚCI ZDARZENIA I WSKAZANIE WINY</h3>
+<p>Kierujący Pojazdem A oświadcza, że w pełni przyznaje się do spowodowania kolizji drogowej z udziałem Pojazdu B. Wyłączną winę za powstanie szkody ponosi kierujący Pojazdem A.</p>
+<p><strong>Opis zdarzenia:</strong><br>{{other.opisZdarzenia}}</p>
+<br><br><br><br>
+<div class="signatures" style="margin-top:20px;">
+    <div class="sign-box" style="width:45%; text-align:center;">.........................................................<br><small>Czytelny Podpis Sprawcy (Pojazd A)</small></div>
+    <div class="sign-box" style="width:45%; text-align:center;">.........................................................<br><small>Podpis Poszkodowanego (Pojazd B)</small></div>
+</div>`
+            },
+            {
+                id: "sys_pelnomocnictwo_prawnik", name: "Pełnomocnictwo dla prawnika (Procesowe)", category: "sądowe", isSystem: true,
+                description: "Udzielenie pełnomocnictwa procesowego dla radcy prawnego / adwokata",
+                contentHtml: `
+<h2 style="text-align:center;">PEŁNOMOCNICTWO PROCESOWE</h2>
+<p style="text-align:right;">{{contract.place}}, dnia {{contract.date}}</p>
+<p><strong>Mocodawca:</strong><br>{{company.name}}<br>{{company.address}}<br>NIP: {{company.nip}}<br>Reprezentowana przez: {{company.representedBy}}</p>
+<p>Niniejszym udzielam pełnomocnictwa procesowego dla:</p>
+<p><strong>{{other.lawyerName}}</strong><br>Adres kancelarii: {{other.lawyerAddress}}</p>
+<p>do reprezentowania Mocodawcy we wszystkich sprawach przed sądami powszechnymi, Sądem Najwyższym, organami egzekucyjnymi oraz organami administracji publicznej, a także wobec wszelkich podmiotów i osób fizycznych, w szczególności w sprawie przeciwko <strong>{{debtor.name}}</strong> o zapłatę zadośćuczynienia i odszkodowania z tytułu szkody komunikacyjnej z dnia <strong>{{claim.lossDate}}</strong>, numer szkody TU: <strong>{{claim.number}}</strong>, w pojeździe marki <strong>{{vehicle.make}}</strong> o nr rej. <strong>{{vehicle.regNo}}</strong>.</p>
+<p>Pełnomocnictwo obejmuje również prawo do udzielania dalszych pełnomocnictw (substytucji) oraz odbioru kosztów procesu i wszelkich kwot zasądzonych na rzecz Mocodawcy.</p>
+<br><br><br>
+<div class="signatures">
+    <div class="sign-box" style="width:100%; text-align:right; border:none; padding-right:50px;">.........................................................<br><small>Podpis Mocodawcy (Pieczęć firmowa)</small></div>
+</div>`
+            },
+            {
+                id: "sys_oswiadczenie_najem", name: "Oświadczenie o konieczności wynajmu pojazdu zastępczego", category: "najem", isSystem: true,
+                description: "Oświadczenie poszkodowanego uzasadniające wynajem",
+                contentHtml: `
+<h2 style="text-align:center;">Oświadczenie dotyczące wynajmu pojazdu zastępczego</h2>
+<p>Ja niżej podpisany:</p>
+<p>Imię i nazwisko / Nazwa: <strong>{{cedent.fullName}} {{cedent.companyName}}</strong><br>
+Adres: <strong>{{cedent.address}}</strong><br>
+PESEL / NIP: <strong>{{cedent.pesel}} {{cedent.nip}}</strong></p>
+<p>Oświadczam, że pojazd zastępczy w związku ze szkodą z nagłówka oświadczenia na pojeździe marki <strong>{{vehicle.make}}</strong> nr rej. <strong>{{vehicle.regNo}}</strong> jest mi niezbędny do:</p>
+<ul style="list-style-type: square; margin-bottom: 20px;">
+    <li>Auto jest pojazdem firmowym i nie ma możliwości zastąpienia go innym pojazdem - wykluczenie go z działalności na czas naprawy przyniesie mojej firmie straty. Pojazd wykorzystuję do: ............................................................................</li>
+    <li>Auto jest jedynym pojazdem w gospodarstwie domowym i nie mam możliwości zastąpienia go innym pojazdem. (Uchwałą Sądu Najwyższego z dnia 17 listopada 2011 roku, sygn. akt III CZP, odpowiedzialność ubezpieczyciela z tytułu umowy obowiązkowego ubezpieczenia (...) obejmuje celowe i ekonomicznie uzasadnione wydatki na najem pojazdu zastępczego; nie jest ona uzależniona od niemożności korzystania przez poszkodowanego z komunikacji zbiorowej).</li>
+    <li>Auto jest mi potrzebne do dojazdów do pracy.</li>
+    <li>Auto jest wykorzystywane w mojej pracy wynikające z zakresu obowiązków.</li>
+    <li>Auto wykorzystuję do dojazdów na zajęcia ............................................................................</li>
+    <li>Auto jest mi niezbędne do dowożenia dzieci do szkoły/ do przedszkola.</li>
+    <li>Auto jest mi potrzebne do dowożenia dzieci na zajęcia pozaszkolne.</li>
+    <li>Auto jest mi potrzebne na dojazdy do lekarza, rehabilitacje.</li>
+    <li>Auto jest mi potrzebne do dojazdów do lekarza i rehabilitacje osób najbliższych.</li>
+    <li>Auto jest mi potrzebne na wyjazdy rekreacyjne.</li>
+    <li>Inne: ........................................................................................................................................</li>
+</ul>
+<p><em>(Zaznacz lub wypełnij właściwe podczas podpisywania dokumentu)</em></p>
+<br><br><br>
+<div class="signatures">
+    <div class="sign-box" style="width:100%; text-align:right; border:none; padding-right:50px;">.........................................................<br><small>Czytelny podpis Poszkodowanego</small></div>
+</div>`
+            },
+            {
+                id: "sys_umowa_najmu", name: "Umowa najmu pojazdu zastępczego", category: "najem", isSystem: true,
+                description: "Standardowa umowa wynajmu z regulaminem i protokołem",
+                contentHtml: `
+<h2 style="text-align:center;">UMOWA NAJMU POJAZDU ZASTĘPCZEGO</h2>
+<p style="text-align:right;">{{contract.place}}, dnia {{contract.date}}</p>
+<p>Przedmiotem najmu jest samochód:</p>
+<p>Marka: <strong>{{rental.make}}</strong> Model: <strong>{{rental.model}}</strong><br>
+Numer Rejestracyjny: <strong>{{rental.regNo}}</strong><br>
+Rok Produkcji: <strong>{{rental.year}}</strong><br>
+Limit kilometrów: <strong>{{rental.limit}}</strong><br>
+Data wydania: <strong>{{rental.startDate}}</strong><br>
+Data zwrotu: <strong>{{rental.endDate}}</strong><br>
+Cena za dobę: <strong>{{rental.dailyRate}} zł</strong><br>
+Wynajem do szkody nr: <strong>{{claim.number}}</strong></p>
+
+<p style="text-align:center; margin-top:20px;">zawarta pomiędzy:</p>
+<p><strong>{{company.name}}</strong>, {{company.address}}, NIP: {{company.nip}}<br>
+ZWANYM DALEJ <strong>WYNAJMUJĄCYM</strong></p>
+<p style="text-align:center;">a</p>
+<p><strong>{{cedent.fullName}} {{cedent.companyName}}</strong>, Adres: {{cedent.address}}, PESEL/NIP: {{cedent.pesel}} {{cedent.nip}}<br>
+ZWANYM DALEJ <strong>NAJEMCĄ</strong></p>
+
+<h3>§ 1</h3>
+<p>Najemcą pojazdu i osobą, która jest uprawniona do kierowania pojazdem może zostać osoba, która ukończyła 18 lat w dniu podpisania umowy, posiada ważne na terytorium UE prawo jazdy. W przypadku niespełnienia przez Najemcę lub osobę wymienioną w umowie wymogów wskazanych w niniejszym paragrafie Wynajmujący będzie uprawniony do wypowiedzenia umowy najmu w trybie natychmiastowym.</p>
+<h3>§ 2</h3>
+<p>Pojazdem może kierować osoba, która w umowie jest określona jako Najemca lub Kierowca. Wynajęty pojazd nie może być podnajęty lub oddany osobie trzeciej do używania bez uprzedniej pisemnej zgody Wynajmującego. Pojazd nie może także zostać oddany przez Najemcę do używania osobie nie wymienionej w umowie najmu jako kierowca.</p>
+<h3>§ 3 - § 30 (Wyciąg z regulaminu)</h3>
+<p>Wynajmujący nie ponosi odpowiedzialności za rzeczy zagubione, przewożone, pozostawione w przedmiocie najmu... Przedmiot najmu może być używany tylko na terenie Unii Europejskiej. W przedmiocie najmu obowiązuje całkowity ZAKAZ PALENIA. Pojazd nie może być używany do nauki jazdy, rajdów, przewozu substancji brudzących...</p>
+<h3>§ 31 - KARY</h3>
+<p>1. Udostępnienie informacji o najemcy dla organów (wykroczenia): 100 zł<br>
+2. Zwrot brudnego samochodu (wewnątrz/karoseria): 70 zł<br>
+3. Zwrot z niepełnym bakiem: koszt uzupełnienia + 30 zł<br>
+4. Utrata polisy/tablicy: 500 zł<br>
+5. Naruszenie zakazu palenia: 500 zł<br>
+6. Uniemożliwienie kontroli stanu: 300 zł<br>
+7. Uszkodzenia powłoki, wyposażenia z winy Najemcy: wg cen nowych oryginalnych części.</p>
+<h3>§ 34</h3>
+<p>Najemca oświadcza, iż zapoznał się z pełnymi postanowieniami umowy oraz regulaminem i akceptuje je.</p>
+<br>
+${protocolHtml}`
+            },
+            {
+                id: "sys_umowa_uzyczenia", name: "Umowa użyczenia pojazdu zastępczego", category: "najem", isSystem: true,
+                description: "Użyczenie auta (np. dla celów dalszego podnajmu)",
+                contentHtml: `
+<h2 style="text-align:center;">UMOWA UŻYCZENIA POJAZDU ZASTĘPCZEGO</h2>
+<p style="text-align:right;">{{contract.place}}, dnia {{contract.date}}</p>
+<p>Przedmiotem użyczenia jest samochód:</p>
+<p>Marka: <strong>{{rental.make}}</strong> Model: <strong>{{rental.model}}</strong><br>
+Numer Rejestracyjny: <strong>{{rental.regNo}}</strong><br>
+Rok Produkcji: <strong>{{rental.year}}</strong><br>
+Limit kilometrów: <strong>{{rental.limit}}</strong><br>
+Data wydania: <strong>{{rental.startDate}}</strong><br>
+Data zwrotu: <strong>{{rental.endDate}}</strong><br>
+Cena za dobę: <strong>{{rental.dailyRate}} zł</strong></p>
+
+<p style="text-align:center; margin-top:20px;">zawarta pomiędzy:</p>
+<p><strong>{{company.name}}</strong>, {{company.address}}, NIP: {{company.nip}}<br>
+ZWANYM DALEJ <strong>UŻYCZAJĄCYM</strong></p>
+<p style="text-align:center;">a</p>
+<p><strong>{{cedent.fullName}} {{cedent.companyName}}</strong>, Adres: {{cedent.address}}, PESEL/NIP: {{cedent.pesel}} {{cedent.nip}}<br>
+ZWANYM DALEJ <strong>BIORĄCYM W UŻYCZENIE</strong></p>
+
+<h3>§ 1</h3>
+<p>Biorącym w użyczenie pojazdu i osobą, która jest uprawniona do kierowania pojazdem może zostać osoba, która ukończyła 18 lat w dniu podpisania umowy, posiada ważne na terytorium UE prawo jazdy.</p>
+<h3>§ 2 - § 30 (Wyciąg z regulaminu)</h3>
+<p>Użyczony pojazd nie może być podnajęty lub oddany osobie trzeciej do używania bez uprzedniej pisemnej zgody Użyczającego. W przedmiocie użyczenia obowiązuje całkowity ZAKAZ PALENIA. Pojazd nie może być używany niezgodnie z przeznaczeniem.</p>
+<h3>§ 31 - KARY</h3>
+<p>1. Wykroczenia (opłata manipulacyjna): 100 zł<br>
+2. Zwrot brudnego samochodu: 70 zł<br>
+3. Zwrot z niepełnym bakiem: koszt uzupełnienia + 30 zł<br>
+4. Utrata polisy/tablicy: 500 zł<br>
+5. Naruszenie zakazu palenia: 500 zł<br>
+6. Uniemożliwienie kontroli stanu: 300 zł<br>
+7. Uszkodzenia: wg cen nowych oryginalnych części.</p>
+<h3>§ 34</h3>
+<p>Biorący w użyczenie oświadcza, iż zapoznał się z pełnymi postanowieniami umowy oraz regulaminem i akceptuje je.</p>
+<br>
+${protocolHtml}`
+            }
+        ];
+
+        const app = {
+            state: {
+                tab: 'creator',
+                wizardStep: 1,
+                currentTemplateId: null,
+                currentDraftId: null,
+                dataContext: {}
+            },
+
+            // --- UTILS ---
+            uuid: () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { let r=Math.random()*16|0, v=c==='x'?r:(r&0x3|0x8); return v.toString(16); }),
+            get: k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch(e){ return []; } },
+            set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+            fmtMoney: v => new Intl.NumberFormat('pl-PL', {style:'currency', currency:'PLN'}).format(v||0),
+            fmtDate: d => {
+                if(!d) return '';
+                // Jeśli data ma w sobie godzinę T
+                if(d.includes('T')) d = d.split('T')[0];
+                const parts = d.split('-');
+                if(parts.length===3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+                return d;
+            },
+            fmtDateTime: d => {
+                if(!d) return '';
+                const p = d.split('T');
+                if(p.length===2) {
+                    const dParts = p[0].split('-');
+                    return `${dParts[2]}.${dParts[1]}.${dParts[0]} ${p[1]}`;
+                }
+                return d;
+            },
+            toast: (msg, type='info') => {
+                const c = document.getElementById('toast-container');
+                const t = document.createElement('div'); t.className = `toast ${type}`;
+                t.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check':type==='error'?'fa-triangle-exclamation':'fa-info'}"></i> ${msg}`;
+                c.appendChild(t); setTimeout(() => { t.style.opacity=0; setTimeout(()=>t.remove(), 300); }, 3000);
+            },
+
+            // --- INIT & SEEDER ---
+            initStorage: () => {
+                let ver = localStorage.getItem(KEYS.VER);
+                if(!ver) {
+                    app.set(KEYS.VER, 1);
+                    app.set(KEYS.SET, DEF_COMPANY);
+                    app.set(KEYS.TPL, SYSTEM_TEMPLATES);
+                    app.seedMockData();
+                } else {
+                    // Update templates just in case new system templates were added
+                    let currentTpls = app.get(KEYS.TPL);
+                    SYSTEM_TEMPLATES.forEach(sysTpl => {
+                        if (!currentTpls.find(t => t.id === sysTpl.id)) {
+                            currentTpls.push(sysTpl);
+                        }
+                    });
+                    app.set(KEYS.TPL, currentTpls);
+                }
+                
+                // Update company form
+                const c = JSON.parse(localStorage.getItem(KEYS.SET)) || DEF_COMPANY;
+                document.getElementById('set_compName').value = c.name;
+                document.getElementById('set_compAddr').value = c.address;
+                document.getElementById('set_compNip').value = c.nip;
+                document.getElementById('set_compRep').value = c.representedBy;
+                document.getElementById('set_compPesel').value = c.pesel;
+            },
+
+            seedMockData: () => {
+                const claims = [];
+                for(let i=1; i<=20; i++) {
+                    claims.push({
+                        id: `CLM-${i}`, number: `PL/2026/00${i}`, lossDate: `2026-03-${String(i).padStart(2,'0')}`,
+                        insurer: (i%2===0)?'PZU':'Warta', make: (i%3===0)?'Toyota Yaris':'Audi A4', regNo: `WA 123${i}`,
+                        clientName: `Jan Kowalski ${i}`, clientType: 'osoba', pesel: `800101123${String(i).padStart(2,'0')}`,
+                        address: `ul. Polna ${i}, Warszawa`
+                    });
+                }
+                app.set(KEYS.CLAIMS, claims);
+
+                const cases = [];
+                for(let i=1; i<=10; i++) {
+                    cases.push({
+                        id: `CAS-${i}`, signature: `I C ${i}00/26`, court: `SR Warszawa`, clientName: `Firma Testowa ${i}`,
+                        clientType: 'firma', nip: `11122233${String(i).padStart(2,'0')}`, companySeat: 'Warszawa', address: `ul. Wiejska ${i}`
+                    });
+                }
+                app.set(KEYS.CASES, cases);
+
+                const drafts = [
+                    { id: app.uuid(), templateId: 'sys_cesja_osoba', title: 'Cesja Jan Kowalski', docNo: 'CES/01', status: 'gotowy', related: {claimId: 'CLM-1'}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+                    { id: app.uuid(), templateId: 'sys_sprzedaz_firma', title: 'Odkup Firma ABC', docNo: 'SPRZ/02', status: 'wyslany', related: {claimId: 'CLM-2'}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+                ];
+                app.set(KEYS.DRF, drafts);
+            },
+
+            resetDB: () => {
+                if(confirm('Usunąć wszystko i przywrócić ustawienia domyślne?')) {
+                    Object.values(KEYS).forEach(k => localStorage.removeItem(k));
+                    location.reload();
+                }
+            },
+
+            // --- TAB SWITCHER ---
+            switchTab: (id, btnElement=null) => {
+                document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+                if(btnElement) btnElement.classList.add('active');
+                else document.querySelector(`.main-tab-btn[onclick*="'${id}'"]`)?.classList.add('active');
+                
+                document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+                document.getElementById('view-'+id).classList.add('active');
+                
+                if(id === 'creator') app.renderWizardStep1();
+                if(id === 'templates') app.renderTemplates();
+                if(id === 'drafts') app.renderDrafts();
+            },
+
+            // --- WIZARD KREATORA ---
+            wizGotoStep: (step) => {
+                app.state.wizardStep = step;
+                [1,2,3].forEach(s => {
+                    document.getElementById(`w-step-${s}`).className = `w-step ${s<step?'completed':s===step?'active':''}`;
+                    document.getElementById(`wiz-step-${s}`).style.display = s===step ? 'block' : 'none';
+                });
+            },
+
+            renderWizardStep1: () => {
+                app.wizGotoStep(1);
+                app.state.currentTemplateId = null;
+                app.state.currentDraftId = null;
+                const tpls = app.get(KEYS.TPL);
+                const grid = document.getElementById('wizard-template-grid');
+                grid.innerHTML = '';
+                tpls.forEach(t => {
+                    grid.innerHTML += `
+                        <div class="template-card" onclick="app.wizSelectTemplate('${t.id}')">
+                            <i class="fa-solid ${t.category==='cesje'?'fa-file-signature':t.category==='najem'?'fa-car':'fa-file-lines'} t-icon"></i>
+                            <div class="t-title">${t.name} ${t.isSystem?'<span class="badge badge-system ml-2">SYSTEM</span>':''}</div>
+                            <div class="t-desc">${t.description||'Brak opisu'}</div>
+                        </div>`;
+                });
+            },
+
+            wizSelectTemplate: (id) => {
+                app.state.currentTemplateId = id;
+                const t = app.get(KEYS.TPL).find(x=>x.id===id);
+                document.getElementById('wiz-selected-template-name').innerText = t.name;
+                
+                // Populate Dropdowns
+                const selClaim = document.getElementById('wiz_auto_claim');
+                selClaim.innerHTML = '<option value="">-- Pobierz ze Szkody --</option>';
+                app.get(KEYS.CLAIMS).forEach(c => selClaim.innerHTML+=`<option value="${c.id}">${c.number} | ${c.clientName} (${c.regNo})</option>`);
+
+                const selCase = document.getElementById('wiz_auto_case');
+                selCase.innerHTML = '<option value="">-- Pobierz ze Sprawy Sądowej --</option>';
+                app.get(KEYS.CASES).forEach(c => selCase.innerHTML+=`<option value="${c.id}">${c.signature} | ${c.clientName}</option>`);
+
+                document.getElementById('wizDataForm').reset();
+                document.getElementById('df_docDate').value = new Date().toISOString().split('T')[0];
+                app.toggleClientType();
+                app.wizGotoStep(2);
+            },
+
+            toggleClientType: () => {
+                const type = document.getElementById('df_clientType').value;
+                document.getElementById('df_person_fields').style.display = type==='osoba'?'grid':'none';
+                document.getElementById('df_company_fields').style.display = type==='firma'?'grid':'none';
+            },
+
+            autofillFromClaim: () => {
+                const id = document.getElementById('wiz_auto_claim').value;
+                if(!id) return;
+                const c = app.get(KEYS.CLAIMS).find(x=>x.id===id);
+                document.getElementById('df_clientType').value = c.clientType;
+                app.toggleClientType();
+                document.getElementById('df_lossDate').value = c.lossDate;
+                document.getElementById('df_claimNo').value = c.number;
+                document.getElementById('df_vehMake').value = c.make;
+                document.getElementById('df_vehReg').value = c.regNo;
+                document.getElementById('df_debtorName').value = c.insurer;
+                
+                if(c.clientType==='osoba'){
+                    document.getElementById('df_fullName').value = c.clientName;
+                    document.getElementById('df_pesel').value = c.pesel;
+                    document.getElementById('df_address').value = c.address;
+                }
+                app.toast('Wczytano dane szkody', 'success');
+            },
+
+            autofillFromCase: () => {
+                const id = document.getElementById('wiz_auto_case').value;
+                if(!id) return;
+                const c = app.get(KEYS.CASES).find(x=>x.id===id);
+                document.getElementById('df_clientType').value = c.clientType;
+                app.toggleClientType();
+                if(c.clientType==='firma'){
+                    document.getElementById('df_compName').value = c.clientName;
+                    document.getElementById('df_compSeat').value = c.companySeat;
+                    document.getElementById('df_nip').value = c.nip;
+                    document.getElementById('df_address').value = c.address;
+                }
+                app.toast('Wczytano dane ze sprawy', 'success');
+            },
+
+            wizGenerateAndGotoStep3: () => {
+                const isFirma = document.getElementById('df_clientType').value === 'firma';
+                
+                // Build DataContext
+                app.state.dataContext = {
+                    company: JSON.parse(localStorage.getItem(KEYS.SET)) || DEF_COMPANY,
+                    contract: {
+                        number: document.getElementById('df_docNo').value,
+                        date: app.fmtDate(document.getElementById('df_docDate').value),
+                        place: document.getElementById('df_docPlace').value
+                    },
+                    cedent: isFirma ? {
+                        companyName: document.getElementById('df_compName').value,
+                        companySeat: document.getElementById('df_compSeat').value,
+                        address: document.getElementById('df_address').value || document.getElementById('df_compSeat').value, // fallback
+                        nip: document.getElementById('df_nip').value,
+                        regon: document.getElementById('df_regon').value,
+                        krs: document.getElementById('df_krs').value,
+                        representedBy: document.getElementById('df_compRep').value
+                    } : {
+                        fullName: document.getElementById('df_fullName').value,
+                        address: document.getElementById('df_address').value,
+                        pesel: document.getElementById('df_pesel').value,
+                        idDoc: document.getElementById('df_idDoc').value
+                    },
+                    claim: {
+                        lossDate: app.fmtDate(document.getElementById('df_lossDate').value),
+                        number: document.getElementById('df_claimNo').value,
+                        insurer: document.getElementById('df_debtorName').value
+                    },
+                    vehicle: {
+                        make: document.getElementById('df_vehMake').value,
+                        regNo: document.getElementById('df_vehReg').value
+                    },
+                    debtor: {
+                        name: document.getElementById('df_debtorName').value
+                    },
+                    sale: {
+                        price: app.fmtMoney(document.getElementById('df_salePrice').value)
+                    },
+                    rental: {
+                        make: document.getElementById('df_rent_make')?.value,
+                        model: document.getElementById('df_rent_model')?.value,
+                        regNo: document.getElementById('df_rent_regNo')?.value,
+                        year: document.getElementById('df_rent_year')?.value,
+                        limit: document.getElementById('df_rent_limit')?.value,
+                        startDate: app.fmtDateTime(document.getElementById('df_rent_startDate')?.value),
+                        endDate: app.fmtDateTime(document.getElementById('df_rent_endDate')?.value),
+                        dailyRate: document.getElementById('df_rent_dailyRate')?.value
+                    },
+                    other: {
+                        bankAccount: document.getElementById('df_other_bankAccount')?.value,
+                        sprawcaImieNazwisko: document.getElementById('df_other_sprawcaImieNazwisko')?.value,
+                        sprawcaNrRej: document.getElementById('df_other_sprawcaNrRej')?.value,
+                        sprawcaTU: document.getElementById('df_other_sprawcaTU')?.value,
+                        opisZdarzenia: document.getElementById('df_other_opisZdarzenia')?.value,
+                        lawyerName: document.getElementById('df_other_lawyerName')?.value,
+                        lawyerAddress: document.getElementById('df_other_lawyerAddress')?.value
+                    },
+                    otherCompany: {
+                        name: document.getElementById('df_otherCompany_name')?.value,
+                        address: document.getElementById('df_otherCompany_address')?.value,
+                        nip: document.getElementById('df_otherCompany_nip')?.value,
+                        krs: document.getElementById('df_otherCompany_krs')?.value,
+                        representedBy: document.getElementById('df_otherCompany_representedBy')?.value
+                    }
+                };
+
+                const tpl = app.get(KEYS.TPL).find(x=>x.id === app.state.currentTemplateId);
+                let rendered = tpl.contentHtml;
+
+                // Placeholder Engine
+                rendered = rendered.replace(/\{\{([\w.]+)\}\}/g, (match, path) => {
+                    let val = path.split('.').reduce((acc, part) => acc && acc[part], app.state.dataContext);
+                    if (val === undefined || val === null || val === '') return '<span class="missing-data">________________</span>';
+                    return val;
+                });
+
+                document.getElementById('a4-document-content').innerHTML = rendered;
+                
+                const missingCount = (rendered.match(/________________/g) || []).length;
+                document.getElementById('validator-msg').innerHTML = missingCount > 0 ? `<span style="color:var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Brakuje ${missingCount} danych! Uzupełnij luki na wydruku ręcznie.</span>` : `<span style="color:var(--success);"><i class="fa-solid fa-check"></i> Wszystkie pola wypełnione</span>`;
+
+                app.wizGotoStep(3);
+            },
+
+            // --- ZAPISY I DOKUMENTY ROBOCZE ---
+            saveDraft: (status) => {
+                const drafts = app.get(KEYS.DRF);
+                const tpl = app.get(KEYS.TPL).find(x=>x.id === app.state.currentTemplateId);
+                const content = document.getElementById('a4-document-content').innerHTML; // capture manual edits
+                
+                let id = app.state.currentDraftId;
+                if(!id) {
+                    id = app.uuid();
+                    app.state.currentDraftId = id;
+                    drafts.push({
+                        id: id, templateId: tpl.id, title: `${tpl.name} - ${app.state.dataContext.contract.number || 'Projekt'}`,
+                        docNo: app.state.dataContext.contract.number, status: status,
+                        related: { claimId: document.getElementById('wiz_auto_claim').value },
+                        dataContext: app.state.dataContext, renderedHtml: content,
+                        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+                    });
+                } else {
+                    let idx = drafts.findIndex(x=>x.id===id);
+                    drafts[idx].status = status;
+                    drafts[idx].renderedHtml = content;
+                    drafts[idx].updatedAt = new Date().toISOString();
+                }
+                app.set(KEYS.DRF, drafts);
+                app.toast('Dokument zapisany do bazy', 'success');
+            },
+
+            renderDrafts: () => {
+                const drafts = app.get(KEYS.DRF);
+                const tpls = app.get(KEYS.TPL);
+                const search = document.getElementById('globalSearch').value.toLowerCase();
+                const status = document.getElementById('f-draft-status').value;
+                
+                let filtered = drafts;
+                if(status) filtered = filtered.filter(x=>x.status===status);
+                if(search) filtered = filtered.filter(x=>x.title.toLowerCase().includes(search));
+
+                const tbody = document.getElementById('draftsTableBody');
+                tbody.innerHTML = '';
+                filtered.sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt)).forEach(d => {
+                    const tname = tpls.find(x=>x.id===d.templateId)?.name || 'Nieznany szablon';
+                    tbody.innerHTML += `
+                        <tr class="clickable" onclick="app.openDraft('${d.id}')">
+                            <td><strong>${tname}</strong></td>
+                            <td>${d.docNo || '-'}</td>
+                            <td>${d.title}</td>
+                            <td><span class="badge badge-${d.status}">${d.status}</span></td>
+                            <td>${app.fmtDate(d.updatedAt.split('T')[0])}</td>
+                            <td style="text-align:right">
+                                <button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); app.openDraft('${d.id}')">Otwórz</button>
+                                <button class="btn btn-danger btn-small" onclick="event.stopPropagation(); app.deleteDraft('${d.id}')"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>`;
+                });
+            },
+
+            openDraft: (id) => {
+                const draft = app.get(KEYS.DRF).find(x=>x.id===id);
+                app.state.currentDraftId = id;
+                app.state.currentTemplateId = draft.templateId;
+                app.state.dataContext = draft.dataContext;
+                
+                document.getElementById('a4-document-content').innerHTML = draft.renderedHtml;
+                document.getElementById('validator-msg').innerText = `Edycja pliku zapisanego: ${app.fmtDate(draft.updatedAt.split('T')[0])}`;
+                
+                app.switchTab('creator');
+                app.wizGotoStep(3); // skip straight to editor
+            },
+
+            deleteDraft: (id) => {
+                if(confirm('Trwale usunąć ten dokument z bazy?')) {
+                    app.set(KEYS.DRF, app.get(KEYS.DRF).filter(x=>x.id!==id));
+                    app.renderDrafts();
+                    app.toast('Usunięto pomyślnie', 'error');
+                }
+            },
+
+            // --- ZARZĄDZANIE SZABLONAMI ---
+            renderTemplates: () => {
+                const tpls = app.get(KEYS.TPL);
+                const tbody = document.getElementById('templatesTableBody');
+                tbody.innerHTML = '';
+                tpls.forEach(t => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${t.name}</strong></td>
+                            <td><span class="badge badge-projekt">${t.category}</span></td>
+                            <td>${t.isSystem?'<span class="badge badge-system">Wbudowany Systemowy</span>':'<span class="badge badge-gotowy">Własny użytkownika</span>'}</td>
+                            <td>${t.updatedAt ? app.fmtDate(t.updatedAt.split('T')[0]) : '-'}</td>
+                            <td style="text-align:right">
+                                <button class="btn btn-secondary btn-small" onclick="app.editTpl('${t.id}')"><i class="fa-solid fa-pen"></i></button>
+                                ${!t.isSystem ? `<button class="btn btn-danger btn-small" onclick="app.deleteTpl('${t.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                            </td>
+                        </tr>`;
+                });
+            },
+
+            openTplModal: () => {
+                document.getElementById('mt_id').value = '';
+                document.getElementById('mt_name').value = '';
+                document.getElementById('mt_desc').value = '';
+                document.getElementById('mt_content').value = '<h3>Tytuł...</h3>\n<p>Treść umowy dla {{cedent.fullName}}...</p>';
+                document.getElementById('tplModalTitle').innerText = 'Tworzenie Nowego Szablonu';
+                document.getElementById('tplModal').style.display='flex';
+            },
+
+            editTpl: (id) => {
+                const t = app.get(KEYS.TPL).find(x=>x.id===id);
+                if(t.isSystem && !confirm('To jest szablon systemowy. Jeśli go zapiszesz, zostanie zduplikowany jako twój własny. Kontynuować?')) return;
+                
+                document.getElementById('mt_id').value = t.isSystem ? '' : t.id; // force new ID if system
+                document.getElementById('mt_name').value = t.name + (t.isSystem?' (Kopia)':'');
+                document.getElementById('mt_cat').value = t.category;
+                document.getElementById('mt_desc').value = t.description;
+                document.getElementById('mt_content').value = t.contentHtml;
+                document.getElementById('tplModalTitle').innerText = 'Edycja Szablonu';
+                document.getElementById('tplModal').style.display='flex';
+            },
+
+            saveTemplate: () => {
+                let tpls = app.get(KEYS.TPL);
+                let id = document.getElementById('mt_id').value;
+                let isNew = !id;
+                if(isNew) id = app.uuid();
+
+                let t = {
+                    id: id,
+                    name: document.getElementById('mt_name').value,
+                    category: document.getElementById('mt_cat').value,
+                    description: document.getElementById('mt_desc').value,
+                    contentHtml: document.getElementById('mt_content').value,
+                    isSystem: false,
+                    updatedAt: new Date().toISOString()
+                };
+
+                if(isNew) tpls.push(t);
+                else {
+                    let idx = tpls.findIndex(x=>x.id===id);
+                    tpls[idx] = t;
+                }
+
+                app.set(KEYS.TPL, tpls);
+                app.toast('Szablon zapisany pomyślnie', 'success');
+                document.getElementById('tplModal').style.display='none';
+                app.renderTemplates();
+            },
+
+            deleteTpl: (id) => {
+                if(confirm('Usunąć ten szablon? Projekty z niego utworzone pozostaną w bazie.')) {
+                    app.set(KEYS.TPL, app.get(KEYS.TPL).filter(x=>x.id!==id));
+                    app.renderTemplates();
+                }
+            },
+
+            // --- USTAWIENIA FIRMY ---
+            saveSettings: () => {
+                const c = {
+                    name: document.getElementById('set_compName').value,
+                    address: document.getElementById('set_compAddr').value,
+                    nip: document.getElementById('set_compNip').value,
+                    representedBy: document.getElementById('set_compRep').value,
+                    pesel: document.getElementById('set_compPesel').value
+                };
+                app.set(KEYS.SET, c);
+                app.toast('Dane firmy zaktualizowane. Będą pobierane do nowych umów.', 'success');
+            },
+
+            // --- EXPORT ---
+            downloadHTML: () => {
+                const content = document.getElementById('a4-document-content').innerHTML;
+                const blob = new Blob([`<meta charset="utf-8"><style>body{font-family:serif; max-width:800px; margin:auto;}</style>${content}`], { type: 'text/html' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `Dokument_${new Date().getTime()}.html`;
+                link.click();
+            }
+        };
+
+        window.onload = () => {
+            app.initStorage();
+            app.switchTab('creator');
+        };
+
+    </script>
+</body>
+</html>
