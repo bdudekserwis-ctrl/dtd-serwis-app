@@ -1,665 +1,1525 @@
-0) Zasady twarde (nie wolno ich łamać)
-
-Wygeneruj TYLKO JEDEN PLIK: pełna treść sprawy_sadowe.html (z <!DOCTYPE html>).
-
-W pliku umieść:
-
-<style> z całym CSS,
-
-<script> z całym JS.
-
-Nie używaj frameworków (React/Vue/Angular), bundlerów ani bibliotek do tabel.
-
-Nie używaj backendu. Jedynym magazynem danych jest localStorage.
-
-UI ma być spójne ze szkicem: ciemny sidebar, jasna topbar, karty, tabela z hover, badge statusów, ikonki dokumentów, styl „panel DMS” 
-
-Moduł sprawy sądowe
-
-.
-
-Kod ma być produkcyjnie czytelny: podział na moduły/funkcje, komentarze, walidacje, try/catch dla storage, brak TODO.
-
-Wszystko opisane ma działać od razu po otwarciu pliku.
-
-Odpowiedź ma być: jeden blok kodu zawierający sprawy_sadowe.html, bez dodatkowych opisów.
-
-1) Cel modułu (dla prawnika)
-
-Moduł służy do prowadzenia spraw:
-
-od etapu cesji / przygotowania do procesu (przedsądowe, kompletowanie dokumentów),
-
-przez proces w toku (sygnatura, sąd, terminy, zobowiązania, pisma, koszty),
-
-aż po zakończenie (wyrok/ugoda, prawomocność, rozliczenie zasądzeń, egzekucja).
-
-Ma to być narzędzie „codziennej pracy”: szybkie dodawanie, terminy, braki formalne, dokumenty, lista zadań na dziś/7 dni, raport skuteczności.
-
-2) Struktura widoków (tabs)
-
-Zrób zakładki (tabs) w treści + podświetlenie w sidebarze (jak w inspiracji):
-
-Cesje (Przyszły Proces)
-
-Procesy w trakcie
-
-Procesy zakończone (Archiwum)
-
-Kalendarz / Terminy
-
-Raporty / Skuteczność
-
-Słowniki / Ustawienia (opcjonalnie w MVP, ale mile widziane)
-
-W topbar dodaj szybkie przyciski:
-
-„+ Nowa sprawa”
-
-„+ Dodaj pismo”
-
-„+ Dodaj termin”
-
-pole wyszukiwania globalnego (sygnatura/klient/pojazd/TU)
-
-3) Najważniejsza zasada danych: jedna „Sprawa” + zdarzenia
-
-Każda sprawa to rekord Case, a wszystko co się dzieje wokół to powiązane elementy:
-
-Documents (pismo/dowód/załącznik)
-
-Deadlines (terminy i zobowiązania, z przypomnieniem)
-
-Events (czynności: wysłano wezwanie, złożono pozew, wpłynęła odpowiedź, postanowienie, biegły, rozprawa itd.)
-
-Costs (koszty procesu: opłata sądowa, zaliczki biegłych, pełnomocnictwa, koszty zastępstwa, koszty komornicze)
-
-Receipts (wpływy: zasądzone kwoty, zwroty kosztów, odsetki, ugody, spływy)
-
-W UI sprawa ma mieć kartę szczegółów: podsumowanie + zakładki „Oś czasu / Terminy / Dokumenty / Koszty / Rozliczenie / Notatki”.
-
-4) Funkcje MVP (wszystkie muszą działać)
-4.1 Lista spraw w każdym tabie (tabele)
-
-Każda tabela:
-
-wyszukiwanie tekstowe
-
-filtry:
-
-TU (ubezpieczyciel)
-
-etap (cesja / w toku / zakończona)
-
-status sprawy (lista statusów poniżej)
-
-sąd (w toku/archiwum)
-
-sygnatura (w toku/archiwum)
-
-„tylko po terminie” (deadline overdue)
-
-„tylko braki formalne”
-
-zakres dat: data szkody / data pozwu / data zakończenia
-
-sortowanie po kolumnach
-
-paginacja 20/50/100
-
-Wiersz w tabeli ma mieć akcje:
-
-Podgląd (otwiera szczegóły sprawy)
-
-Edytuj
-
-Zmień etap (np. „Złóż pozew” przenosi z cesji do w toku)
-
-Archiwizuj/Przywróć
-
-Usuń (tylko jeśli brak powiązań albo po potwierdzeniu „usuń wszystko”)
-
-4.2 Szczegóły sprawy (panel/ modal pełnoekranowy)
-
-W szczegółach:
-
-Nagłówek: klient + pojazd + TU + sygnatura + etap
-
-KPI sprawy:
-
-WPS (wartość przedmiotu sporu)
-
-koszty poniesione
-
-zasądzone / ugoda
-
-spływy (ile faktycznie wpłynęło)
-
-saldo „do odzyskania”
-
-zakładki:
-
-Oś czasu (Events) – dodawanie zdarzenia
-
-Terminy (Deadlines) – dodawanie terminu, status, przypomnienia
-
-Dokumenty (Documents) – checklista + załączniki (bez uploadu: nazwa/link)
-
-Koszty (Costs) – pozycje kosztowe
-
-Rozliczenie (Receipts) – wpływy, odsetki, zwrot kosztów
-
-Notatki (prywatne notatki prawnika)
-
-4.3 Dokumenty: checklista + brak/ok + typy
-
-Dokument ma status: posiadamy / brak / do_uzupelnienia / wyslane / otrzymane
-
-Widok dokumentów ma:
-
-listę wymaganych dokumentów zależnie od typu sprawy (słowniki poniżej)
-
-szybkie oznaczanie „ok/brak”
-
-pole „link/nazwa pliku”
-
-data wpływu/wysłania
-
-możliwość przypięcia dokumentu do zdarzenia lub terminu
-
-4.4 Terminy i zobowiązania
-
-Termin ma: data, opis, odpowiedzialny (np. prawnik/sekretariat), priorytet, status (planowany / wykonany / po terminie)
-
-Automatycznie wyliczaj „po terminie”
-
-Widok „Kalendarz/Terminy”:
-
-lista terminów na dziś, 7 dni, 30 dni
-
-filtr po odpowiedzialnym, statusie, sprawie
-
-przycisk „oznacz wykonane”
-
-W każdej sprawie baner ostrzegawczy, jeśli są terminy po terminie.
-
-4.5 Koszty procesu i wpływy (rozliczenie)
-
-Koszty: opłata sądowa, zaliczka biegłego, pełnomocnictwo, koszty komornicze, inne
-
-Wpływy: zasądzone (kapitał), odsetki, zwrot kosztów, ugoda, wpłata po egzekucji
-
-Możliwe wiele pozycji kosztów i wpływów
-
-Podsumowanie w sprawie: koszty poniesione, zasądzone, spłacone, saldo
-
-Możliwość oznaczenia „prawomocne” i daty prawomocności
-
-Jeśli brak spływu po X dniach od prawomocności → sugeruj termin „wezwanie do zapłaty / egzekucja”
-
-4.6 Raporty / skuteczność
-
-Raport miesięczny i roczny:
-
-liczba spraw rozpoczętych, zakończonych
-
-% wygranych / ugód / przegranych / umorzonych
-
-suma WPS, suma zasądzona, suma spływów
-
-koszty poniesione
-
-średni czas trwania sprawy (dni)
-
-TOP 5 TU wg liczby spraw i skuteczności
-
-Eksport CSV:
-
-lista spraw (wg filtrów)
-
-lista terminów (wg filtrów)
-
-5) Model danych (wymagany, dokładny)
-
-Zaimplementuj i konsekwentnie używaj takich encji:
-
-Case
-
-id (uuid)
-
-stage: [cesja, w_toku, zakonczona]
-
-caseType: [naprawa, najem, szkoda_calkowita, osobowa, inne]
-
-clientType: [osoba, firma]
-
-clientName
-
-clientIdNo (PESEL/NIP opcjonalnie)
-
-clientContact (tel/email opcjonalnie)
-
-vehicleMakeModel (string)
-
-vehiclePlate (string)
-
-insurer (TU) (string)
-
-claimId (id szkody z systemu, opcjonalnie)
-
-internalRef (wewnętrzny numer sprawy, string, unikalny)
-
-wpsAmount (number)
-
-purchasedCessionAmount (number|null) // jeśli cesja kupiona
-
-cessionSettlementNote (string|null) // np. „rozliczenie w ciężar FV”
-
-preCourt: { demandSentDate?, demandDueDate?, demandResult? } (opcjonalnie)
-
-court: { courtName?, judge?, department?, signature?, filingDate?, hearingDates[] } (opcjonalnie)
-
-status: [braki_formalne, komplet_dokumentow, przedsadowe, pozew_w_przygotowaniu, pozew_zlozony, oczekuje_na_odpowiedz, replika, dowody, biegly, rozprawa, wyrok, apelacja, ugoda, prawomocne, egzekucja, umorzone, przegrana, wygrana]
-
-outcome: [nieznany, wygrana, przegrana, czesciowa, ugoda, umorzone] // dla zakonczonych
-
-closedDate? (YYYY-MM-DD)
-
-notes (string)
-
-tags (array string)
-
-createdAt (ISO)
-
-updatedAt (ISO)
-
-archived (boolean)
-
-Document
-
-id (uuid)
-
-caseId
-
-docType (string, słownik poniżej)
-
-title (string)
-
-status: [posiadamy, brak, do_uzupelnienia, wyslane, otrzymane]
-
-date (YYYY-MM-DD|null)
-
-ref (string|null) // nazwa pliku/link
-
-required (boolean)
-
-createdAt (ISO)
-
-Deadline
-
-id (uuid)
-
-caseId
-
-dueDate (YYYY-MM-DD)
-
-description
-
-owner: [prawnik, sekretariat, klient] // proste role
-
-priority: [niski, normalny, wysoki, krytyczny]
-
-status: [planowany, wykonany, po_terminie]
-
-completedDate? (YYYY-MM-DD)
-
-createdAt (ISO)
-
-Event
-
-id (uuid)
-
-caseId
-
-eventDate (YYYY-MM-DD)
-
-type (string, słownik poniżej)
-
-description
-
-relatedDocumentIds (array uuid)
-
-createdAt (ISO)
-
-Cost
-
-id (uuid)
-
-caseId
-
-costType: [oplata_sadowa, zaliczka_biegly, pelnomocnictwo, koszty_zastepstwa, oplaty_pocztowe, komornik, inne]
-
-amount (number)
-
-date (YYYY-MM-DD)
-
-paidBy: [firma, klient]
-
-ref (string|null)
-
-createdAt (ISO)
-
-Receipt
-
-id (uuid)
-
-caseId
-
-receiptType: [kapital, odsetki, zwrot_kosztow, ugoda, egzekucja, inne]
-
-amount (number)
-
-date (YYYY-MM-DD)
-
-payer (string|null) // TU/komornik/inny
-
-ref (string|null)
-
-createdAt (ISO)
-
-6) LocalStorage – klucze i migracje
-
-Użyj kluczy:
-
-dtd_legal_storage_version (number)
-
-dtd_legal_cases (array)
-
-dtd_legal_documents (array)
-
-dtd_legal_deadlines (array)
-
-dtd_legal_events (array)
-
-dtd_legal_costs (array)
-
-dtd_legal_receipts (array)
-
-dtd_legal_user_prefs (object)
-
-Migracje:
-
-brak wersji → seed + wersja=1
-
-niższa wersja → funkcja migracji (przygotowana)
-
-7) Seed danych (musi być bogaty)
-
-Jeśli storage pusty, wygeneruj:
-
-min. 20 spraw w „cesja”
-
-min. 20 spraw w „w_toku”
-
-min. 20 spraw w „zakonczona”
-
-min. 200 dokumentów łącznie (w tym braki i komplet)
-
-min. 120 terminów (część po terminie, część na 7/30 dni)
-
-min. 150 zdarzeń
-
-min. 120 kosztów + min. 80 wpływów
-
-min. 15 spraw powiązanych z claimId (np. CLM-2026-xxx)
-
-Dane mają być realistyczne (sygnatury, sądy, daty, TU: PZU/Warta/Uniqa/Link4/Allianz itd.).
-
-8) Słowniki i automatyzacje (musi być)
-8.1 Słownik dokumentów wymaganych (checklisty)
-
-Zaimplementuj checklisty zależne od caseType i stage. Przykładowo:
-
-Naprawa (kosztorys / zaniżenie)
-
-Umowa cesji (w cesja wymagane)
-
-Pełnomocnictwo
-
-Dowód rejestracyjny / upoważnienie
-
-Decyzja TU / kosztorys TU
-
-Faktura naprawy / kalkulacja
-
-Zdjęcia szkody (opcjonalnie)
-
-Wezwanie przedsądowe + potwierdzenie nadania
-
-Pozew + załączniki
-
-Odpowiedź na pozew
-
-Postanowienia sądu
-
-Opinia biegłego (jeśli wystąpi)
-
-Najem
-
-Umowa najmu
-
-Cennik / stawki
-
-Zlecenie najmu / protokół wydania-zwrotu
-
-Decyzja TU (odmowa/skrót)
-
-Wezwanie przedsądowe
-
-Pozew / odpowiedź / postanowienia
-
-Szkoda całkowita
-
-Wycena TU
-
-Wycena niezależna (opcjonalnie)
-
-Dokumenty pojazdu
-
-Wezwanie / pozew / odpowiedź
-
-Dla stage=cesja pokaż checklistę „przedsądową”, dla w_toku „procesową”, dla zakonczona „wyrok/ugoda/prawomocność/rozliczenie”.
-
-8.2 Słownik typów zdarzeń (Event.type)
-
-wezwanie_przedsadowe_wyslane
-
-wezwanie_przedsadowe_odpowiedz
-
-pozew_przygotowanie
-
-pozew_zlozony
-
-nakaz_zaplaty
-
-odpowiedz_na_pozew
-
-replika
-
-wezwanie_braki_formalne
-
-uzupelniono_braki
-
-postanowienie
-
-rozprawa
-
-biegly_powołany
-
-opinia_bieglego
-
-wyrok
-
-apelacja
-
-ugoda
-
-prawomocnosc
-
-egzekucja_wniosek
-
-egzekucja_wplyw
-
-umorzenie
-
-8.3 Automatyczne flagi w UI
-
-„Braki formalne” jeśli:
-
-status sprawy = braki_formalne ORAZ istnieje deadline krytyczny nie wykonany
-
-„Komplet dokumentów” jeśli:
-
-wszystkie required=true dokumenty mają status posiadamy lub wyslane/otrzymane (dla procesu)
-
-„Po terminie” jeśli:
-
-istnieje deadline z dueDate < today i status != wykonany
-
-8.4 Szybkie akcje (konkret)
-
-W zakładce CESJE: przycisk „Złóż pozew”:
-
-ustawia stage = w_toku
-
-tworzy Event pozew_zlozony z datą dziś (lub wyborem)
-
-tworzy Deadline „Oczekuj na sygnaturę” (+14 dni)
-
-uzupełnia filingDate
-
-W W TOKU: „Zakończ (Wyrok/Ugoda)”:
-
-przenosi do zakonczona
-
-wymaga wyboru outcome i daty
-
-dodaje pola prawomocności (opcjonalnie teraz lub później)
-
-9) Plan formularzy (bardzo intuicyjny, „obszerny”) — wymagane
-
-Zrób 3 tryby pracy:
-
-9.1 Szybkie dodanie sprawy (30–60 sekund)
-
-Modal „+ Nowa sprawa (szybko)”:
-
-klient: osoba/firma + nazwa*
-
-pojazd: marka/model + rejestracja*
-
-TU*
-
-typ sprawy*
-
-etap: domyślnie „cesja”
-
-WPS (opcjonalnie na start)
-
-tagi (opcjonalnie)
-Po zapisie:
-
-tworzysz sprawę
-
-generujesz checklistę dokumentów wg typu i etapu
-
-proponujesz pierwszy termin: „Wezwanie przedsądowe” (+7 dni) (można odznaczyć)
-
-9.2 Pełny formularz sprawy (sekcje/accordion)
-
-Sekcje:
-A) Dane podstawowe (klient/pojazd/TU/claimId/wewnętrzny numer)
-B) Finanse roszczenia (WPS, kwota cesji, notatka rozliczenia)
-C) Przedsądowe (wezwanie: daty, wynik)
-D) Sąd (nazwa sądu, sędzia, wydział, sygnatura, data złożenia, daty rozpraw)
-E) Status i tagi (status, outcome dla zakończonych)
-F) Notatki prawnika
-
-9.3 Kreatory (wizard)
-
-Wizard „Pozew” (dla cesji → w_toku)
-
-krok 1: wybierz datę złożenia pozwu
-
-krok 2: wprowadź WPS i opłatę sądową (jeśli znana) + opcja dodania kosztu
-
-krok 3: dokumenty: oznacz „Pozew” jako posiadamy i wpisz ref
-
-krok 4: utwórz terminy: „sygnatura”, „odpisy/załączniki”, „odpowiedź TU” (konfigurowalne)
-
-Wizard „Braki formalne”
-
-wybierz pismo z sądu (dokument)
-
-utwórz deadline krytyczny (data + opis)
-
-ustaw status sprawy = braki_formalne
-
-Wizard „Zakończenie”
-
-outcome: wygrana/przegrana/częściowa/ugoda/umorzone
-
-daty: wyrok/ugoda, prawomocność (opcjonalnie)
-
-zasądzenia: kapitał/odsetki/zwrot kosztów (Receipt)
-
-jeśli brak spływu: utwórz termin „wezwanie do zapłaty” (+14 dni) i opcję „egzekucja” (+30 dni)
-
-9.4 Formularze: dokument, termin, koszt, wpływ
-
-Dodawanie inline w szczegółach sprawy (bez utraty kontekstu)
-
-Walidacje:
-
-kwoty > 0
-
-daty poprawne
-
-sygnatura może być pusta do czasu nadania
-
-„Zapisz i dodaj kolejne” (dla dokumentów i terminów)
-
-10) Wydajność i stabilność
-
-paginacja i render tylko bieżącej strony (żeby 300+ spraw nie lagowało)
-
-bezpieczne usuwanie:
-
-usuń sprawę → usuń powiązane elementy dopiero po potwierdzeniu „usuń wszystko”
-
-domyślnie preferuj archived=true
-
-przywracanie archiwum
-
-obsługa błędów localStorage (quota, parse)
-
-11) UI szczegóły (spójne z inspiracją)
-
-Sidebar z sekcją „Dział prawny” i podmenu:
-
-Cesje / W toku / Zakończone / Terminy / Raporty
-
-Badge’y jak w inspiracji: active/warning/danger/info/neutral + tag TU
-
-Ikony dokumentów jak w inspiracji (done/missing/upload) 
-
-Moduł sprawy sądowe
-
-W tabelach komórki wieloliniowe (bloki: label-tiny + value)
-
-Toasty/alerty: zapisano/usunięto/błąd walidacji
-
-12) Format odpowiedzi (bezwzględny)
-
-Zwróć TYLKO jeden blok kodu zawierający kompletny sprawy_sadowe.html.
-Bez opisu, bez dodatkowych plików, bez komentarza poza komentarzami w kodzie.
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTD Serwis - Sprawy Sądowe i Dział Prawny</title>
+    
+    <!-- Biblioteki Zewnętrzne -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           KONFIGURACJA UI I MOTYWU BAZOWEGO
+           ========================================= */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent-blue: #0284c7;
+            --accent-hover: #0369a1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* =========================================
+           SIDEBAR (ZGODNY Z CAŁYM ERP)
+           ========================================= */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.15); z-index: 50; }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .sidebar-header { padding: 35px 25px; font-size: 24px; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px; }
+        .sidebar-header span { color: var(--accent-blue); }
+        
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 12px 25px; margin: 2px 10px; border-radius: 10px; display: flex; align-items: center; gap: 12px; color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 13px; transition: 0.2s; cursor: pointer; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: var(--sidebar-hover); color: white; }
+        .nav-item.active { background-color: rgba(2, 132, 199, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; }
+
+        .has-submenu { justify-content: space-between; }
+        .submenu { background-color: rgba(0,0,0,0.2); margin-bottom: 5px; padding: 5px 0; display: none; }
+        .submenu-label { padding: 12px 25px 5px 55px; font-size: 10px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 1px; }
+        .submenu-item { padding: 8px 25px 8px 55px; display: block; color: #94a3b8; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
+        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
+        .submenu-item.active { color: white; font-weight: 700; border-left-color: var(--accent-blue); }
+
+        /* =========================================
+           TOPBAR & WRAPPER
+           ========================================= */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 0 40px; height: 80px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; }
+        .search-bar { background: #f1f5f9; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; width: 350px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 500; }
+        
+        .content-area { padding: 40px; overflow-y: auto; flex: 1; position: relative; }
+        .view-panel { display: none; animation: fadeIn 0.3s ease; }
+        .view-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           KOMPONENTY BAZOWE
+           ========================================= */
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 25px; }
+        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 14px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+        .card-body { padding: 25px; }
+        
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; justify-content: center;}
+        .btn-primary { background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2); }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.2);}
+        .btn-secondary { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-secondary:hover { background: #f1f5f9; }
+        .btn-small { padding: 6px 12px; font-size: 11px; }
+
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; display: inline-block; }
+        .badge-blue { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;}
+        .badge-green { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;}
+        .badge-red { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;}
+        .badge-orange { background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa;}
+        .badge-purple { background: #f3e8ff; color: #6d28d9; border: 1px solid #d8b4fe;}
+        .badge-dark { background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1;}
+
+        .text-muted { color: var(--text-muted); font-size: 12px; }
+        .text-danger { color: var(--danger); font-weight: 700; }
+        .text-success { color: var(--success); font-weight: 700; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13.5px; text-align: left; }
+        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-color); white-space: nowrap;}
+        td { padding: 15px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+        tr.clickable:hover td { background-color: #f8fafc; cursor: pointer; }
+
+        /* Taby główne w liście spraw */
+        .main-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 0px; }
+        .main-tab-btn { padding: 15px 25px; border: none; background: none; font-size: 14px; font-weight: 800; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;}
+        .main-tab-btn:hover { color: var(--text-main); }
+        .main-tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+
+        /* Paginacja i Narzędzia */
+        .table-tools { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #f8fafc; border-bottom: 1px solid var(--border-color); }
+        .filters { display: flex; gap: 10px; flex-wrap: wrap; }
+        .filter-input { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; outline: none;}
+        .pagination { display: flex; gap: 5px; align-items: center; }
+        .page-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;}
+        .page-btn:hover { background: #f1f5f9; }
+        .page-btn.active { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+
+        /* =========================================
+           WIDOK SZCZEGÓŁÓW SPRAWY (KARTA PRAWNA)
+           ========================================= */
+        .case-header-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .case-summary-card { background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        
+        .kpi-row { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 10px; }
+        .kpi-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .kpi-label { color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .kpi-value { font-size: 16px; font-weight: 900; }
+        
+        .case-tabs { display: flex; gap: 5px; border-bottom: 2px solid var(--border-color); margin-bottom: 25px; overflow-x: auto; }
+        .case-tab-btn { padding: 12px 20px; border: none; background: none; font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; white-space: nowrap;}
+        .case-tab-btn.active { color: var(--purple); border-bottom-color: var(--purple); background: #f3e8ff; border-radius: 8px 8px 0 0; }
+        .case-tab-content { display: none; animation: fadeIn 0.3s; }
+        .case-tab-content.active { display: block; }
+
+        /* DMS - Lista Dokumentów */
+        .doc-list { display: flex; flex-direction: column; gap: 10px; }
+        .doc-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; background: white; transition: 0.2s; }
+        .doc-item:hover { border-color: var(--accent-blue); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .doc-main { display: flex; align-items: center; gap: 15px; flex: 1; }
+        .doc-icon { font-size: 24px; color: var(--text-muted); }
+        .doc-icon.ok { color: var(--success); }
+        .doc-icon.missing { color: var(--danger); }
+        .doc-icon.pending { color: var(--warning); }
+        .doc-details h4 { margin: 0 0 4px 0; font-size: 14px; color: var(--text-main); }
+        .doc-actions { display: flex; gap: 10px; }
+
+        /* Timeline (Zdarzenia) */
+        .timeline { position: relative; padding-left: 30px; border-left: 2px solid var(--border-color); margin-left: 10px; margin-top: 20px; }
+        .tl-item { background: white; border: 1px solid var(--border-color); padding: 15px; border-radius: 10px; margin-bottom: 15px; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+        .tl-item::before { content: ''; position: absolute; left: -39px; top: 18px; width: 14px; height: 14px; background: white; border: 3px solid var(--purple); border-radius: 50%; }
+        .tl-date { font-size: 11px; font-weight: 800; color: var(--purple); margin-bottom: 5px; display: block; }
+        .tl-title { font-weight: 700; font-size: 14px; color: var(--text-main); margin-bottom: 5px; }
+        .tl-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+        /* Banery ostrzegawcze w szczegółach */
+        .alert-banner { background: #fef2f2; border: 1px solid #fca5a5; padding: 12px 20px; border-radius: 8px; color: #991b1b; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+
+        /* =========================================
+           KALENDARZ I TERMINY
+           ========================================= */
+        .deadlines-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .deadline-card { background: white; border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; border-left: 4px solid var(--info); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .deadline-card.overdue { border-left-color: var(--danger); background: #fffcfc; }
+        .deadline-card.done { border-left-color: var(--success); opacity: 0.7; }
+        .deadline-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 11px; font-weight: 800; color: var(--text-muted); }
+        .deadline-title { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+        .deadline-case { font-size: 12px; color: var(--accent-blue); font-weight: 600; cursor: pointer; text-decoration: underline; }
+
+        /* =========================================
+           RAPORTY / DASHBOARD PRAWNY
+           ========================================= */
+        .dashboard-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .db-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .db-title { font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .db-val { font-size: 32px; font-weight: 900; font-family: 'Courier New', monospace; letter-spacing: -1px; }
+        .db-sub { font-size: 12px; color: #cbd5e1; margin-top: 5px; }
+
+        /* =========================================
+           MODALE I FORMULARZE
+           ========================================= */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 20px; }
+        .modal-card { background: white; width: 700px; max-width: 100%; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; animation: fadeIn 0.3s ease; position: relative; margin: auto; }
+        .modal-header { padding: 20px 30px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 800; color: var(--text-dark); position: sticky; top: 0; z-index: 10;}
+        .modal-body { padding: 30px; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        
+        label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .required::after { content: '*'; color: var(--danger); margin-left: 3px; }
+        .input-control { padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: var(--text-main); background: white; outline: none; transition: 0.2s; font-family: inherit; width: 100%; }
+        .input-control:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        textarea.input-control { resize: vertical; min-height: 80px; }
+
+        /* Toast Notifications */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; border-left: 4px solid var(--accent-blue); padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; animation: slideInRight 0.3s ease forwards; }
+        .toast.success { border-color: var(--success); color: var(--success); }
+        .toast.error { border-color: var(--danger); color: var(--danger); }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- GŁÓWNY SIDEBAR (ZGODNY Z CAŁYM SYSTEMEM) -->
+    <div class="sidebar">
+        <div class="sidebar-header"><span>DTD</span> Serwis</div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-samochody')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car"></i> Samochody</div>
+                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px; transition: transform 0.3s;"></i>
+            </div>
+            <div class="submenu" id="submenu-samochody" style="display: none;">
+                <div class="submenu-label">Najmy</div>
+                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+                <div class="submenu-label">Flota własna</div>
+                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłomowane</a>
+                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+            </div>
+
+            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> Oględziny</a>
+            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+            <a href="magazyn.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i części</a>
+            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            
+            <div class="nav-item has-submenu active" onclick="toggleSubmenu('submenu-prawne')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</div>
+                <i class="fa-solid fa-chevron-down" id="icon-prawne" style="font-size: 10px; transform: rotate(180deg);"></i>
+            </div>
+            <div class="submenu" id="submenu-prawne" style="display: block;">
+                <div class="submenu-label">Zarządzanie sprawami</div>
+                <a href="#" class="submenu-item active" onclick="navTo('view-cases', this)">Rejestr Spraw</a>
+                <a href="#" class="submenu-item" onclick="navTo('view-deadlines', this)">Kalendarz i Terminy</a>
+                <a href="#" class="submenu-item" onclick="navTo('view-reports', this)">Raporty i Skuteczność</a>
+            </div>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
+                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
+                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px; transition: transform 0.3s;"></i>
+            </div>
+            <div class="submenu" id="submenu-naprawy" style="display: none;">
+                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharski</a>
+                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki</a>
+                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            </div>
+
+            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator dokumentów</a>
+        </div>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <div class="topbar">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="globalSearch" placeholder="Szukaj sygnatury, klienta, pojazdu, TU..." oninput="renderCasesTable()">
+            </div>
+            <div class="user-info">
+                <button class="btn btn-primary" onclick="openQuickAddModal()"><i class="fa-solid fa-plus"></i> Nowa Sprawa (Cesja)</button>
+                <i class="fa-regular fa-bell" style="font-size:20px; cursor:pointer; color:var(--text-muted); margin-left:15px;"></i>
+                <span style="font-weight:700;">prawnik@dtdserwis.pl</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- WIDOK 1: REJESTR SPRAW (TABS: Cesje, W toku, Archiwum) -->
+            <div id="view-cases" class="view-panel active">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-briefcase" style="color:var(--accent-blue)"></i> Rejestr Spraw Prawnych</div>
+                    <div>
+                        <button class="btn btn-secondary" onclick="seedData()"><i class="fa-solid fa-seedling"></i> Odśwież dane (Generuj 3 sprawy)</button>
+                        <button class="btn btn-danger" onclick="clearStorage()"><i class="fa-solid fa-trash"></i> Reset Bazy</button>
+                    </div>
+                </div>
+
+                <div class="main-tabs">
+                    <button class="main-tab-btn active" onclick="switchCasesTab('cesja', this)">Cesje (Przedsądowe) <span class="badge badge-dark" id="count-cesja">0</span></button>
+                    <button class="main-tab-btn" onclick="switchCasesTab('w_toku', this)">Procesy W Toku <span class="badge badge-blue" id="count-w_toku">0</span></button>
+                    <button class="main-tab-btn" onclick="switchCasesTab('zakonczona', this)">Zakończone / Archiwum <span class="badge badge-neutral" id="count-zakonczona">0</span></button>
+                </div>
+
+                <div class="card">
+                    <div class="table-tools">
+                        <div class="filters">
+                            <select class="filter-input" id="filter-tu" onchange="renderCasesTable()"><option value="">Wszystkie TU</option></select>
+                            <select class="filter-input" id="filter-type" onchange="renderCasesTable()">
+                                <option value="">Wszystkie Typy</option>
+                                <option value="naprawa">Naprawa z OC</option>
+                                <option value="najem">Auto Zastępcze</option>
+                                <option value="szkoda_calkowita">Szkoda Całkowita</option>
+                            </select>
+                            <select class="filter-input" id="filter-flags" onchange="renderCasesTable()">
+                                <option value="">Wszystkie (Brak flag)</option>
+                                <option value="braki">Tylko braki formalne</option>
+                                <option value="poterminie">Zaległe terminy</option>
+                                <option value="komplet">Komplet dokumentów</option>
+                            </select>
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" onclick="changePage(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                            <span id="pageInfo" style="font-size:12px; font-weight:700;">Strona 1</span>
+                            <button class="page-btn" onclick="changePage(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nr Wewn / Klient</th>
+                                    <th>Pojazd / Szkoda (TU)</th>
+                                    <th>Sygnatura / Etap</th>
+                                    <th>WPS / Saldo</th>
+                                    <th>Status / Flagi</th>
+                                    <th style="text-align:right;">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody id="casesTableBody">
+                                <!-- Rendered via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDOK 2: SZCZEGÓŁY SPRAWY -->
+            <div id="view-details" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title">
+                        <button class="btn btn-secondary btn-small" onclick="navTo('view-cases')"><i class="fa-solid fa-arrow-left"></i> Wróć</button>
+                        <span id="det-header-title">Sprawa: DTD-LAW-001</span>
+                    </div>
+                    <div style="display:flex; gap:10px;" id="det-header-actions">
+                        <!-- Dynamic buttons (Złóż pozew, Zakończ itp.) -->
+                    </div>
+                </div>
+
+                <div id="det-alert-container"></div>
+
+                <div class="case-header-grid">
+                    <div class="case-summary-card">
+                        <div style="font-size:11px; color:var(--text-muted); font-weight:800; margin-bottom:15px; text-transform:uppercase;">Informacje Podstawowe</div>
+                        <div style="display:flex; flex-wrap:wrap; gap:20px; font-size:13px;">
+                            <div><span class="text-muted">Klient:</span> <br><strong id="det-client"></strong></div>
+                            <div><span class="text-muted">Pojazd:</span> <br><strong id="det-vehicle"></strong></div>
+                            <div><span class="text-muted">Ubezpieczyciel:</span> <br><strong id="det-tu" class="text-danger"></strong></div>
+                            <div><span class="text-muted">Sygnatura:</span> <br><strong id="det-signature" style="font-family:monospace; color:var(--accent-blue)">-</strong></div>
+                            <div style="flex:1; text-align:right;"><span class="text-muted">Typ sprawy:</span> <br><span id="det-type" class="badge badge-dark"></span></div>
+                        </div>
+                    </div>
+                    <div class="case-summary-card" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color:white; border:none;">
+                        <div class="kpi-row"><span class="kpi-label">WPS (Kapitał)</span><span class="kpi-value" id="kpi-wps">0,00 zł</span></div>
+                        <div class="kpi-row"><span class="kpi-label">Poniesione Koszty</span><span class="kpi-value text-danger" id="kpi-costs">0,00 zł</span></div>
+                        <div class="kpi-row"><span class="kpi-label">Wpływy (Zasądzone/Ugoda)</span><span class="kpi-value text-success" id="kpi-receipts">0,00 zł</span></div>
+                        <div class="kpi-row" style="border:none; margin-top:15px;"><span class="kpi-label" style="color:#94a3b8;">Saldo (Do odzyskania)</span><span class="kpi-value" id="kpi-saldo" style="font-size:20px; color:#38bdf8;">0,00 zł</span></div>
+                    </div>
+                </div>
+
+                <div class="card" style="box-shadow:none;">
+                    <div class="case-tabs">
+                        <button class="case-tab-btn active" onclick="switchCaseDetailsTab('timeline', this)"><i class="fa-solid fa-clock-rotate-left"></i> Oś Czasu</button>
+                        <button class="case-tab-btn" onclick="switchCaseDetailsTab('documents', this)"><i class="fa-solid fa-folder-open"></i> Dokumenty <span id="badge-docs" class="badge badge-neutral" style="margin-left:5px;">0/0</span></button>
+                        <button class="case-tab-btn" onclick="switchCaseDetailsTab('deadlines', this)"><i class="fa-solid fa-calendar-day"></i> Terminy</button>
+                        <button class="case-tab-btn" onclick="switchCaseDetailsTab('finances', this)"><i class="fa-solid fa-file-invoice-dollar"></i> Koszty i Wpływy</button>
+                        <button class="case-tab-btn" onclick="switchCaseDetailsTab('notes', this)"><i class="fa-solid fa-note-sticky"></i> Notatki</button>
+                    </div>
+                    <div class="card-body" style="padding: 20px;">
+                        
+                        <!-- TAB: TIMELINE -->
+                        <div id="ct-timeline" class="case-tab-content active">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                                <h3 style="font-size:15px; color:var(--text-main);">Historia Zdarzeń</h3>
+                                <button class="btn btn-secondary btn-small" onclick="openEventModal()"><i class="fa-solid fa-plus"></i> Dodaj Zdarzenie</button>
+                            </div>
+                            <div class="timeline" id="det-timeline-list">
+                                <!-- Rendered via JS -->
+                            </div>
+                        </div>
+
+                        <!-- TAB: DOCUMENTS -->
+                        <div id="ct-documents" class="case-tab-content">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                                <div>
+                                    <h3 style="font-size:15px; color:var(--text-main);">Checklista i Repozytorium</h3>
+                                    <p class="text-muted">Lista dokumentów wymaganych zależnie od etapu i typu sprawy.</p>
+                                </div>
+                                <button class="btn btn-secondary btn-small" onclick="openDocModal()"><i class="fa-solid fa-plus"></i> Inny dokument</button>
+                            </div>
+                            <div class="doc-list" id="det-docs-list">
+                                <!-- Rendered via JS -->
+                            </div>
+                        </div>
+
+                        <!-- TAB: DEADLINES -->
+                        <div id="ct-deadlines" class="case-tab-content">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                                <h3 style="font-size:15px; color:var(--text-main);">Zobowiązania i Terminy</h3>
+                                <button class="btn btn-primary btn-small" onclick="openDeadlineModal()"><i class="fa-solid fa-plus"></i> Dodaj Termin</button>
+                            </div>
+                            <div class="deadlines-grid" id="det-deadlines-list">
+                                <!-- Rendered via JS -->
+                            </div>
+                        </div>
+
+                        <!-- TAB: FINANCES -->
+                        <div id="ct-finances" class="case-tab-content">
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px;">
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                                        <h4 style="color:var(--danger)"><i class="fa-solid fa-arrow-trend-down"></i> Koszty Procesowe</h4>
+                                        <button class="btn btn-secondary btn-small" onclick="openCostModal()"><i class="fa-solid fa-plus"></i> Dodaj Koszt</button>
+                                    </div>
+                                    <table style="font-size:12px;">
+                                        <thead><tr><th>Data</th><th>Typ / Opis</th><th style="text-align:right">Kwota</th></tr></thead>
+                                        <tbody id="det-costs-table"></tbody>
+                                    </table>
+                                </div>
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                                        <h4 style="color:var(--success)"><i class="fa-solid fa-arrow-trend-up"></i> Wpływy (Zasądzone/Ugody)</h4>
+                                        <button class="btn btn-secondary btn-small" onclick="openReceiptModal()"><i class="fa-solid fa-plus"></i> Dodaj Wpływ</button>
+                                    </div>
+                                    <table style="font-size:12px;">
+                                        <thead><tr><th>Data</th><th>Tytuł</th><th style="text-align:right">Kwota</th></tr></thead>
+                                        <tbody id="det-receipts-table"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: NOTES -->
+                        <div id="ct-notes" class="case-tab-content">
+                            <h3 style="font-size:15px; color:var(--text-main); margin-bottom:15px;">Prywatne notatki prawnika</h3>
+                            <textarea id="det-notes-area" class="input-control" style="min-height: 200px; background:#fffbeb; border-color:#fde68a;"></textarea>
+                            <button class="btn btn-warning" style="margin-top:15px;" onclick="saveNotes()"><i class="fa-solid fa-floppy-disk"></i> Zapisz notatki</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDOK 3: KALENDARZ / TERMINY -->
+            <div id="view-deadlines" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-calendar-days" style="color:var(--accent-blue)"></i> Globalny Terminarz</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">Terminy na dziś i zaległe (Krytyczne)</div>
+                    <div class="card-body" style="background:#fef2f2;">
+                        <div class="deadlines-grid" id="global-deadlines-critical"></div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">Nadchodzące (7 dni)</div>
+                    <div class="card-body">
+                        <div class="deadlines-grid" id="global-deadlines-upcoming"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDOK 4: RAPORTY -->
+            <div id="view-reports" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-chart-pie" style="color:var(--purple)"></i> Dashboard Skuteczności Prawnej</div>
+                </div>
+                <div class="dashboard-kpi">
+                    <div class="db-card">
+                        <div class="db-title">Sprawy w toku</div>
+                        <div class="db-val" id="rep-wtoku">0</div>
+                        <div class="db-sub">Łączny WPS: <span id="rep-wps">0</span> zł</div>
+                    </div>
+                    <div class="db-card" style="background: linear-gradient(135deg, #065f46 0%, #047857 100%);">
+                        <div class="db-title">Wygrane / Ugody (Historia)</div>
+                        <div class="db-val" id="rep-win">0</div>
+                        <div class="db-sub">Odzyskano: <span id="rep-recovered">0</span> zł</div>
+                    </div>
+                    <div class="db-card" style="background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);">
+                        <div class="db-title">Przegrane / Umorzone</div>
+                        <div class="db-val" id="rep-lost">0</div>
+                        <div class="db-sub">Wskaźnik win-rate: <span id="rep-winrate">0</span>%</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">TOP Ubezpieczyciele (Suma WPS w toku)</div>
+                    <div class="card-body" id="rep-tu-stats">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODALE FORMULARZY
+         ========================================== -->
+
+    <!-- MODAL: ZAAWANSOWANE DODANIE SPRAWY (CESJA) -->
+    <div class="modal-overlay" id="quickAddModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span><i class="fa-solid fa-plus-circle" style="color:var(--accent-blue)"></i> Nowa Sprawa (Cesja / Wezwanie)</span>
+                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('quickAddModal')"></i>
+            </div>
+            <div class="modal-body">
+                <form id="quickAddForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="required">Rodzaj Roszczenia (Typ Sprawy)</label>
+                            <select id="qa_casetype" class="input-control" required>
+                                <option value="naprawa">Koszty naprawy (Zaniżenie)</option>
+                                <option value="najem">Auto zastępcze (Najem)</option>
+                                <option value="szkoda_calkowita">Szkoda całkowita (Dopłata)</option>
+                                <option value="holowanie">Koszty holowania</option>
+                                <option value="inne">Inne / Mieszane</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Ubezpieczyciel (TU)</label>
+                            <input type="text" id="qa_tu" class="input-control" required list="tu-list" placeholder="np. PZU">
+                            <datalist id="tu-list">
+                                <option value="PZU S.A."><option value="Warta"><option value="Hestia"><option value="Uniqa"><option value="Link4"><option value="Allianz"><option value="Generali"><option value="Compensa">
+                            </datalist>
+                        </div>
+                    </div>
+                    <div class="form-grid" style="border-bottom: 1px dashed var(--border-color); padding-bottom: 15px;">
+                        <div class="form-group">
+                            <label class="required">Data Szkody</label>
+                            <input type="date" id="qa_eventDate" class="input-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>ID Szkody w DTD (Powiązanie)</label>
+                            <input type="text" id="qa_claimId" class="input-control" placeholder="np. DTD-2026-090">
+                        </div>
+                    </div>
+                    <div class="form-grid" style="margin-top: 15px;">
+                        <div class="form-group full">
+                            <label class="required">Klient (Poszkodowany)</label>
+                            <input type="text" id="qa_client" class="input-control" required placeholder="Jan Kowalski lub Firma XYZ">
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Pojazd (Marka Model)</label>
+                            <input type="text" id="qa_car" class="input-control" required placeholder="Audi A4">
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Numer Rejestracyjny</label>
+                            <input type="text" id="qa_plate" class="input-control" required placeholder="WA 12345">
+                        </div>
+                    </div>
+                    <div class="form-grid" style="margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
+                        <div class="form-group">
+                            <label>WPS (Wartość Spóru) PLN</label>
+                            <input type="number" id="qa_wps" step="0.01" class="input-control" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Kwota zapłacona za cesję (PLN)</label>
+                            <input type="number" id="qa_cessionAmount" step="0.01" class="input-control" placeholder="0.00">
+                        </div>
+                        <div class="form-group full">
+                            <label>Notatka dotycząca sporu / cesji</label>
+                            <textarea id="qa_notes" class="input-control" style="min-height:60px;" placeholder="np. Ubezpieczyciel wyliczył szkodę na zamiennikach..."></textarea>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('quickAddModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">Utwórz Teczkę Prawną</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DODAJ ZDARZENIE (TIMELINE) -->
+    <div class="modal-overlay" id="eventModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span><i class="fa-solid fa-clock-rotate-left" style="color:var(--purple)"></i> Dodaj Zdarzenie do Akt</span>
+                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('eventModal')"></i>
+            </div>
+            <div class="modal-body">
+                <form id="eventForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="required">Data zdarzenia</label>
+                            <input type="date" id="ev_date" class="input-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Rodzaj Czynności</label>
+                            <select id="ev_type" class="input-control" required>
+                                <option value="wezwanie_przedsadowe_wyslane">Wysłano wezwanie do zapłaty</option>
+                                <option value="wezwanie_przedsadowe_odpowiedz">Odpowiedź na wezwanie (TU)</option>
+                                <option value="pozew_zlozony">Złożono pozew do sądu</option>
+                                <option value="odpowiedz_na_pozew">Wpłynęła odpowiedź na pozew</option>
+                                <option value="wezwanie_braki_formalne">Wezwanie do braków formalnych</option>
+                                <option value="uzupelniono_braki">Uzupełniono braki formalne</option>
+                                <option value="rozprawa">Termin rozprawy</option>
+                                <option value="opinia_bieglego">Wpłynęła opinia biegłego</option>
+                                <option value="wyrok">Ogłoszono wyrok</option>
+                                <option value="ugoda">Zawarto ugodę</option>
+                                <option value="prawomocnosc">Prawomocność wyroku</option>
+                                <option value="egzekucja_wniosek">Skierowano do komornika</option>
+                                <option value="inne">Inne</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group full">
+                        <label class="required">Szczegółowy opis zdarzenia / Notatka</label>
+                        <textarea id="ev_desc" class="input-control" required placeholder="Wpisz treść postanowienia, podsumowanie rozmowy itp."></textarea>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('eventModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary" style="background:var(--purple)">Dodaj do Osi Czasu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- WIZARD: ZŁÓŻ POZEW -->
+    <div class="modal-overlay" id="wizardPozewModal">
+        <div class="modal-card">
+            <div class="modal-header"><span><i class="fa-solid fa-gavel" style="color:var(--purple)"></i> Procedura: Złożenie Pozwu</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('wizardPozewModal')"></i></div>
+            <div class="modal-body">
+                <form id="wizPozewForm">
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label>Sąd (Nazwa i wydział)</label>
+                            <input type="text" id="wp_court" class="input-control" placeholder="np. SR dla m.st. Warszawy, I Wydział Cywilny" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Data wniesienia pozwu</label>
+                            <input type="date" id="wp_date" class="input-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Opłata Sądowa (PLN) - Zaksięguj koszt</label>
+                            <input type="number" id="wp_fee" step="0.01" class="input-control" placeholder="0.00">
+                        </div>
+                    </div>
+                    <p style="font-size:12px; color:var(--text-muted); margin-top:15px;">Sprawa zostanie przeniesiona z etapu <b>Cesje</b> do <b>Procesy w toku</b>. Wygenerowany zostanie wpis na Osi Czasu i utworzony termin na "Oczekiwanie na sygnaturę" (+14 dni).</p>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('wizardPozewModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary" style="background:var(--purple)">Zatwierdź i Przenieś</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- WIZARD: ZAKOŃCZ SPRAWĘ -->
+    <div class="modal-overlay" id="wizardZakonczModal">
+        <div class="modal-card">
+            <div class="modal-header"><span><i class="fa-solid fa-flag-checkered" style="color:var(--success)"></i> Zakończenie Postępowania</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('wizardZakonczModal')"></i></div>
+            <div class="modal-body">
+                <form id="wizZakonczForm">
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label class="required">Wynik (Outcome)</label>
+                            <select id="wz_outcome" class="input-control" required>
+                                <option value="wygrana">Wygrana w całości (100%)</option>
+                                <option value="czesciowa">Częściowa wygrana</option>
+                                <option value="ugoda">Podpisano Ugodę (Sądową/Pozasądową)</option>
+                                <option value="przegrana">Przegrana (Oddalenie w całości)</option>
+                                <option value="umorzone">Umorzenie postępowania</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Data orzeczenia / ugody</label>
+                            <input type="date" id="wz_date" class="input-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Prawomocności (Jeśli znana)</label>
+                            <input type="date" id="wz_prawomocnosc" class="input-control">
+                        </div>
+                        <div class="form-group full" style="border-top:1px solid var(--border-color); padding-top:15px;">
+                            <label>Zasądzony Kapitał do spłaty (PLN)</label>
+                            <input type="number" id="wz_amount" step="0.01" class="input-control" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('wizardZakonczModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-success">Zakończ Sprawę (Archiwum)</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DOKUMENT -->
+    <div class="modal-overlay" id="docModal">
+        <div class="modal-card" style="width:500px;">
+            <div class="modal-header"><span>Zarządzaj Dokumentem</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('docModal')"></i></div>
+            <div class="modal-body">
+                <form id="docForm">
+                    <input type="hidden" id="md_id">
+                    <div class="form-group">
+                        <label>Tytuł dokumentu</label>
+                        <input type="text" id="md_title" class="input-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="md_status" class="input-control" required>
+                            <option value="brak">Brak (Oczekujemy)</option>
+                            <option value="posiadamy">Posiadamy / Komplet</option>
+                            <option value="do_uzupelnienia">Do uzupełnienia (Braki)</option>
+                            <option value="wyslane">Wysłano do sądu/TU</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nazwa pliku / Link na dysku wewnętrznym</label>
+                        <input type="text" id="md_ref" class="input-control" placeholder="np. Skan_Umowy_Kowalski.pdf">
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                        <button type="submit" class="btn btn-primary">Zapisz</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TERMIN -->
+    <div class="modal-overlay" id="deadlineModal">
+        <div class="modal-card" style="width:500px;">
+            <div class="modal-header"><span>Dodaj Termin / Zobowiązanie</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('deadlineModal')"></i></div>
+            <div class="modal-body">
+                <form id="deadlineForm">
+                    <div class="form-group">
+                        <label class="required">Data wykonania (Deadline)</label>
+                        <input type="date" id="dl_date" class="input-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">Treść zadania / Opis terminu</label>
+                        <input type="text" id="dl_desc" class="input-control" placeholder="np. Złożenie pisma procesowego" required>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Priorytet</label>
+                            <select id="dl_prio" class="input-control">
+                                <option value="normalny">Normalny</option>
+                                <option value="wysoki">Wysoki (Ważne)</option>
+                                <option value="krytyczny">Krytyczny (Zagrożenie sprawy)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Odpowiedzialny</label>
+                            <select id="dl_owner" class="input-control">
+                                <option value="prawnik">Prawnik</option>
+                                <option value="sekretariat">Sekretariat</option>
+                                <option value="klient">Klient (Oczekujemy akcji)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                        <button type="submit" class="btn btn-primary">Zapisz Termin</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Container na toasty -->
+    <div id="toast-container"></div>
+
+    <!-- SKRYPTY (VANILLA JS, LOCALSTORAGE, LOGIKA) -->
+    <script>
+        // Funkcje otwierające/zamykające przeniesione na samą górę dla pewności globalnego scope
+        function toggleViews(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function navTo(viewId, btn) {
+            toggleViews(viewId);
+            if(btn) {
+                document.querySelectorAll('.submenu-item').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            if(viewId === 'view-cases') renderCasesTable();
+            if(viewId === 'view-deadlines') renderGlobalDeadlines();
+            if(viewId === 'view-reports') renderReports();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+        
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
+            const isHidden = submenu.style.display === "none" || submenu.style.display === "";
+            submenu.style.display = isHidden ? "block" : "none";
+            if(icon) icon.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        }
+
+        /* =========================================
+           1. ZARZĄDZANIE DANYMI (LOCALSTORAGE)
+           ========================================= */
+        const KEYS = {
+            VERSION: 'dtd_legal_storage_version',
+            CASES: 'dtd_legal_cases',
+            DOCS: 'dtd_legal_documents',
+            DEADLINES: 'dtd_legal_deadlines',
+            EVENTS: 'dtd_legal_events',
+            COSTS: 'dtd_legal_costs',
+            RECEIPTS: 'dtd_legal_receipts'
+        };
+
+        function generateUUID() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function getStore(key) {
+            try { return JSON.parse(localStorage.getItem(key)) || []; } 
+            catch (e) { console.error('Błąd odczytu z localStorage', e); return []; }
+        }
+        function setStore(key, data) {
+            try { localStorage.setItem(key, JSON.stringify(data)); } 
+            catch (e) { alert('Błąd zapisu danych! Brak miejsca?'); }
+        }
+
+        function initStorage() {
+            let version = localStorage.getItem(KEYS.VERSION);
+            if (!version) {
+                seedData(); 
+                localStorage.setItem(KEYS.VERSION, "1");
+            }
+        }
+
+        /* =========================================
+           2. SEEDER DANYCH (3 Przykłady)
+           ========================================= */
+        function seedData() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Ograniczamy do 3 konkretnych spraw, aby nie śmiecić bazy
+            let cases = [
+                {
+                    id: generateUUID(),
+                    stage: 'cesja',
+                    caseType: 'naprawa',
+                    clientType: 'osoba',
+                    clientName: 'Anna Kowalczyk',
+                    vehicleMakeModel: 'Toyota Yaris',
+                    vehiclePlate: 'WA 12345',
+                    insurer: 'PZU S.A.',
+                    internalRef: 'DTD-LAW-2026-001',
+                    wpsAmount: 4500.00,
+                    status: 'przedsadowe',
+                    outcome: 'nieznany',
+                    createdAt: today,
+                    archived: false,
+                    notes: 'Przykładowa sprawa zaniżonego kosztorysu w fazie przedsądowej.'
+                },
+                {
+                    id: generateUUID(),
+                    stage: 'w_toku',
+                    caseType: 'najem',
+                    clientType: 'firma',
+                    clientName: 'Firma Trans XYZ',
+                    vehicleMakeModel: 'Skoda Octavia',
+                    vehiclePlate: 'KR 99887',
+                    insurer: 'Warta',
+                    internalRef: 'DTD-LAW-2026-002',
+                    wpsAmount: 12400.00,
+                    court: { courtName: 'SR Warszawa-Wola', signature: 'I C 123/26' },
+                    status: 'pozew_zlozony',
+                    outcome: 'nieznany',
+                    createdAt: today,
+                    archived: false,
+                    notes: 'Brak zgody na pełen okres najmu. Wysłano pozew do sądu.'
+                },
+                {
+                    id: generateUUID(),
+                    stage: 'zakonczona',
+                    caseType: 'szkoda_calkowita',
+                    clientType: 'osoba',
+                    clientName: 'Jan Nowak',
+                    vehicleMakeModel: 'Audi A4',
+                    vehiclePlate: 'PO 11223',
+                    insurer: 'Link4',
+                    internalRef: 'DTD-LAW-2025-099',
+                    wpsAmount: 25000.00,
+                    court: { courtName: 'SR Poznań', signature: 'II C 456/25' },
+                    status: 'prawomocne',
+                    outcome: 'wygrana',
+                    createdAt: today,
+                    archived: false,
+                    notes: 'Wypłacono w całości. Prawomocny wyrok sądu.'
+                }
+            ];
+
+            let docs = [], deadlines = [], events = [], costs = [], receipts = [];
+            
+            // Wygenerujmy po 1 dokumencie i terminie dla każdej sprawy, by nie były puste
+            cases.forEach(c => {
+                docs.push({ id: generateUUID(), caseId: c.id, title: 'Umowa Cesji', status: 'posiadamy', required: true });
+                events.push({ id: generateUUID(), caseId: c.id, eventDate: today, type: 'utworzenie', description: 'Rejestracja sprawy' });
+                
+                if (c.stage !== 'zakonczona') {
+                    let dDate = new Date(); dDate.setDate(dDate.getDate() + 5);
+                    deadlines.push({
+                        id: generateUUID(), caseId: c.id, 
+                        dueDate: dDate.toISOString().split('T')[0],
+                        description: "Sprawdzenie odpowiedzi TU", status: 'planowany',
+                        owner: 'prawnik', priority: 'wysoki'
+                    });
+                }
+                
+                if (c.stage === 'w_toku' || c.stage === 'zakonczona') {
+                    costs.push({ id: generateUUID(), caseId: c.id, costType: 'oplata_sadowa', amount: 500, date: today });
+                }
+                if (c.stage === 'zakonczona') {
+                    receipts.push({ id: generateUUID(), caseId: c.id, receiptType: 'kapital', amount: c.wpsAmount, date: today, payer: c.insurer });
+                }
+            });
+
+            setStore(KEYS.CASES, cases); setStore(KEYS.DOCS, docs); setStore(KEYS.DEADLINES, deadlines);
+            setStore(KEYS.EVENTS, events); setStore(KEYS.COSTS, costs); setStore(KEYS.RECEIPTS, receipts);
+            
+            showToast("Wygenerowano 3 przykładowe sprawy.", "success");
+            setTimeout(() => location.reload(), 1000);
+        }
+
+        function clearStorage() {
+            if(confirm("Czy na pewno usunąć WSZYSTKIE dane prawne?")) {
+                localStorage.removeItem(KEYS.VERSION);
+                localStorage.removeItem(KEYS.CASES);
+                localStorage.removeItem(KEYS.DOCS);
+                localStorage.removeItem(KEYS.DEADLINES);
+                localStorage.removeItem(KEYS.EVENTS);
+                localStorage.removeItem(KEYS.COSTS);
+                localStorage.removeItem(KEYS.RECEIPTS);
+                location.reload();
+            }
+        }
+
+        /* =========================================
+           3. LOGIKA APLIKACJI I STANY (STATE)
+           ========================================= */
+        let state = {
+            currentStage: 'cesja', // cesja, w_toku, zakonczona
+            currentPage: 1,
+            pageSize: 15,
+            currentCaseId: null
+        };
+
+        const fmtMoney = (val) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(val || 0);
+        const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('pl-PL') : '-';
+
+        function getCaseFlags(caseId) {
+            const docs = getStore(KEYS.DOCS).filter(d => d.caseId === caseId && d.required);
+            const isKomplet = docs.length > 0 && docs.every(d => d.status === 'posiadamy' || d.status === 'wyslane' || d.status === 'otrzymane');
+            const todayStr = new Date().toISOString().split('T')[0];
+            const deadlines = getStore(KEYS.DEADLINES).filter(d => d.caseId === caseId && d.status !== 'wykonany');
+            const hasOverdue = deadlines.some(d => d.dueDate < todayStr);
+            return { isKomplet, hasOverdue };
+        }
+
+        function getCaseFinancials(caseId) {
+            const costs = getStore(KEYS.COSTS).filter(c => c.caseId === caseId).reduce((sum, c) => sum + Number(c.amount), 0);
+            const receipts = getStore(KEYS.RECEIPTS).filter(r => r.caseId === caseId).reduce((sum, r) => sum + Number(r.amount), 0);
+            return { costs, receipts };
+        }
+
+        /* =========================================
+           4. RENDEROWANIE WIDOKÓW
+           ========================================= */
+        function updateTabCounters() {
+            const cases = getStore(KEYS.CASES);
+            document.getElementById('count-cesja').innerText = cases.filter(c => c.stage === 'cesja').length;
+            document.getElementById('count-w_toku').innerText = cases.filter(c => c.stage === 'w_toku').length;
+            document.getElementById('count-zakonczona').innerText = cases.filter(c => c.stage === 'zakonczona').length;
+        }
+
+        function renderCasesTable() {
+            const tbody = document.getElementById('casesTableBody');
+            tbody.innerHTML = '';
+            
+            let cases = getStore(KEYS.CASES).filter(c => c.stage === state.currentStage && !c.archived);
+            
+            // Filters
+            const search = document.getElementById('globalSearch').value.toLowerCase();
+            const fTu = document.getElementById('filter-tu').value;
+            const fType = document.getElementById('filter-type').value;
+            const fFlags = document.getElementById('filter-flags').value;
+
+            if(search) {
+                cases = cases.filter(c => c.internalRef.toLowerCase().includes(search) || c.clientName.toLowerCase().includes(search) || c.vehiclePlate.toLowerCase().includes(search) || c.insurer.toLowerCase().includes(search));
+            }
+            if(fTu) cases = cases.filter(c => c.insurer === fTu);
+            if(fType) cases = cases.filter(c => c.caseType === fType);
+            
+            if(fFlags) {
+                cases = cases.filter(c => {
+                    const flags = getCaseFlags(c.id);
+                    if(fFlags === 'braki' && c.status === 'braki_formalne') return true;
+                    if(fFlags === 'poterminie' && flags.hasOverdue) return true;
+                    if(fFlags === 'komplet' && flags.isKomplet) return true;
+                    return false;
+                });
+            }
+
+            const totalPages = Math.ceil(cases.length / state.pageSize) || 1;
+            if(state.currentPage > totalPages) state.currentPage = totalPages;
+            document.getElementById('pageInfo').innerText = `Strona ${state.currentPage} z ${totalPages}`;
+            
+            const pagedCases = cases.slice((state.currentPage - 1) * state.pageSize, state.currentPage * state.pageSize);
+
+            pagedCases.forEach(c => {
+                const flags = getCaseFlags(c.id);
+                const fin = getCaseFinancials(c.id);
+                const saldo = c.wpsAmount - fin.receipts;
+                
+                let flagHtml = '';
+                if(flags.hasOverdue) flagHtml += `<span class="badge badge-red" style="margin-right:4px;">Po Terminie</span>`;
+                if(flags.isKomplet && state.currentStage === 'cesja') flagHtml += `<span class="badge badge-green" style="margin-right:4px;">Komplet Dok.</span>`;
+                if(c.status === 'braki_formalne') flagHtml += `<span class="badge badge-orange" style="margin-right:4px;">Braki Formalne</span>`;
+
+                let actionHtml = `<button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); openCaseDetails('${c.id}')">Otwórz</button>`;
+
+                const tr = document.createElement('tr');
+                tr.className = 'clickable';
+                tr.onclick = () => openCaseDetails(c.id);
+                tr.innerHTML = `
+                    <td><strong>${c.internalRef}</strong><br><span class="text-muted">${c.clientName}</span></td>
+                    <td><span class="badge badge-dark" style="margin-bottom:4px;">${c.vehiclePlate}</span><br><span class="text-muted">${c.insurer}</span></td>
+                    <td>${c.court?.signature || '-'}<br><span class="text-muted">${c.status.replace(/_/g, ' ').toUpperCase()}</span></td>
+                    <td><strong>${fmtMoney(c.wpsAmount)}</strong><br><span class="${saldo > 0 ? 'text-danger' : 'text-success'}">Saldo: ${fmtMoney(saldo)}</span></td>
+                    <td>${flagHtml}</td>
+                    <td style="text-align:right;">${actionHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            updateTabCounters();
+        }
+
+        function switchCasesTab(stage, btnElement) {
+            document.querySelectorAll('.main-tab-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            state.currentStage = stage;
+            state.currentPage = 1;
+            renderCasesTable();
+        }
+
+        function changePage(dir) {
+            state.currentPage += dir;
+            if(state.currentPage < 1) state.currentPage = 1;
+            renderCasesTable();
+        }
+
+        function populateTUFilter() {
+            const cases = getStore(KEYS.CASES);
+            const tus = [...new Set(cases.map(c => c.insurer))].sort();
+            const sel = document.getElementById('filter-tu');
+            sel.innerHTML = '<option value="">Wszystkie TU</option>';
+            tus.forEach(tu => sel.innerHTML += `<option value="${tu}">${tu}</option>`);
+        }
+
+        /* =========================================
+           5. WIDOK SZCZEGÓŁÓW SPRAWY (KARTA)
+           ========================================= */
+        function openCaseDetails(id) {
+            state.currentCaseId = id;
+            const c = getStore(KEYS.CASES).find(x => x.id === id);
+            if(!c) return;
+
+            document.getElementById('det-header-title').innerText = `Sprawa: ${c.internalRef}`;
+            document.getElementById('det-client').innerText = c.clientName;
+            document.getElementById('det-vehicle').innerText = `${c.vehicleMakeModel} (${c.vehiclePlate})`;
+            document.getElementById('det-tu').innerText = c.insurer;
+            document.getElementById('det-signature').innerText = c.court?.signature || 'Brak sygnatury';
+            document.getElementById('det-type').innerText = c.caseType.toUpperCase();
+
+            const fin = getCaseFinancials(id);
+            const saldo = c.wpsAmount - fin.receipts;
+            document.getElementById('kpi-wps').innerText = fmtMoney(c.wpsAmount);
+            document.getElementById('kpi-costs').innerText = fmtMoney(fin.costs);
+            document.getElementById('kpi-receipts').innerText = fmtMoney(fin.receipts);
+            document.getElementById('kpi-saldo').innerText = fmtMoney(saldo);
+            document.getElementById('kpi-saldo').style.color = saldo <= 0 ? 'var(--success)' : '#38bdf8';
+
+            const flags = getCaseFlags(id);
+            const alertContainer = document.getElementById('det-alert-container');
+            alertContainer.innerHTML = '';
+            if(flags.hasOverdue) alertContainer.innerHTML += `<div class="alert-banner"><i class="fa-solid fa-triangle-exclamation"></i> UWAGA: Sprawa posiada niezałatwione zadania po terminie! Sprawdź zakładkę Terminy.</div>`;
+
+            const actionsDiv = document.getElementById('det-header-actions');
+            actionsDiv.innerHTML = '';
+            if(c.stage === 'cesja') {
+                actionsDiv.innerHTML += `<button class="btn btn-purple" style="background:var(--purple); color:white;" onclick="openWizardPozew()"><i class="fa-solid fa-gavel"></i> Złóż Pozew (Sąd)</button>`;
+            } else if (c.stage === 'w_toku') {
+                actionsDiv.innerHTML += `<button class="btn btn-success" onclick="openWizardZakoncz()"><i class="fa-solid fa-flag-checkered"></i> Zakończ Postępowanie</button>`;
+            }
+            actionsDiv.innerHTML += `<button class="btn btn-danger btn-small" style="background:transparent; border:1px solid var(--danger); color:var(--danger)" onclick="deleteCase('${c.id}')"><i class="fa-solid fa-trash"></i> Usuń</button>`;
+
+            document.getElementById('det-notes-area').value = c.notes || '';
+            renderCaseDocs(id);
+            renderCaseDeadlines(id);
+            renderCaseEvents(id);
+            renderCaseFinances(id);
+
+            toggleViews('view-details');
+            document.querySelector('.case-tab-btn').click(); // click first tab
+        }
+
+        function switchCaseDetailsTab(tabId, btn) {
+            document.querySelectorAll('.case-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.case-tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`ct-${tabId}`).classList.add('active');
+        }
+
+        function renderCaseEvents(id) {
+            const evts = getStore(KEYS.EVENTS).filter(e => e.caseId === id).sort((a,b) => new Date(b.eventDate) - new Date(a.eventDate));
+            const container = document.getElementById('det-timeline-list');
+            container.innerHTML = evts.length === 0 ? '<p class="text-muted">Brak zdarzeń.</p>' : '';
+            evts.forEach(e => {
+                container.innerHTML += `
+                    <div class="tl-item">
+                        <span class="tl-date">${fmtDate(e.eventDate)}</span>
+                        <div class="tl-title">${e.type.replace(/_/g, ' ').toUpperCase()}</div>
+                        <div class="tl-desc">${e.description}</div>
+                    </div>`;
+            });
+        }
+
+        function renderCaseDocs(id) {
+            const docs = getStore(KEYS.DOCS).filter(d => d.caseId === id);
+            const container = document.getElementById('det-docs-list');
+            document.getElementById('badge-docs').innerText = `${docs.filter(d=>d.status==='posiadamy').length}/${docs.length}`;
+            
+            container.innerHTML = docs.length === 0 ? '<p class="text-muted">Brak zdefiniowanych dokumentów.</p>' : '';
+            docs.forEach(d => {
+                let iconClass = 'fa-file', colorClass = 'pending';
+                if(d.status === 'posiadamy' || d.status === 'otrzymane') { iconClass = 'fa-file-circle-check'; colorClass = 'ok'; }
+                if(d.status === 'brak' || d.status === 'do_uzupelnienia') { iconClass = 'fa-file-circle-xmark'; colorClass = 'missing'; }
+
+                container.innerHTML += `
+                    <div class="doc-item">
+                        <div class="doc-main">
+                            <i class="fa-solid ${iconClass} doc-icon ${colorClass}"></i>
+                            <div class="doc-details">
+                                <h4>${d.title} ${d.required ? '<span style="color:var(--danger)">*</span>' : ''}</h4>
+                                <span class="text-muted">Status: <b>${d.status.toUpperCase()}</b> | Plik: ${d.ref || 'Brak wgrano'}</span>
+                            </div>
+                        </div>
+                        <div class="doc-actions">
+                            <button class="btn btn-secondary btn-small" onclick="editDoc('${d.id}')">Edytuj</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderCaseDeadlines(id) {
+            const dls = getStore(KEYS.DEADLINES).filter(d => d.caseId === id).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+            const container = document.getElementById('det-deadlines-list');
+            container.innerHTML = dls.length === 0 ? '<p class="text-muted">Brak terminów.</p>' : '';
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            dls.forEach(d => {
+                let cardClass = 'deadline-card';
+                if(d.status === 'wykonany') cardClass += ' done';
+                else if(d.dueDate < todayStr) cardClass += ' overdue';
+
+                container.innerHTML += `
+                    <div class="${cardClass}">
+                        <div class="deadline-header">
+                            <span>Odp: ${d.owner.toUpperCase()}</span>
+                            <span style="color:${d.dueDate < todayStr && d.status!=='wykonany' ? 'var(--danger)' : 'inherit'}"><i class="fa-solid fa-clock"></i> ${fmtDate(d.dueDate)}</span>
+                        </div>
+                        <div class="deadline-title">${d.description}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                            <span class="badge ${d.priority==='krytyczny'?'badge-red':'badge-neutral'}">${d.priority}</span>
+                            ${d.status !== 'wykonany' ? `<button class="btn btn-success btn-small" onclick="completeDeadline('${d.id}')"><i class="fa-solid fa-check"></i> Wykonano</button>` : `<span class="text-success"><i class="fa-solid fa-check-double"></i> Zamknięte</span>`}
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderCaseFinances(id) {
+            const costs = getStore(KEYS.COSTS).filter(c => c.caseId === id);
+            const receipts = getStore(KEYS.RECEIPTS).filter(r => r.caseId === id);
+            
+            const tCosts = document.getElementById('det-costs-table');
+            const tRec = document.getElementById('det-receipts-table');
+            tCosts.innerHTML = ''; tRec.innerHTML = '';
+
+            costs.forEach(c => {
+                tCosts.innerHTML += `<tr><td>${fmtDate(c.date)}</td><td>${c.costType.replace(/_/g, ' ')}</td><td style="text-align:right; color:var(--danger); font-weight:700;">-${fmtMoney(c.amount)}</td></tr>`;
+            });
+            receipts.forEach(r => {
+                tRec.innerHTML += `<tr><td>${fmtDate(r.date)}</td><td>${r.receiptType.replace(/_/g, ' ')}<br><small class="text-muted">Od: ${r.payer}</small></td><td style="text-align:right; color:var(--success); font-weight:700;">+${fmtMoney(r.amount)}</td></tr>`;
+            });
+        }
+
+        /* =========================================
+           6. AKCJE I FORMULARZE
+           ========================================= */
+        function saveNotes() {
+            const cases = getStore(KEYS.CASES);
+            const idx = cases.findIndex(c => c.id === state.currentCaseId);
+            if(idx > -1) {
+                cases[idx].notes = document.getElementById('det-notes-area').value;
+                setStore(KEYS.CASES, cases);
+                showToast("Notatki zapisane.");
+            }
+        }
+
+        function completeDeadline(id) {
+            const dls = getStore(KEYS.DEADLINES);
+            const d = dls.find(x => x.id === id);
+            if(d) {
+                d.status = 'wykonany';
+                d.completedDate = new Date().toISOString().split('T')[0];
+                setStore(KEYS.DEADLINES, dls);
+                renderCaseDeadlines(state.currentCaseId);
+                showToast("Termin oznaczony jako wykonany", "success");
+            }
+        }
+
+        function deleteCase(id) {
+            if(confirm("UWAGA: Usunięcie sprawy jest nieodwracalne i usunie wszystkie powiązane z nią dokumenty i koszty. Jesteś pewien?")) {
+                let cases = getStore(KEYS.CASES).filter(c => c.id !== id);
+                let docs = getStore(KEYS.DOCS).filter(d => d.caseId !== id);
+                let dls = getStore(KEYS.DEADLINES).filter(d => d.caseId !== id);
+                let evts = getStore(KEYS.EVENTS).filter(e => e.caseId !== id);
+                
+                setStore(KEYS.CASES, cases); setStore(KEYS.DOCS, docs); setStore(KEYS.DEADLINES, dls); setStore(KEYS.EVENTS, evts);
+                showToast("Sprawa usunięta trwale.", "error");
+                toggleViews('view-cases');
+                renderCasesTable();
+            }
+        }
+
+        // --- ZAAWANSOWANY QUICK ADD MODAL (NOWA SPRAWA / CESJA) ---
+        function openQuickAddModal() { openModal('quickAddModal'); }
+        document.getElementById('quickAddForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cases = getStore(KEYS.CASES);
+            const newId = generateUUID();
+            const cType = document.getElementById('qa_casetype').value;
+            
+            const newCase = {
+                id: newId,
+                stage: 'cesja',
+                caseType: cType,
+                clientName: document.getElementById('qa_client').value,
+                vehicleMakeModel: document.getElementById('qa_car').value,
+                vehiclePlate: document.getElementById('qa_plate').value,
+                insurer: document.getElementById('qa_tu').value,
+                internalRef: `DTD-LAW-${new Date().getFullYear()}-N${cases.length+1}`,
+                wpsAmount: Number(document.getElementById('qa_wps').value) || 0,
+                purchasedCessionAmount: Number(document.getElementById('qa_cessionAmount').value) || 0,
+                claimId: document.getElementById('qa_claimId').value,
+                status: 'przedsadowe',
+                createdAt: document.getElementById('qa_eventDate').value || new Date().toISOString().split('T')[0],
+                archived: false,
+                notes: document.getElementById('qa_notes').value
+            };
+            cases.push(newCase);
+            setStore(KEYS.CASES, cases);
+
+            const docs = getStore(KEYS.DOCS);
+            const defDocs = ['Pełnomocnictwo', 'Umowa Cesji', 'Dowód Rejestracyjny', 'Decyzja TU'];
+            if(cType === 'naprawa') defDocs.push('Kosztorys Warsztatowy', 'Faktura VAT');
+            
+            defDocs.forEach(title => {
+                docs.push({ id: generateUUID(), caseId: newId, title: title, status: 'brak', required: true });
+            });
+            setStore(KEYS.DOCS, docs);
+
+            const dls = getStore(KEYS.DEADLINES);
+            const due = new Date(); due.setDate(due.getDate() + 7);
+            dls.push({ id: generateUUID(), caseId: newId, dueDate: due.toISOString().split('T')[0], description: "Weryfikacja kompletu dokumentów i wysłanie wezwania do zapłaty", status: 'planowany', owner: 'sekretariat', priority: 'wysoki' });
+            setStore(KEYS.DEADLINES, dls);
+
+            showToast("Nowa sprawa i teczka cesji utworzona.", "success");
+            closeModal('quickAddModal');
+            this.reset();
+            renderCasesTable();
+        });
+
+        // --- ZDARZENIA MODAL (EVENTS) ---
+        function openEventModal() { openModal('eventModal'); }
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const evts = getStore(KEYS.EVENTS);
+            evts.push({
+                id: generateUUID(),
+                caseId: state.currentCaseId,
+                eventDate: document.getElementById('ev_date').value,
+                type: document.getElementById('ev_type').value,
+                description: document.getElementById('ev_desc').value
+            });
+            setStore(KEYS.EVENTS, evts);
+            showToast("Zdarzenie dodane do osi czasu.", "success");
+            closeModal('eventModal');
+            this.reset();
+            renderCaseEvents(state.currentCaseId);
+        });
+
+        // --- WIZARD POZEW ---
+        function openWizardPozew() { openModal('wizardPozewModal'); }
+        document.getElementById('wizPozewForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cases = getStore(KEYS.CASES);
+            const c = cases.find(x => x.id === state.currentCaseId);
+            c.stage = 'w_toku';
+            c.status = 'pozew_zlozony';
+            c.court = { courtName: document.getElementById('wp_court').value, signature: "Oczekuje na nadanie" };
+            setStore(KEYS.CASES, cases);
+
+            const fee = Number(document.getElementById('wp_fee').value);
+            if(fee > 0) {
+                const costs = getStore(KEYS.COSTS);
+                costs.push({ id: generateUUID(), caseId: c.id, costType: 'oplata_sadowa', amount: fee, date: document.getElementById('wp_date').value });
+                setStore(KEYS.COSTS, costs);
+            }
+
+            const evts = getStore(KEYS.EVENTS);
+            evts.push({ id: generateUUID(), caseId: c.id, eventDate: document.getElementById('wp_date').value, type: 'pozew_zlozony', description: `Wniesiono pozew do: ${c.court.courtName}` });
+            setStore(KEYS.EVENTS, evts);
+
+            const dls = getStore(KEYS.DEADLINES);
+            const due = new Date(document.getElementById('wp_date').value); due.setDate(due.getDate() + 14);
+            dls.push({ id: generateUUID(), caseId: c.id, dueDate: due.toISOString().split('T')[0], description: "Oczekuj na nadanie sygnatury / Odpisy", status: 'planowany', owner: 'prawnik', priority: 'normalny' });
+            setStore(KEYS.DEADLINES, dls);
+
+            showToast("Sprawa przeniesiona na etap sądowy.", "success");
+            closeModal('wizardPozewModal');
+            openCaseDetails(c.id); // reload
+        });
+
+        // --- WIZARD ZAKOŃCZ ---
+        function openWizardZakoncz() { openModal('wizardZakonczModal'); }
+        document.getElementById('wizZakonczForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cases = getStore(KEYS.CASES);
+            const c = cases.find(x => x.id === state.currentCaseId);
+            c.stage = 'zakonczona';
+            c.outcome = document.getElementById('wz_outcome').value;
+            c.status = 'prawomocne';
+            setStore(KEYS.CASES, cases);
+
+            const amt = Number(document.getElementById('wz_amount').value);
+            if(amt > 0) {
+                const recs = getStore(KEYS.RECEIPTS);
+                recs.push({ id: generateUUID(), caseId: c.id, receiptType: 'kapital', amount: amt, date: document.getElementById('wz_date').value, payer: c.insurer });
+                setStore(KEYS.RECEIPTS, recs);
+            }
+
+            const evts = getStore(KEYS.EVENTS);
+            evts.push({ id: generateUUID(), caseId: c.id, eventDate: document.getElementById('wz_date').value, type: 'wyrok', description: `Postępowanie zakończone. Wynik: ${c.outcome}` });
+            setStore(KEYS.EVENTS, evts);
+
+            showToast("Sprawa przeniesiona do archiwum (Zakończona).", "success");
+            closeModal('wizardZakonczModal');
+            openCaseDetails(c.id); // reload
+        });
+
+        // --- DOKUMENT MODAL ---
+        function editDoc(docId) {
+            const doc = getStore(KEYS.DOCS).find(d => d.id === docId);
+            if(doc) {
+                document.getElementById('md_id').value = doc.id;
+                document.getElementById('md_title').value = doc.title;
+                document.getElementById('md_status').value = doc.status;
+                document.getElementById('md_ref').value = doc.ref || '';
+                openModal('docModal');
+            }
+        }
+        function openDocModal() {
+            document.getElementById('md_id').value = '';
+            document.getElementById('docForm').reset();
+            openModal('docModal');
+        }
+        document.getElementById('docForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const docs = getStore(KEYS.DOCS);
+            const id = document.getElementById('md_id').value;
+            if(id) {
+                const d = docs.find(x => x.id === id);
+                d.title = document.getElementById('md_title').value;
+                d.status = document.getElementById('md_status').value;
+                d.ref = document.getElementById('md_ref').value;
+            } else {
+                docs.push({
+                    id: generateUUID(), caseId: state.currentCaseId,
+                    title: document.getElementById('md_title').value,
+                    status: document.getElementById('md_status').value,
+                    ref: document.getElementById('md_ref').value,
+                    required: false
+                });
+            }
+            setStore(KEYS.DOCS, docs);
+            showToast("Zapisano dokument");
+            closeModal('docModal');
+            renderCaseDocs(state.currentCaseId);
+        });
+
+        // --- DEADLINE MODAL ---
+        function openDeadlineModal() { openModal('deadlineModal'); }
+        document.getElementById('deadlineForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const dls = getStore(KEYS.DEADLINES);
+            dls.push({
+                id: generateUUID(), caseId: state.currentCaseId,
+                dueDate: document.getElementById('dl_date').value,
+                description: document.getElementById('dl_desc').value,
+                priority: document.getElementById('dl_prio').value,
+                owner: document.getElementById('dl_owner').value,
+                status: 'planowany'
+            });
+            setStore(KEYS.DEADLINES, dls);
+            showToast("Termin dodany.");
+            closeModal('deadlineModal');
+            this.reset();
+            renderCaseDeadlines(state.currentCaseId);
+        });
+
+        /* =========================================
+           7. KALENDARZ I RAPORTY (WIDOKI GLOBALNE)
+           ========================================= */
+        function renderGlobalDeadlines() {
+            const dls = getStore(KEYS.DEADLINES).filter(d => d.status !== 'wykonany');
+            const cases = getStore(KEYS.CASES);
+            const todayStr = new Date().toISOString().split('T')[0];
+            const next7Str = new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0];
+
+            const critContainer = document.getElementById('global-deadlines-critical');
+            const upContainer = document.getElementById('global-deadlines-upcoming');
+            critContainer.innerHTML = ''; upContainer.innerHTML = '';
+
+            dls.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate)).forEach(d => {
+                const c = cases.find(x => x.id === d.caseId);
+                if(!c || c.archived) return;
+
+                const html = `
+                    <div class="deadline-card ${d.dueDate < todayStr ? 'overdue' : ''}">
+                        <div class="deadline-header">
+                            <span>Odp: ${d.owner.toUpperCase()}</span>
+                            <span style="color:${d.dueDate < todayStr ? 'var(--danger)' : 'inherit'}"><i class="fa-solid fa-clock"></i> ${fmtDate(d.dueDate)}</span>
+                        </div>
+                        <div class="deadline-title">${d.description}</div>
+                        <div class="deadline-case" onclick="navTo('view-cases', document.querySelector('.submenu-item.active')); openCaseDetails('${c.id}')">${c.internalRef} (${c.clientName})</div>
+                    </div>`;
+
+                if(d.dueDate <= todayStr) critContainer.innerHTML += html;
+                else if(d.dueDate <= next7Str) upContainer.innerHTML += html;
+            });
+            
+            if(!critContainer.innerHTML) critContainer.innerHTML = '<p class="text-muted">Brak zaległych zadań! Świetna robota.</p>';
+            if(!upContainer.innerHTML) upContainer.innerHTML = '<p class="text-muted">Pusto w nadchodzącym tygodniu.</p>';
+        }
+
+        function renderReports() {
+            const cases = getStore(KEYS.CASES);
+            const w_toku = cases.filter(c => c.stage === 'w_toku');
+            const zakonczone = cases.filter(c => c.stage === 'zakonczona');
+            const wygrane = zakonczone.filter(c => c.outcome === 'wygrana' || c.outcome === 'ugoda' || c.outcome === 'czesciowa');
+            
+            document.getElementById('rep-wtoku').innerText = w_toku.length;
+            document.getElementById('rep-wps').innerText = w_toku.reduce((sum,c)=>sum+Number(c.wpsAmount), 0).toLocaleString();
+            
+            document.getElementById('rep-win').innerText = wygrane.length;
+            const recs = getStore(KEYS.RECEIPTS);
+            const totalRec = recs.reduce((sum,r)=>sum+Number(r.amount), 0);
+            document.getElementById('rep-recovered').innerText = totalRec.toLocaleString();
+
+            const przegrane = zakonczone.filter(c => c.outcome === 'przegrana' || c.outcome === 'umorzone');
+            document.getElementById('rep-lost').innerText = przegrane.length;
+            
+            const rate = zakonczone.length > 0 ? Math.round((wygrane.length / zakonczone.length) * 100) : 0;
+            document.getElementById('rep-winrate').innerText = rate;
+
+            const tuMap = {};
+            w_toku.forEach(c => {
+                if(!tuMap[c.insurer]) tuMap[c.insurer] = 0;
+                tuMap[c.insurer] += Number(c.wpsAmount);
+            });
+            const sortTU = Object.entries(tuMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+            let tuHtml = '<table class="inner-table"><thead><tr><th>Towarzystwo</th><th style="text-align:right">Suma Roszczeń w Sądzie</th></tr></thead><tbody>';
+            sortTU.forEach(t => tuHtml += `<tr><td><strong>${t[0]}</strong></td><td style="text-align:right; color:var(--danger); font-weight:700;">${fmtMoney(t[1])}</td></tr>`);
+            tuHtml += '</tbody></table>';
+            document.getElementById('rep-tu-stats').innerHTML = tuHtml;
+        }
+
+        // INIT
+        window.onload = () => {
+            initStorage();
+            populateTUFilter();
+            renderCasesTable();
+        };
+
+    </script>
+</body>
+</html>
