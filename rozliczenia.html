@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DTD Serwis - Rozliczenia i Finanse PRO</title>
+    <title>DTD Serwis - Rozliczenia i Finanse</title>
     
-    <!-- Biblioteki Zewnętrzne -->
+    <!-- Biblioteki Zewnętrzne (Tylko UI) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
         /* =========================================
-           KONFIGURACJA UI I MOTYWU BAZOWEGO
+           GLOBALNE ZMIENNE I RESET
            ========================================= */
         :root {
             --bg-body: #f8fafc;
@@ -25,21 +25,17 @@
             --card-bg: #ffffff;
             
             --success: #10b981;
-            --success-bg: #d1fae5;
             --danger: #ef4444;
-            --danger-bg: #fee2e2;
             --warning: #f59e0b;
-            --warning-bg: #fef3c7;
             --info: #3b82f6;
             --purple: #8b5cf6;
-            --dark-status: #334155;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
         /* =========================================
-           SIDEBAR (ZGODNY Z CAŁYM ERP)
+           SIDEBAR
            ========================================= */
         .sidebar { width: 280px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.15); z-index: 50; }
         .sidebar::-webkit-scrollbar { width: 5px; }
@@ -53,13 +49,6 @@
         .nav-item.active { background-color: rgba(2, 132, 199, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600; }
         .nav-item i { width: 20px; text-align: center; }
 
-        .has-submenu { justify-content: space-between; }
-        .submenu { background-color: rgba(0,0,0,0.2); margin-bottom: 5px; padding: 5px 0; display: none; }
-        .submenu-label { padding: 12px 25px 5px 55px; font-size: 10px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 1px; }
-        .submenu-item { padding: 8px 25px 8px 55px; display: block; color: #94a3b8; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
-        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
-        .submenu-item.active { color: white; font-weight: 700; border-left-color: var(--accent-blue); }
-
         /* =========================================
            TOPBAR & WRAPPER
            ========================================= */
@@ -69,461 +58,366 @@
         .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 500; }
         
         .content-area { padding: 40px; overflow-y: auto; flex: 1; position: relative; }
-        .view-panel { display: none; animation: fadeIn 0.4s ease; }
+        .view-panel { display: none; animation: fadeIn 0.3s ease; }
         .view-panel.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* =========================================
-           STYLE REJESTRU (TABELA I KARTY)
+           KOMPONENTY (KARTY, PRZYCISKI, BADGE)
            ========================================= */
         .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .page-title { font-size: 24px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
-        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 30px; }
-        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 14px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
-        .card-body { padding: 30px; }
+        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 25px; }
+        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 14px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+        .card-body { padding: 25px; }
         
-        /* Tabularna nawigacja w głównym widoku */
-        .main-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid var(--border-color); padding-bottom: 5px; }
-        .main-tab-btn { padding: 12px 25px; border: none; background: none; font-size: 14px; font-weight: 800; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; }
-        .main-tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
-
-        table { width: 100%; border-collapse: collapse; font-size: 13.5px; text-align: left; }
-        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-color); }
-        td { padding: 15px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
-        tr.clickable:hover td { background-color: #f8fafc; cursor: pointer; }
-
-        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; justify-content: center;}
         .btn-primary { background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2); }
         .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
-        .btn-success { background: var(--success); color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); }
+        .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-warning { background: var(--warning); color: white; }
         .btn-secondary { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
         .btn-secondary:hover { background: #f1f5f9; }
         .btn-small { padding: 6px 12px; font-size: 11px; }
 
-        .badge { padding: 6px 12px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; display: inline-block; }
-        .badge-blue { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;}
-        .badge-green { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;}
-        .badge-red { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;}
-        .badge-orange { background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa;}
-        .badge-purple { background: #f3e8ff; color: #6d28d9; border: 1px solid #d8b4fe;}
-        .badge-dark { background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1;}
+        /* Status Badges */
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; display: inline-block; white-space: nowrap; }
+        .badge-po_terminie { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .badge-do_zaplaty { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-zaplacone { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .badge-czesciowo { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-planowane { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+        .badge-sporne { background: #1e293b; color: #f8fafc; border: 1px solid #0f172a; }
+        .badge-anulowane { background: #e2e8f0; color: #94a3b8; border: 1px solid #cbd5e1; text-decoration: line-through; }
+        
+        .badge-tag { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
 
         .text-green { color: var(--success); font-weight: 800; }
         .text-red { color: var(--danger); font-weight: 800; }
-
-        /* Wskaźniki statystyczne (Top) */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; border: 1px solid var(--border-color); padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
-        .stat-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
-        .stat-value { font-size: 24px; font-weight: 900; color: var(--text-main); }
+        .text-muted { color: var(--text-muted); font-size: 12px; }
 
         /* =========================================
-           KARTA FINANSOWA SZKODY (DETALE)
+           TABELE I FILTRY
            ========================================= */
-        .finance-dashboard { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; border-radius: 16px; padding: 30px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-bottom: 30px;}
-        @media (max-width: 1024px) { .finance-dashboard { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 600px) { .finance-dashboard { grid-template-columns: 1fr; } }
-        
-        .fin-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; }
-        .fin-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block; letter-spacing: 0.5px;}
-        .fin-val { font-size: 28px; font-weight: 900; color: white; display: block; font-family: 'Courier New', monospace; letter-spacing: -1px;}
-        
-        .fin-val.positive { color: #34d399; }
-        .fin-val.negative { color: #f87171; }
-        .fin-val.neutral { color: #38bdf8; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-color); white-space: nowrap; cursor: pointer; user-select: none; transition: background 0.2s;}
+        th:hover { background-color: #f1f5f9; }
+        td { padding: 15px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+        tr.clickable:hover td { background-color: #f8fafc; cursor: pointer; }
 
-        .details-grid { display: grid; grid-template-columns: 2.5fr 1fr; gap: 30px; align-items: start; }
-        @media (max-width: 1400px) { .details-grid { grid-template-columns: 1fr; } }
+        .main-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 0px; overflow-x: auto;}
+        .main-tab-btn { padding: 15px 25px; border: none; background: none; font-size: 14px; font-weight: 800; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;}
+        .main-tab-btn:hover { color: var(--text-main); }
+        .main-tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
 
-        /* Tabela Oczekiwanych Roszczeń */
-        .claims-table { width: 100%; border-collapse: collapse; }
-        .claims-table th { background: transparent; padding: 12px 15px; border-bottom: 2px solid var(--border-color); font-size: 10px; color: var(--text-muted); }
-        .claims-table td { padding: 15px 15px; border-bottom: 1px dashed var(--border-color); font-size: 13px; vertical-align: middle; }
-        .claims-table tr:last-child td { border-bottom: none; }
-        
-        .val-expected { font-weight: 800; color: var(--text-main); font-size: 14px; }
-        .val-received { font-weight: 800; color: var(--success); font-size: 14px; }
-        .val-missing { font-weight: 800; color: var(--danger); font-size: 14px; }
-        .val-zero { font-weight: 800; color: var(--text-muted); font-size: 14px; }
+        .table-tools { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #f8fafc; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 15px;}
+        .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center;}
+        .filter-input { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; outline: none; background: white;}
+        .pagination { display: flex; gap: 5px; align-items: center; }
+        .page-btn { padding: 6px 12px; border: 1px solid var(--border-color); background: white; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;}
+        .page-btn:hover { background: #f1f5f9; }
 
+        /* =========================================
+           DASHBOARD KPI
+           ========================================= */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .kpi-card { background: white; border: 1px solid var(--border-color); padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: center;}
+        .kpi-card.dark { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border: none; }
+        .kpi-title { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
+        .kpi-card.dark .kpi-title { color: #94a3b8; }
+        .kpi-value { font-size: 28px; font-weight: 900; color: var(--text-main); font-family: 'Courier New', Courier, monospace; letter-spacing: -1px;}
+        .kpi-card.dark .kpi-value { color: white; }
+
+        /* =========================================
+           SZCZEGÓŁY TRANSAKCJI
+           ========================================= */
+        .details-grid { display: grid; grid-template-columns: 2fr 1.5fr; gap: 30px; align-items: start; }
+        @media (max-width: 1024px) { .details-grid { grid-template-columns: 1fr; } }
         .info-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; font-size: 13.5px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; }
         .info-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
-        .info-label { color: var(--text-muted); font-weight: 600; width: 55%; flex-shrink: 0;}
+        .info-label { color: var(--text-muted); font-weight: 600; width: 40%; flex-shrink: 0;}
         .info-value { font-weight: 700; color: var(--text-main); text-align: right; word-break: break-word;}
+        .progress-bar-container { width: 100%; background: #e2e8f0; border-radius: 8px; height: 8px; margin-top: 10px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--success); transition: width 0.3s; }
 
-        /* Formularze w modalach */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-card { background: white; width: 650px; max-width: 95vw; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; }
-        .modal-header { padding: 20px 30px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 800; color: var(--text-dark); }
-        .modal-body { padding: 30px; max-height: 80vh; overflow-y: auto;}
+        /* =========================================
+           MODALE & FORMULARZE
+           ========================================= */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 40px 20px; }
+        .modal-card { background: white; width: 750px; max-width: 100%; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; animation: fadeIn 0.3s ease; position: relative; margin: auto; }
+        .modal-header { padding: 20px 30px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 800; color: var(--text-dark); position: sticky; top: 0; z-index: 10;}
+        .modal-body { padding: 30px; }
         
-        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .creator-label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        .required::after { content: '*'; color: var(--danger); margin-left: 4px; }
-        .creator-input { padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: var(--text-main); background: white; outline: none; transition: 0.3s; font-family: inherit; width: 100%; }
-        .creator-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
-        .creator-input:disabled { background: #f1f5f9; font-weight: 700; color: var(--text-muted); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
         
-        /* Obszar uploadu plików w modalach */
-        .upload-zone-mini { border: 2px dashed #cbd5e1; border-radius: 8px; padding: 15px; text-align: center; background: #f8fafc; cursor: pointer; transition: 0.2s; margin-top: 5px;}
-        .upload-zone-mini:hover { border-color: var(--accent-blue); background: #f0f9ff; }
-        .upload-zone-mini i { font-size: 20px; color: var(--accent-blue); margin-bottom: 5px; display: block;}
-        .upload-zone-mini span { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+        label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .required::after { content: '*'; color: var(--danger); margin-left: 3px; }
+        .input-control { padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: var(--text-main); background: white; outline: none; transition: 0.2s; font-family: inherit; width: 100%; }
+        .input-control:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        .input-control:disabled { background: #f1f5f9; color: var(--text-muted); cursor: not-allowed; font-weight: 700;}
+        textarea.input-control { resize: vertical; min-height: 80px; }
+
+        /* Toasty */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; border-left: 4px solid var(--accent-blue); padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; animation: slideInRight 0.3s ease forwards; }
+        .toast.success { border-color: var(--success); color: var(--success); }
+        .toast.error { border-color: var(--danger); color: var(--danger); }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
     </style>
 </head>
 <body>
 
-    <!-- GŁÓWNY SIDEBAR -->
+    <!-- SIDEBAR -->
     <div class="sidebar">
         <div class="sidebar-header"><span>DTD</span> Serwis</div>
         <div class="nav-menu">
-            <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
-            
-            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-samochody')">
-                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-car"></i> Samochody</div>
-                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px; transition: transform 0.3s;"></i>
-            </div>
-            <div class="submenu" id="submenu-samochody">
-                <div class="submenu-label">Najmy</div>
-                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
-                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
-                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone</a>
-                <div class="submenu-label">Flota własna</div>
-                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
-                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłomowane</a>
-                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
-                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
-            </div>
-
-            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
-            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> Oględziny</a>
-            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
-            <a href="magazyn.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i części</a>
-            <a href="rozliczenia.html" class="nav-item active"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
-            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
-            
-            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
-                <div style="display:flex; align-items:center; gap:12px;"><i class="fa-solid fa-wrench"></i> Naprawy</div>
-                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px; transition: transform 0.3s;"></i>
-            </div>
-            <div class="submenu" id="submenu-naprawy">
-                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharski</a>
-                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki</a>
-                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
-                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
-            </div>
-            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator dokumentów</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista Szkód</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-car"></i> Samochody</a>
+            <a href="#" class="nav-item active"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
         </div>
     </div>
 
     <!-- MAIN WRAPPER -->
     <div class="main-wrapper">
         <div class="topbar">
-            <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Szukaj po nr szkody, fakturze, kliencie..."></div>
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="globalSearch" placeholder="Szukaj dokumentu, klienta, szkody..." oninput="handleGlobalSearch()">
+            </div>
             <div class="user-info">
-                <i class="fa-regular fa-bell" style="font-size:20px; cursor:pointer; color:var(--text-muted); margin-right:20px;"></i>
-                <span style="font-weight:700;">admin@dtdserwis.pl</span>
+                <button class="btn btn-primary" onclick="openTxModal()"><i class="fa-solid fa-plus"></i> Nowa Transakcja</button>
+                <i class="fa-regular fa-bell" style="font-size:20px; cursor:pointer; color:var(--text-muted); margin-left:15px;"></i>
+                <span style="font-weight:700;">ksiegowosc@dtdserwis.pl</span>
             </div>
         </div>
 
         <div class="content-area">
 
-            <!-- WIDOK 1: REJESTR ROZLICZEŃ (ZAKŁADKI) -->
-            <div id="view-list" class="view-panel active">
-                
-                <div class="header-actions">
-                    <div>
-                        <div class="page-title"><i class="fa-solid fa-file-invoice-dollar" style="color:var(--accent-blue)"></i> Rejestr Finansów i Rozrachunków</div>
-                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">Zarządzanie należnościami od TU, klientów oraz zobowiązaniami wobec podwykonawców.</div>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn btn-secondary" onclick="openPrivateMatterModal()"><i class="fa-solid fa-plus"></i> Nowa Sprawa (Inne/Prywatne)</button>
-                        <button class="btn btn-secondary"><i class="fa-solid fa-file-export"></i> Raport JPK</button>
-                    </div>
+            <!-- ZAKŁADKI GŁÓWNE -->
+            <div class="main-tabs">
+                <button class="main-tab-btn active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
+                <button class="main-tab-btn" onclick="switchTab('transactions', this)"><i class="fa-solid fa-list"></i> Księga Transakcji</button>
+                <button class="main-tab-btn" onclick="switchTab('counterparties', this)"><i class="fa-solid fa-users"></i> Kontrahenci</button>
+                <button class="main-tab-btn" onclick="switchTab('schedules', this)"><i class="fa-solid fa-calendar-alt"></i> Harmonogramy</button>
+                <button class="main-tab-btn" onclick="switchTab('reports', this)"><i class="fa-solid fa-file-export"></i> Raporty</button>
+                <div style="margin-left: auto; display: flex; gap: 10px;">
+                    <button class="btn btn-secondary btn-small" onclick="forceSeed()"><i class="fa-solid fa-seedling"></i> Seed (Dane Testowe)</button>
+                    <button class="btn btn-danger btn-small" onclick="clearStorage()"><i class="fa-solid fa-trash"></i> Reset</button>
                 </div>
-
-                <!-- Nawigacja główna finansów -->
-                <div class="main-tabs">
-                    <button class="main-tab-btn active" onclick="switchMainTab('tab-naleznosci', this)"><i class="fa-solid fa-hand-holding-dollar"></i> Należności (Przychody ze szkód)</button>
-                    <button class="main-tab-btn" onclick="switchMainTab('tab-zobowiazania', this)" style="color: var(--danger);"><i class="fa-solid fa-file-invoice"></i> Zobowiązania (Koszty i Podwykonawcy)</button>
-                </div>
-
-                <!-- ZAKŁADKA 1: NALEŻNOŚCI (SZKODY) -->
-                <div id="tab-naleznosci" class="tab-content active">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-title">Należności Oczekiwane (Suma FV)</div>
-                            <div class="stat-value" style="color: var(--accent-blue);">142 500,00 zł</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">Wpływy faktyczne (Ten miesiąc)</div>
-                            <div class="stat-value text-green">54 200,00 zł</div>
-                        </div>
-                        <div class="stat-card" style="border-color: var(--danger-bg);">
-                            <div class="stat-title" style="color: var(--danger);">Brakujące Saldo (Do windykacji)</div>
-                            <div class="stat-value text-red">28 450,00 zł</div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Szkoda / TU / Typ</th>
-                                    <th>Klient</th>
-                                    <th>Suma Oczekiwana</th>
-                                    <th>Zaksięgowano</th>
-                                    <th>Saldo (Brakuje)</th>
-                                    <th>Status Księgowy</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="clickable" onclick="showFinanceDetails('DTD-2026-090')">
-                                    <td><strong>DTD-2026-090</strong><br><small class="text-muted">PZU S.A. (OC Sprawcy)</small></td>
-                                    <td>Jan Kowalski</td>
-                                    <td>18 500,00 zł</td>
-                                    <td class="text-green">14 000,00 zł</td>
-                                    <td class="text-red">-4 500,00 zł</td>
-                                    <td><span class="badge badge-orange">Oczekuje na dopłaty</span></td>
-                                </tr>
-                                <tr class="clickable" onclick="showFinanceDetails('DTD-2026-082')">
-                                    <td><strong>DTD-2026-082</strong><br><small class="text-muted">Warta (OC Sprawcy)</small></td>
-                                    <td>Firma XYZ</td>
-                                    <td>12 400,00 zł</td>
-                                    <td class="text-green">12 400,00 zł</td>
-                                    <td style="color: var(--text-muted); font-weight: 800;">0,00 zł</td>
-                                    <td><span class="badge badge-green">Rozliczone (100%)</span></td>
-                                </tr>
-                                <tr class="clickable" onclick="showFinanceDetails('PRYW-2026-001')">
-                                    <td><strong>PRYW-2026-001</strong><br><small class="text-muted" style="color:var(--purple);">Brak (Sprawa Prywatna)</small></td>
-                                    <td>Marek Wiśniewski</td>
-                                    <td>1 200,00 zł</td>
-                                    <td class="text-green">0,00 zł</td>
-                                    <td class="text-red">-1 200,00 zł</td>
-                                    <td><span class="badge badge-blue">Wysłano Fakturę (FV/10)</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- ZAKŁADKA 2: ZOBOWIĄZANIA (KOSZTY) -->
-                <div id="tab-zobowiazania" class="tab-content">
-                    <div class="header-actions" style="margin-bottom: 15px;">
-                        <div style="font-size: 15px; font-weight: 800;">Centralny Rejestr Faktur Kosztowych</div>
-                        <button class="btn btn-danger" onclick="openCostModal()"><i class="fa-solid fa-plus"></i> Zarejestruj Fakturę Podwykonawcy</button>
-                    </div>
-                    <div class="card">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Termin Płatności</th>
-                                    <th>Podwykonawca / Kategoria</th>
-                                    <th>Nr Faktury</th>
-                                    <th>Kwota Brutto</th>
-                                    <th>Status Płatności</th>
-                                    <th>Plik</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>15.03.2026</strong><br><small class="text-muted">Data wpł. 01.03</small></td>
-                                    <td><strong>Jan-Hol Sp. z o.o.</strong><br><small class="text-muted">Laweta zewnętrzna</small></td>
-                                    <td>FV 123/2026</td>
-                                    <td style="font-weight: 800;">500,00 zł</td>
-                                    <td><span class="badge badge-orange">Oczekująca (7 dni)</span></td>
-                                    <td><button class="btn btn-secondary btn-small"><i class="fa-solid fa-file-pdf" style="color:var(--danger)"></i> Podgląd</button></td>
-                                </tr>
-                                <tr>
-                                    <td><strong style="color:var(--danger)">28.02.2026</strong><br><small class="text-muted">Data wpł. 14.02</small></td>
-                                    <td><strong>InterCars S.A.</strong><br><small class="text-muted">Części zamienne</small></td>
-                                    <td>FV 987/A/2026</td>
-                                    <td style="font-weight: 800;">3 700,00 zł</td>
-                                    <td><span class="badge badge-red">Po Terminie!</span></td>
-                                    <td><button class="btn btn-secondary btn-small"><i class="fa-solid fa-file-pdf" style="color:var(--danger)"></i> Podgląd</button></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>10.02.2026</strong><br><small class="text-muted">Data wpł. 01.02</small></td>
-                                    <td><strong>RentACar 24</strong><br><small class="text-muted">Podnajem pojazdu</small></td>
-                                    <td>FV 12/26/RC</td>
-                                    <td style="font-weight: 800; color:var(--text-muted)">1 400,00 zł</td>
-                                    <td><span class="badge badge-green">Opłacona</span></td>
-                                    <td><button class="btn btn-secondary btn-small"><i class="fa-solid fa-file-pdf" style="color:var(--danger)"></i> Podgląd</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
             </div>
 
-            <!-- WIDOK 2: KARTA ROZLICZENIA SZKODY / SPRAWY (DETAILS) -->
-            <div id="view-details" class="view-panel">
-                <div class="header-actions">
-                    <div>
-                        <div class="page-title"><i class="fa-solid fa-chart-pie"></i> Panel Finansowy Sprawy: <span id="detail-nr" style="color:var(--accent-blue)">DTD-2026-090</span></div>
-                        <div style="margin-top: 5px; font-size: 13px; color: var(--text-muted);">Ubezpieczyciel / Odpowiedzialny: <strong>PZU S.A.</strong> | Poszkodowany / Klient: <strong>Jan Kowalski</strong></div>
+            <!-- WIDOK: DASHBOARD -->
+            <div id="view-dashboard" class="view-panel active">
+                <div class="kpi-grid">
+                    <div class="kpi-card dark">
+                        <div class="kpi-title">Saldo Księgi (Przychody - Koszty)</div>
+                        <div class="kpi-value" id="kpi-saldo">0,00 zł</div>
                     </div>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <button class="btn btn-secondary" onclick="toggleViews('view-list')"><i class="fa-solid fa-arrow-left"></i> Wróć</button>
-                        <button class="btn btn-secondary"><i class="fa-solid fa-print"></i> Pobierz Rejestr (PDF)</button>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Należności do spłaty (Czekamy)</div>
+                        <div class="kpi-value text-green" id="kpi-naleznosci">0,00 zł</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Zobowiązania (Zalegamy)</div>
+                        <div class="kpi-value text-red" id="kpi-zobowiazania">0,00 zł</div>
+                    </div>
+                    <div class="kpi-card" style="border-color: var(--danger);">
+                        <div class="kpi-title" style="color: var(--danger);">Nasze + Ich Po terminie</div>
+                        <div class="kpi-value text-red" id="kpi-overdue">0,00 zł</div>
                     </div>
                 </div>
 
-                <!-- Dashboard KPI Zyskowności -->
-                <div class="finance-dashboard">
-                    <div class="fin-item">
-                        <span class="fin-label">Suma Roszczeń (Oczekiwane)</span>
-                        <span class="fin-val neutral">18 500,00</span>
+                <div class="card">
+                    <div class="card-header">Pilne płatności (Najbliższe 7 dni i zaległe)</div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Termin</th><th>Kontrahent</th><th>Kierunek</th><th>Dokument</th><th>Pozostało Salda</th><th>Status</th></tr></thead>
+                            <tbody id="dash-urgent-table"></tbody>
+                        </table>
                     </div>
-                    <div class="fin-item">
-                        <span class="fin-label">Faktycznie Zaksięgowane</span>
-                        <span class="fin-val positive">14 000,00</span>
+                </div>
+            </div>
+
+            <!-- WIDOK: TRANSAKCJE -->
+            <div id="view-transactions" class="view-panel">
+                <div class="card">
+                    <div class="table-tools">
+                        <div class="filters">
+                            <select class="filter-input" id="f-dir" onchange="renderTransactions()">
+                                <option value="">Kierunek: Wszystkie</option>
+                                <option value="PRZYCHOD">Tylko Przychody (Należności)</option>
+                                <option value="KOSZT">Tylko Koszty (Zobowiązania)</option>
+                            </select>
+                            <select class="filter-input" id="f-status" onchange="renderTransactions()">
+                                <option value="">Status: Wszystkie</option>
+                                <option value="do_zaplaty">Do zapłaty</option>
+                                <option value="po_terminie">Po terminie</option>
+                                <option value="czesciowo">Częściowo opłacone</option>
+                                <option value="zaplacone">Zapłacone</option>
+                                <option value="planowane">Planowane</option>
+                                <option value="sporne">Sporne</option>
+                                <option value="anulowane">Anulowane</option>
+                            </select>
+                            <select class="filter-input" id="f-cp-type" onchange="renderTransactions()">
+                                <option value="">Typ Kontrahenta: Wszyscy</option>
+                                <option value="poszkodowany">Klient / Poszkodowany</option>
+                                <option value="ubezpieczyciel">Ubezpieczyciel (TU)</option>
+                                <option value="dystrybutor_czesci">Dystrybutor Części</option>
+                                <option value="podwykonawca">Podwykonawca</option>
+                                <option value="bank">Bank / Leasing</option>
+                            </select>
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" onclick="changeTxPage(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                            <span id="txPageInfo" style="font-size:12px; font-weight:700;">Str. 1</span>
+                            <button class="page-btn" onclick="changeTxPage(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
                     </div>
-                    <div class="fin-item" style="background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.3);">
-                        <span class="fin-label" style="color: #fca5a5;">Braki do Windykacji (Saldo)</span>
-                        <span class="fin-val negative">4 500,00</span>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTx('issueDate')">Data Wyst. <i class="fa-solid fa-sort"></i></th>
+                                    <th onclick="sortTx('dueDate')">Termin <i class="fa-solid fa-sort"></i></th>
+                                    <th>Dokument / Ref</th>
+                                    <th>Kontrahent</th>
+                                    <th style="text-align:right" onclick="sortTx('grossAmount')">Kwota Brutto <i class="fa-solid fa-sort"></i></th>
+                                    <th>Status</th>
+                                    <th style="text-align:right">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody id="txTableBody"></tbody>
+                        </table>
                     </div>
-                    <div class="fin-item" style="border-color: rgba(52, 211, 153, 0.5);">
-                        <span class="fin-label" style="color: #a7f3d0;">Nasz Zysk (Przychód - Koszty Obce)</span>
-                        <span class="fin-val positive" style="font-size: 32px;">9 800,00</span>
+                </div>
+            </div>
+
+            <!-- WIDOK: KARTA TRANSAKCJI -->
+            <div id="view-transaction-details" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title">
+                        <button class="btn btn-secondary btn-small" onclick="switchTab('transactions', document.querySelectorAll('.main-tab-btn')[1])"><i class="fa-solid fa-arrow-left"></i> Wróć</button>
+                        <span id="det-tx-title">Detale Transakcji</span>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-danger" onclick="deleteCurrentTx()"><i class="fa-solid fa-trash"></i> Usuń</button>
+                        <button class="btn btn-warning" onclick="editCurrentTx()"><i class="fa-solid fa-pen"></i> Edytuj Księgę</button>
                     </div>
                 </div>
 
                 <div class="details-grid">
-                    
-                    <!-- LEWA KOLUMNA: TABELA ROSZCZEŃ I PRZYCHODÓW -->
                     <div class="left-col">
-                        
                         <div class="card">
-                            <div class="card-header">
-                                <span><i class="fa-solid fa-file-invoice"></i> Rejestr Roszczeń (Przychody i Wymagania)</span>
-                                <button class="btn btn-primary btn-small" onclick="openClaimModal()"><i class="fa-solid fa-plus"></i> Dodaj Tytuł / FV</button>
-                            </div>
-                            <div class="card-body" style="padding: 0; overflow-x: auto;">
-                                <table class="claims-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Dokument / Tytuł</th>
-                                            <th>Status / Etap</th>
-                                            <th>Oczekiwane</th>
-                                            <th>Wpłynęło</th>
-                                            <th>Saldo</th>
-                                            <th style="text-align:right;">Akcje</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Wiersz 1: Naprawa -->
-                                        <tr>
-                                            <td><strong>Kosztorys K/123</strong><br><span class="text-muted">Naprawa z OC Sprawcy</span></td>
-                                            <td><span class="badge badge-purple">Podpisano Ugodę</span></td>
-                                            <td class="val-expected">12 000,00</td>
-                                            <td class="val-received">12 000,00</td>
-                                            <td class="val-zero">0,00</td>
-                                            <td style="text-align:right; white-space:nowrap;">
-                                                <button class="btn btn-secondary btn-small" onclick="openPaymentModal('Kosztorys K/123')" title="Zaksięguj wpłatę"><i class="fa-solid fa-hand-holding-dollar" style="color:var(--success)"></i></button>
-                                                <button class="btn btn-secondary btn-small" onclick="openStatusModal('Kosztorys K/123')" title="Zmień status / Dodaj dokument"><i class="fa-solid fa-timeline"></i></button>
-                                            </td>
-                                        </tr>
-                                        <!-- Wiersz 2: Najem -->
-                                        <tr>
-                                            <td><strong>FV 05/03/2026</strong><br><span class="text-muted">Wynajem pojazdu zastępczego</span></td>
-                                            <td><span class="badge badge-dark">Wyrok (Prawomocny)</span></td>
-                                            <td class="val-expected">5 000,00</td>
-                                            <td class="val-received">1 500,00</td>
-                                            <td class="val-missing">3 500,00</td>
-                                            <td style="text-align:right; white-space:nowrap;">
-                                                <button class="btn btn-secondary btn-small" onclick="openPaymentModal('FV 05/03/2026')"><i class="fa-solid fa-hand-holding-dollar" style="color:var(--success)"></i></button>
-                                                <button class="btn btn-secondary btn-small" onclick="openStatusModal('FV 05/03/2026')"><i class="fa-solid fa-timeline"></i></button>
-                                            </td>
-                                        </tr>
-                                        <!-- Wiersz 3: Holowanie -->
-                                        <tr>
-                                            <td><strong>FV 01/03/2026</strong><br><span class="text-muted">Usługa holowania z miejsca</span></td>
-                                            <td><span class="badge badge-blue">Wysłano Fakturę / Wezwanie</span></td>
-                                            <td class="val-expected">1 500,00</td>
-                                            <td class="val-received">500,00</td>
-                                            <td class="val-missing">1 000,00</td>
-                                            <td style="text-align:right; white-space:nowrap;">
-                                                <button class="btn btn-secondary btn-small" onclick="openPaymentModal('FV 01/03/2026')"><i class="fa-solid fa-hand-holding-dollar" style="color:var(--success)"></i></button>
-                                                <button class="btn btn-secondary btn-small" onclick="openStatusModal('FV 01/03/2026')"><i class="fa-solid fa-timeline"></i></button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Skarbiec Dokumentów -->
-                        <div class="card">
-                            <div class="card-header"><i class="fa-solid fa-folder-open"></i> Repozytorium Dokumentów Finansowych</div>
+                            <div class="card-header"><i class="fa-solid fa-file-invoice"></i> Dane Dokumentu</div>
                             <div class="card-body">
-                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                                    <span class="badge badge-dark" style="padding:8px 12px;"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i> Ugoda_K123_PZU.pdf</span>
-                                    <span class="badge badge-dark" style="padding:8px 12px;"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i> Wyrok_Najem_Sąd.pdf</span>
-                                    <span class="badge badge-dark" style="padding:8px 12px;"><i class="fa-solid fa-file-pdf" style="color:#ef4444"></i> FV_12_2026_Najem.pdf</span>
-                                </div>
-                                <div style="margin-top: 15px; font-size: 12px; color: var(--text-muted);">
-                                    Aby dodać nowe dokumenty finansowe, użyj opcji w formularzach poszczególnych roszczeń (ikony akcji wyżej).
-                                </div>
+                                <div class="info-row"><div class="info-label">Kierunek:</div><div class="info-value" id="det-tx-dir"></div></div>
+                                <div class="info-row"><div class="info-label">Kontrahent:</div><div class="info-value" id="det-tx-cp"></div></div>
+                                <div class="info-row"><div class="info-label">Kategoria / Typ:</div><div class="info-value" id="det-tx-cat"></div></div>
+                                <div class="info-row"><div class="info-label">Nr Dokumentu:</div><div class="info-value" id="det-tx-docno"></div></div>
+                                <div style="border-top:1px dashed var(--border-color); margin:15px 0;"></div>
+                                <div class="info-row"><div class="info-label">Powiązanie (Szkoda):</div><div class="info-value" id="det-tx-claim"></div></div>
+                                <div class="info-row"><div class="info-label">Opis:</div><div class="info-value" id="det-tx-desc"></div></div>
                             </div>
                         </div>
-
+                        <div class="card">
+                            <div class="card-header"><i class="fa-solid fa-money-bill"></i> Rozliczenie Podatkowe</div>
+                            <div class="card-body">
+                                <div class="info-row"><div class="info-label">Wystawiono:</div><div class="info-value" id="det-tx-issuedate"></div></div>
+                                <div class="info-row"><div class="info-label">Płatność do:</div><div class="info-value" id="det-tx-duedate"></div></div>
+                                <div style="border-top:1px dashed var(--border-color); margin:15px 0;"></div>
+                                <div class="info-row"><div class="info-label">Netto:</div><div class="info-value" id="det-tx-net"></div></div>
+                                <div class="info-row"><div class="info-label">Kwota i Rate VAT:</div><div class="info-value" id="det-tx-vat"></div></div>
+                                <div class="info-row"><div class="info-label">Brutto do zapłaty:</div><div class="info-value" id="det-tx-gross" style="font-size:18px; color:var(--accent-blue);"></div></div>
+                            </div>
+                        </div>
                     </div>
-
-                    <!-- PRAWA KOLUMNA: KOSZTY OBCE I PRAWO -->
                     <div class="right-col">
-                        
-                        <!-- Koszty Zewnętrzne przypisane do tej sprawy -->
                         <div class="card">
-                            <div class="card-header" style="background: #fef2f2; border-bottom-color: #fca5a5;">
-                                <span style="color: #991b1b;"><i class="fa-solid fa-file-invoice-dollar"></i> Koszty Operacyjne (Podwykonawcy)</span>
-                            </div>
-                            <div class="card-body" style="padding: 0;">
-                                <table class="claims-table">
-                                    <thead><tr><th>Faktura / Wykonawca</th><th>Tytułem</th><th style="text-align:right;">Kwota BRUTTO</th></tr></thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><strong>FV 123/2026</strong><br><span class="text-muted">Jan-Hol Sp. z o.o.</span></td>
-                                            <td>Holowanie obce</td>
-                                            <td class="text-red" style="text-align:right;">-500,00</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>FV 987/A/2026</strong><br><span class="text-muted">InterCars</span></td>
-                                            <td>Części</td>
-                                            <td class="text-red" style="text-align:right;">-3 700,00</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <div style="padding: 15px; background: #fff;">
-                                    <button class="btn btn-danger btn-small" style="width:100%; border-style:dashed; background:transparent; color:var(--danger); border-color:var(--danger);" onclick="openCostModal()">Przypisz kolejną fakturę do sprawy</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Powiązanie Prawne (Windykacja) -->
-                        <div class="card">
-                            <div class="card-header" style="background: #f8fafc; border-bottom-color: var(--border-color);">
-                                <span style="color: var(--text-main);"><i class="fa-solid fa-scale-balanced"></i> Sprawy Sądowe i Windykacja</span>
-                            </div>
+                            <div class="card-header"><i class="fa-solid fa-cash-register"></i> Wpłaty Częściowe</div>
                             <div class="card-body">
-                                <div class="info-row"><div class="info-label">Całkowity dług sprawy:</div><div class="info-value" style="color:var(--danger); font-size:16px;">4 500,00 zł</div></div>
-                                <div class="info-row"><div class="info-label">Aktywny proces:</div><div class="info-value"><span class="badge badge-purple">Pozew w Sądzie I Instancji</span></div></div>
-                                <div class="info-row"><div class="info-label">Sygnatura Akt:</div><div class="info-value" style="font-family:monospace; color:var(--accent-blue)">I C 1234/26</div></div>
-                                <div class="info-row"><div class="info-label">Koszty adm. sądu:</div><div class="info-value text-red">- 450,00 zł</div></div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:800; font-size:13px;">
+                                    <span>Zaksięgowano: <span id="det-tx-paid" class="text-green"></span></span>
+                                    <span>Pozostało: <span id="det-tx-rem" class="text-red"></span></span>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar" id="det-tx-progress"></div></div>
                                 
-                                <div style="margin-top: 20px; font-size: 12px; color: var(--text-muted); background: #f1f5f9; padding: 15px; border-radius: 8px;">
-                                    Aby dodać koszty zastępstwa procesowego lub zaktualizować terminy rozpraw, przejdź do modułu <strong>Dział Prawny</strong>.
+                                <div style="margin-top: 25px;">
+                                    <button class="btn btn-success btn-small" style="width:100%; margin-bottom:15px;" onclick="openPaymentModal()"><i class="fa-solid fa-plus"></i> Nowa Płatność</button>
+                                    <table style="font-size:12px;">
+                                        <thead><tr><th>Data</th><th>Metoda</th><th style="text-align:right">Kwota</th><th></th></tr></thead>
+                                        <tbody id="det-tx-payments"></tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- WIDOK: KONTRAHENCI -->
+            <div id="view-counterparties" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-users"></i> Baza Kontrahentów</div>
+                    <button class="btn btn-primary" onclick="openCpModal()"><i class="fa-solid fa-plus"></i> Nowy Podmiot</button>
+                </div>
+                <div class="card">
+                    <div class="table-tools">
+                        <select class="filter-input" id="f-cp-list-type" onchange="renderCounterparties()">
+                            <option value="">Wszystkie Kategorie</option>
+                            <option value="poszkodowany">Klienci</option>
+                            <option value="ubezpieczyciel">Ubezpieczyciele (TU)</option>
+                            <option value="dystrybutor_czesci">Dystrybutorzy Części</option>
+                            <option value="podwykonawca">Podwykonawcy</option>
+                            <option value="bank">Banki / Leasingi</option>
+                        </select>
+                        <input type="text" class="filter-input" id="f-cp-search" placeholder="Szukaj nazwy lub NIP..." oninput="renderCounterparties()">
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Nazwa Podmiotu / ID</th><th>Klasyfikacja</th><th>Kontakt</th><th style="text-align:right">Akcje</th></tr></thead>
+                            <tbody id="cpTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDOK: HARMONOGRAMY -->
+            <div id="view-schedules" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-calendar-alt"></i> Harmonogramy (Polisy i Leasing)</div>
+                    <button class="btn btn-primary" onclick="openSchedModal()"><i class="fa-solid fa-plus"></i> Generuj Harmonogram</button>
+                </div>
+                <div class="card">
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Nazwa / Rodzaj</th><th>Instytucja Finansowa</th><th>Okres Płatności</th><th>Wysokość Raty</th><th>Status</th></tr></thead>
+                            <tbody id="schedTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WIDOK: RAPORTY -->
+            <div id="view-reports" class="view-panel">
+                <div class="header-actions">
+                    <div class="page-title"><i class="fa-solid fa-file-export"></i> Raporty Miesięczne</div>
+                    <button class="btn btn-secondary" onclick="exportCSV()"><i class="fa-solid fa-file-csv"></i> Pobierz CSV Transakcji</button>
+                </div>
+                <div class="card">
+                    <div class="card-header">Księga Sumaryczna (Po dacie wystawienia dokumentu)</div>
+                    <div class="card-body">
+                        <table style="margin-top: 10px;">
+                            <thead><tr><th>Miesiąc (YYYY-MM)</th><th>Suma Przychodów (Brutto)</th><th>Suma Kosztów (Brutto)</th><th>Zysk Miesiąca (Saldo)</th></tr></thead>
+                            <tbody id="rep-monthly-body"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -531,375 +425,846 @@
         </div>
     </div>
 
-    <!-- ==========================================
-         MODALE OBSŁUGUJĄCE LOGIKĘ FINANSOWĄ I DOKUMENTY
-         ========================================== -->
+    <!-- =========================================
+         MODALE: FORMULARZE WPROWADZANIA DANYCH
+         ========================================= -->
 
-    <!-- 0. MODAL: NOWA SPRAWA PRYWATNA / INNA (NIE SZKODA) -->
-    <div class="modal-overlay" id="privateMatterModal">
+    <!-- MODAL 1: TRANSAKCJA (SZYBKI + PEŁNY W JEDNYM) -->
+    <div class="modal-overlay" id="txModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 style="color:var(--text-dark); font-weight:800;"><i class="fa-solid fa-briefcase"></i> Inna Sprawa do Rozliczenia</h3>
-                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('privateMatterModal')"></i>
+                <span id="txModalTitle"><i class="fa-solid fa-file-invoice"></i> Dodaj Transakcję</span>
+                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('txModal')"></i>
             </div>
             <div class="modal-body">
-                <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 20px;">Dodaj niezależne zlecenie niepowiązane ze szkodami ubezpieczeniowymi (np. wynajem prywatny z ulicy, holowanie gotówkowe klienta).</p>
-                <form id="privateMatterForm">
-                    <div class="form-group">
-                        <label class="creator-label required">Typ Sprawy (Zlecenie)</label>
-                        <select class="creator-input" required>
-                            <option value="">-- Wybierz usługę --</option>
-                            <option>Wynajem Prywatny (Płatny)</option>
-                            <option>Prywatne Holowanie / Transport</option>
-                            <option>Naprawa Warsztatowa (Klient gotówkowy)</option>
-                            <option>Sprzedaż Części</option>
-                            <option>Inna usługa odpłatna</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="creator-label required">Klient / Zleceniodawca (Nazwisko / Firma)</label>
-                        <input type="text" class="creator-input" required placeholder="np. Jan Kowalski / Firma XYZ">
-                    </div>
-                    <div class="form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label class="creator-label required">Kwota zlecenia (Brutto PLN)</label>
-                            <input type="number" step="0.01" class="creator-input" required placeholder="0.00" style="font-weight:800;">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label class="creator-label required">Dokument sprzedaży</label>
-                            <input type="text" class="creator-input" required placeholder="Paragon / Faktura FV...">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="creator-label">Załącznik (Skan Umowy / Faktury)</label>
-                        <div class="upload-zone-mini" onclick="document.getElementById('privFile').click()">
-                            <i class="fa-solid fa-file-pdf"></i>
-                            <span>Kliknij, aby wgrać dokument (Opcjonalnie)</span>
-                            <input type="file" id="privFile" style="display:none;" accept=".pdf,image/*">
-                        </div>
-                    </div>
-                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:25px;">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('privateMatterModal')">Anuluj</button>
-                        <button type="submit" class="btn btn-primary">Utwórz teczkę sprawy</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- 1. MODAL: DODAJ ROSZCZENIE / FAKTURĘ DO SZKODY -->
-    <div class="modal-overlay" id="addClaimModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 style="color:var(--accent-blue); font-weight:800;"><i class="fa-solid fa-file-invoice"></i> Wystąpienie o roszczenie</h3>
-                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('addClaimModal')"></i>
-            </div>
-            <div class="modal-body">
-                <form id="addClaimForm">
-                    <div class="form-group">
-                        <label class="creator-label required">Kategoria Tytułu / Z czego wynika żądanie?</label>
-                        <select class="creator-input" required>
-                            <option value="">-- Wybierz kategorię --</option>
-                            <option>Wynajem pojazdu zastępczego</option>
-                            <option>Usługa holowania z miejsca zdarzenia</option>
-                            <option>Naprawa pojazdu z OC sprawcy (Kosztorys)</option>
-                            <option>Naprawa pojazdu z AC poszkodowanego</option>
-                            <option>Parkowanie pojazdu uszkodzonego</option>
-                            <option>Zniszczone mienie dodatkowe (np. foteliki)</option>
-                            <option>Utracone dochody (Firma/Taxi)</option>
-                            <option>Koszty leczenia i zadośćuczynienie</option>
-                            <option>Kary umowne i potrącenia z kaucji (od klienta)</option>
-                            <option>Inne</option>
-                        </select>
-                    </div>
-                    <div class="form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label class="creator-label required">Dokument żądania (Faktura / Kosztorys)</label>
-                            <input type="text" class="creator-input" required placeholder="np. FV 12/2026 lub K/123">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label class="creator-label required">Oczekiwana Kwota (BRUTTO PLN)</label>
-                            <input type="number" step="0.01" class="creator-input" required placeholder="0.00" style="font-weight:800; color:var(--accent-blue);">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="creator-label required">Obecny Status Prawny Postępowania</label>
-                        <select class="creator-input" required>
-                            <option>Wystawiono Proformę</option>
-                            <option>Wysłano Fakturę / Wezwanie do zapłaty (Czeka 30 dni)</option>
-                            <option>Weryfikacja / Przedsądowe Wezwanie</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="creator-label">Dokument Potwierdzający (Faktura PDF / Kosztorys)</label>
-                        <div class="upload-zone-mini" onclick="document.getElementById('claimFile').click()">
-                            <i class="fa-solid fa-cloud-arrow-up"></i>
-                            <span>Kliknij, aby wgrać dokument do repozytorium</span>
-                            <input type="file" id="claimFile" style="display:none;" accept=".pdf,image/*">
-                        </div>
-                    </div>
-                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:25px;">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('addClaimModal')">Anuluj</button>
-                        <button type="submit" class="btn btn-primary">Zapisz roszczenie</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- 2. MODAL: ZAKSIĘGUJ WPŁATĘ -->
-    <div class="modal-overlay" id="paymentModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 style="color:var(--success); font-weight:800;"><i class="fa-solid fa-hand-holding-dollar"></i> Księgowanie Wpłaty</h3>
-                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('paymentModal')"></i>
-            </div>
-            <div class="modal-body">
-                <form id="paymentForm">
-                    <div class="form-group" style="margin-bottom:15px;">
-                        <label class="creator-label">Rozliczasz dokument (Tytuł):</label>
-                        <input type="text" id="pay_doc_name" class="creator-input" disabled style="font-weight:800; color:var(--text-dark);">
-                    </div>
-                    <div class="form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label class="creator-label required">Data wpłynięcia na konto</label>
-                            <input type="date" class="creator-input" required>
-                        </div>
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label class="creator-label required">Kwota wpływu (PLN)</label>
-                            <input type="number" step="0.01" class="creator-input" id="pay_amount" required placeholder="0.00" style="font-weight:800; color:var(--success);" oninput="calcDifference()">
-                        </div>
-                    </div>
+                <form id="txForm">
+                    <input type="hidden" id="tx_id">
                     
-                    <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-bottom:15px; font-size:13px; text-align:center;">
-                        <strong>Brakujące Saldo Tytułu:</strong> System automatycznie pomniejszy oczekiwaną kwotę o wprowadzony przelew. Jeśli zostanie niedopłata, trafi do windykacji.
-                    </div>
-
-                    <div class="form-group" style="margin-bottom:15px;">
-                        <label class="creator-label">Komentarz księgowy (Opcjonalnie)</label>
-                        <input type="text" class="creator-input" placeholder="np. Wpłata od komornika / Potrącenie kaucji">
-                    </div>
-                    <div class="form-group">
-                        <label class="creator-label">Potwierdzenie Przelewu (Opcjonalnie)</label>
-                        <div class="upload-zone-mini" onclick="document.getElementById('payFile').click()">
-                            <i class="fa-solid fa-file-invoice-dollar"></i>
-                            <span style="color:var(--success)">Kliknij, aby wgrać PDF z banku</span>
-                            <input type="file" id="payFile" style="display:none;" accept=".pdf,image/*">
+                    <div style="font-size:12px; font-weight:800; color:var(--text-muted); margin-bottom:10px;">SEKCJA A - PODSTAWY</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="required">Kierunek Przepływu</label>
+                            <select id="tx_dir" class="input-control" required onchange="handleCpTypeChange()">
+                                <option value="PRZYCHOD">PRZYCHÓD (Do zapłaty dla nas)</option>
+                                <option value="KOSZT">KOSZT (My płacimy im)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Grupa Kontrahenta</label>
+                            <select id="tx_cp_type" class="input-control" required onchange="handleCpTypeChange()">
+                                <option value="">-- Wybierz --</option>
+                                <option value="poszkodowany">Klient / Poszkodowany</option>
+                                <option value="ubezpieczyciel">Ubezpieczyciel (TU)</option>
+                                <option value="dystrybutor_czesci">Dystrybutor Części</option>
+                                <option value="podwykonawca">Podwykonawca (Usługi)</option>
+                                <option value="bank">Bank / Leasing</option>
+                            </select>
                         </div>
                     </div>
-                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:25px;">
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label class="required">Wybierz Kontrahenta</label>
+                            <div style="display:flex; gap:10px;">
+                                <select id="tx_cp_id" class="input-control" required style="flex:1;"></select>
+                                <button type="button" class="btn btn-secondary" onclick="openCpModal()"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-grid" id="tx_subcat_group" style="display:none;">
+                        <div class="form-group full">
+                            <label class="required">Specjalizacja Podwykonawcy</label>
+                            <select id="tx_cp_subcat" class="input-control" onchange="handleSubcatChange()">
+                                <option value="">-- Wybierz branżę --</option>
+                                <option value="blacharsko_lakiernicze">Blacharsko-Lakiernicze</option>
+                                <option value="elektroniczne">Elektronika / Diagnostyka</option>
+                                <option value="kosztorysy_opinie">Rzeczoznawstwo / Wyceny</option>
+                                <option value="mechanika">Mechanika Pojazdowa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="required">Kategoria Księgowa (Auto-VAT)</label>
+                            <select id="tx_category" class="input-control" required onchange="handleCategoryChange()">
+                                <option value="">Najpierw wybierz typ kontrahenta</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Rodzaj Dokumentu</label>
+                            <select id="tx_docType" class="input-control" required>
+                                <option value="FV">Faktura VAT (FV)</option>
+                                <option value="Rachunek">Rachunek</option>
+                                <option value="Nota">Nota Obciążeniowa/Uznaniowa</option>
+                                <option value="Polisa">Polisa</option>
+                                <option value="Umowa">Umowa</option>
+                                <option value="Protokol">Protokół Szkody</option>
+                                <option value="Korekta">Faktura Korygująca</option>
+                                <option value="Inne">Inny dokument</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Numer Dokumentu</label><input type="text" id="tx_docNo" class="input-control" placeholder="np. FV 123/26"></div>
+                        <div class="form-group"><label>Powiązanie Szkody (Opcjonalnie)</label><input type="text" id="tx_claimId" class="input-control" placeholder="np. CLM-2026"></div>
+                    </div>
+
+                    <div style="font-size:12px; font-weight:800; color:var(--text-muted); margin-top:15px; margin-bottom:10px;">SEKCJA B - FINANSE I DATY</div>
+                    <div class="form-grid" style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid var(--border-color);">
+                        <div class="form-group">
+                            <label class="required">Wartość BRUTTO</label>
+                            <input type="number" id="tx_gross" step="0.01" class="input-control" required oninput="calcVat()" style="font-weight:800; color:var(--accent-blue);">
+                        </div>
+                        <div class="form-group">
+                            <label class="required">Stawka VAT</label>
+                            <select id="tx_vatRate" class="input-control" required onchange="calcVat()">
+                                <option value="23">23%</option>
+                                <option value="8">8%</option>
+                                <option value="5">5%</option>
+                                <option value="0">0%</option>
+                                <option value="zw">Zwolniony (zw)</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Netto (Auto)</label><input type="number" id="tx_net" class="input-control" disabled></div>
+                        <div class="form-group"><label>Kwota VAT (Auto)</label><input type="number" id="tx_vatAmt" class="input-control" disabled></div>
+                    </div>
+
+                    <div class="form-grid" style="margin-top:15px;">
+                        <div class="form-group"><label class="required">Data Wystawienia</label><input type="date" id="tx_issueDate" class="input-control" required></div>
+                        <div class="form-group"><label class="required">Termin Płatności (Wymagalność)</label><input type="date" id="tx_dueDate" class="input-control" required></div>
+                    </div>
+                    <div class="form-group full">
+                        <label>Wymuszenie statusu (Pomiń automatykę - Opcjonalne)</label>
+                        <select id="tx_status_override" class="input-control">
+                            <option value="">-- Automat przelicza z płatności i dat --</option>
+                            <option value="sporne">WSTRZYMANE - Spór / Brak autoryzacji</option>
+                            <option value="anulowane">ANULOWANE - Pomyłka w systemie</option>
+                        </select>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('txModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">Zapisz Transakcję</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: KONTRAHENT -->
+    <div class="modal-overlay" id="cpModal">
+        <div class="modal-card" style="width: 500px;">
+            <div class="modal-header"><span>Baza: Kontrahent</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('cpModal')"></i></div>
+            <div class="modal-body">
+                <form id="cpForm">
+                    <input type="hidden" id="cp_id">
+                    <div class="form-group">
+                        <label class="required">Rola w Systemie ERP</label>
+                        <select id="cp_type" class="input-control" required onchange="document.getElementById('cp_subcat_group').style.display = this.value === 'podwykonawca' ? 'flex' : 'none';">
+                            <option value="poszkodowany">Klient / Poszkodowany</option>
+                            <option value="ubezpieczyciel">Ubezpieczyciel (TU)</option>
+                            <option value="dystrybutor_czesci">Dystrybutor Części</option>
+                            <option value="podwykonawca">Podwykonawca (Usługi)</option>
+                            <option value="bank">Bank / Leasing</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="cp_subcat_group" style="display:none; margin-top:15px;">
+                        <label class="required">Specjalizacja (Branża)</label>
+                        <select id="cp_subcat" class="input-control">
+                            <option value="blacharsko_lakiernicze">Zakład Blacharsko-Lakierniczy</option>
+                            <option value="elektroniczne">Diagnostyka / Elektronika</option>
+                            <option value="kosztorysy_opinie">Rzeczoznawcy</option>
+                            <option value="mechanika">Warsztat Mechaniczny</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top:15px;"><label class="required">Pełna Nazwa (Firma lub Imię i Nazwisko)</label><input type="text" id="cp_name" class="input-control" required></div>
+                    <div class="form-grid" style="margin-top:15px;">
+                        <div class="form-group"><label>NIP / PESEL</label><input type="text" id="cp_nip" class="input-control"></div>
+                        <div class="form-group"><label>Telefon</label><input type="text" id="cp_phone" class="input-control"></div>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('cpModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">Zapisz Kontrahenta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: PŁATNOŚĆ -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal-card" style="width: 450px;">
+            <div class="modal-header"><span style="color:var(--success)"><i class="fa-solid fa-money-bill-wave"></i> Rejestracja Płatności</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('paymentModal')"></i></div>
+            <div class="modal-body">
+                <form id="payForm">
+                    <div class="form-group"><label class="required">Data operacji</label><input type="date" id="pay_date" class="input-control" required></div>
+                    <div class="form-group" style="margin-top:15px;">
+                        <label class="required">Kwota (Pozostało: <span id="pay_max_lbl">0.00</span>)</label>
+                        <input type="number" id="pay_amount" step="0.01" class="input-control" required style="font-weight:800; color:var(--success); font-size:18px;">
+                    </div>
+                    <div class="form-group" style="margin-top:15px;">
+                        <label class="required">Metoda</label>
+                        <select id="pay_method" class="input-control" required>
+                            <option value="przelew">Przelew bankowy</option>
+                            <option value="gotowka">Gotówka (Kasa)</option>
+                            <option value="karta">Karta Płatnicza</option>
+                            <option value="inne">Kompensata</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top:15px;"><label>Referencja bankowa</label><input type="text" id="pay_ref" class="input-control" placeholder="np. wyciąg nr..."></div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('paymentModal')">Anuluj</button>
-                        <button type="submit" class="btn btn-success">Zatwierdź Wpłatę</button>
+                        <button type="submit" class="btn btn-success">Księguj Środki</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- 3. MODAL: ZMIEŃ STATUS PRAWNY Z DOKUMENTEM -->
-    <div class="modal-overlay" id="statusModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 style="color:var(--purple); font-weight:800;"><i class="fa-solid fa-scale-balanced"></i> Akcja Prawna / Status</h3>
-                <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('statusModal')"></i>
-            </div>
+    <!-- MODAL 4: HARMONOGRAM (GENERATOR RAT) -->
+    <div class="modal-overlay" id="schedModal">
+        <div class="modal-card" style="width: 500px;">
+            <div class="modal-header"><span>Generator Zobowiązań Cyklicznych</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('schedModal')"></i></div>
             <div class="modal-body">
-                <form id="statusForm">
-                    <div class="form-group" style="margin-bottom:15px;">
-                        <label class="creator-label">Aktualizujesz sprawę dla:</label>
-                        <input type="text" id="status_doc_name" class="creator-input" disabled style="font-weight:800; color:var(--text-dark);">
-                    </div>
-                    <div class="form-group" style="margin-bottom:15px;">
-                        <label class="creator-label required">Wybierz nowe zdarzenie w procesie</label>
-                        <select class="creator-input" required>
-                            <option value="">-- Pchnij sprawę do przodu --</option>
-                            <optgroup label="Działania i Odpowiedzi TU">
-                                <option>Weryfikacja przez TU (Brak decyzji)</option>
-                                <option>Decyzja - Odmowa częściowa wypłaty</option>
-                                <option>Decyzja - Całkowita odmowa wypłaty</option>
-                            </optgroup>
-                            <optgroup label="Rozwiązania Prawne">
-                                <option>Podpisano Ugodę (Czekamy na przelew)</option>
-                                <option>Skierowano do Sądu (Złożono Pozew)</option>
-                                <option>Zapadł Wyrok (I Instancja - Nieprawomocny)</option>
-                                <option>Zapadł Wyrok (Prawomocny - Czekamy na kasę)</option>
-                                <option>Przekazano do Egzekucji Komorniczej</option>
-                            </optgroup>
-                            <optgroup label="Zakończenie procesu">
-                                <option>Czeka na przelew z TU/Sądu (Sprawa zamknięta merytorycznie)</option>
-                                <option>Opłacone (Sukces windykacyjny)</option>
-                            </optgroup>
+                <form id="schedForm">
+                    <div class="form-group">
+                        <label class="required">Typ Usługi Finansowej</label>
+                        <select id="sch_kind" class="input-control" required>
+                            <option value="polisa">Polisa Ubezpieczeniowa (Raty)</option>
+                            <option value="leasing_kredyt">Umowa Leasingowa / Kredytowa</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="creator-label required">Dokument Prawny (Decyzja/Wyrok/Ugoda)</label>
-                        <div class="upload-zone-mini" onclick="document.getElementById('statusFile').click()" style="border-color:var(--purple);">
-                            <i class="fa-solid fa-gavel" style="color:var(--purple)"></i>
-                            <span style="color:var(--purple)">Kliknij, aby podpiąć Wyrok, Ugodę lub Decyzję TU</span>
-                            <input type="file" id="statusFile" style="display:none;" accept=".pdf,image/*">
+                    <div class="form-group" style="margin-top:15px;">
+                        <label class="required">Wybierz Instytucję</label>
+                        <select id="sch_cp_id" class="input-control" required></select>
+                    </div>
+                    <div class="form-group" style="margin-top:15px;"><label class="required">Nazwa (Identyfikator)</label><input type="text" id="sch_name" class="input-control" placeholder="np. Raty za Skoda WA123" required></div>
+                    
+                    <div class="form-grid" style="margin-top:15px;">
+                        <div class="form-group"><label class="required">Data 1. raty</label><input type="date" id="sch_start" class="input-control" required></div>
+                        <div class="form-group">
+                            <label class="required">Częstotliwość</label>
+                            <select id="sch_freq" class="input-control" required>
+                                <option value="monthly">Co Miesiąc</option>
+                                <option value="quarterly">Co Kwartał</option>
+                                <option value="yearly">Co Rok</option>
+                            </select>
                         </div>
                     </div>
-                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:25px;">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('statusModal')">Anuluj</button>
-                        <button type="submit" class="btn btn-primary" style="background:var(--purple); box-shadow:none;">Zapisz i Zmień Status</button>
+                    <div class="form-grid">
+                        <div class="form-group"><label class="required">Ile rat wygenerować?</label><input type="number" id="sch_count" class="input-control" required min="1" max="120" placeholder="szt."></div>
+                        <div class="form-group"><label class="required">Kwota Brutto 1 raty</label><input type="number" id="sch_amount" step="0.01" class="input-control" required placeholder="0.00"></div>
+                    </div>
+                    <p style="font-size:11px; color:#b45309; background:#fffbeb; padding:10px; border-radius:6px; margin-top:15px;">System automatycznie wygeneruje serię transakcji z właściwymi datami wymagalności i doda je do "Księgi Transakcji".</p>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('schedModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">Uruchom Generator</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- 4. MODAL: FAKTURA ZOBOWIĄZANIA (KOSZT ZEWNĘTRZNY) -->
-    <div class="modal-overlay" id="costModal">
-        <div class="modal-card">
-            <div class="modal-header"><h3 style="color:var(--danger); font-weight:800;"><i class="fa-solid fa-file-invoice"></i> Księgowanie Faktury Podwykonawcy (Koszt)</h3><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('costModal')"></i></div>
-            <div class="modal-body">
-                <form id="costForm">
-                    <div class="form-group" style="margin-bottom:15px;">
-                        <label class="creator-label required">Kategoria Kosztu Zewnętrznego</label>
-                        <select class="creator-input" required>
-                            <option value="">-- Czego dotyczy faktura? --</option>
-                            <option>Części zamienne i materiały</option>
-                            <option>Usługa podwykonawcy (Lakiernia, Elektronika)</option>
-                            <option>Holowanie zewnętrzne / Transport na lawecie</option>
-                            <option>Zewnętrzny podnajem pojazdu zastępczego</option>
-                            <option>Ekspertyza Niezależnego Rzeczoznawcy</option>
-                            <option>Koszty Prawne / Sądowe / Komornicze</option>
-                            <option>Inne koszty operacyjne</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-bottom:15px;">
-                        <label class="creator-label required">Podwykonawca / Dostawca (Nazwa lub NIP)</label>
-                        <input type="text" class="creator-input" required placeholder="np. InterCars, Jan-Hol Lawety">
-                    </div>
-                    <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label class="creator-label required">Numer Otrzymanej Faktury</label>
-                            <input type="text" class="creator-input" required placeholder="FV/...">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label class="creator-label required">Kwota do zapłaty (BRUTTO)</label>
-                            <input type="number" step="0.01" class="creator-input" required placeholder="0.00" style="font-weight:800; color:var(--danger);">
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin-bottom:15px;">
-                        <label class="creator-label required">Wymagany termin płatności dla podwykonawcy</label>
-                        <input type="date" class="creator-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="creator-label required">Skan / Plik PDF Faktury Kosztowej</label>
-                        <div class="upload-zone-mini" onclick="document.getElementById('subcontractorFile').click()" style="border-color:var(--danger);">
-                            <i class="fa-solid fa-file-pdf" style="color:var(--danger)"></i>
-                            <span style="color:var(--danger)">Kliknij, aby podpiąć fakturę do opłacenia</span>
-                            <input type="file" id="subcontractorFile" style="display:none;" accept=".pdf,image/*">
-                        </div>
-                    </div>
-                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:25px;">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal('costModal')">Anuluj</button>
-                        <button type="submit" class="btn btn-danger">Zaksięguj do Płatności</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Skrypty -->
+    <!-- SKRYPTY LOGIKI -->
     <script>
-        // Nawigacja
-        function toggleSubmenu(id) {
-            const submenu = document.getElementById(id);
-            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
-            const isHidden = submenu.style.display === "none" || submenu.style.display === "";
-            submenu.style.display = isHidden ? "block" : "none";
-            if(icon) icon.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        // Słowniki i Mapowania (Zgodnie z wymaganiami Prompt)
+        const DICT = {
+            poszkodowany: {
+                doplata: { name: "Dopłata (Odszkodowanie)", doc: "Nota", vat: "zw" },
+                zwrot: { name: "Zwrot kosztów", doc: "Nota", vat: "zw" },
+                udzial_wlasny: { name: "Udział własny", doc: "Nota", vat: "zw" },
+                rozliczenie_bezgotowkowe: { name: "Rozliczenie Bezgotówkowe", doc: "Protokol", vat: "zw" },
+                inne: { name: "Inne", doc: "Nota", vat: "zw" }
+            },
+            dystrybutor_czesci: {
+                czesci_karoseryjne: { name: "Części karoseryjne", doc: "FV", vat: "23" },
+                czesci_mechaniczne: { name: "Części mechaniczne", doc: "FV", vat: "23" },
+                materialy_lakiernicze: { name: "Materiały lakiernicze", doc: "FV", vat: "23" },
+                eksploatacyjne: { name: "Płyny/Eksploatacja", doc: "FV", vat: "23" },
+                korekta: { name: "Korekta zwrotu", doc: "Korekta", vat: "23" },
+                transport: { name: "Koszty transportu", doc: "FV", vat: "23" },
+                inne: { name: "Inne (Dystrybutor)", doc: "FV", vat: "23" }
+            },
+            ubezpieczyciel: {
+                polisa_OC: { name: "Polisa OC", doc: "Polisa", vat: "zw" },
+                polisa_AC: { name: "Polisa AC", doc: "Polisa", vat: "zw" },
+                polisa_NNW: { name: "Polisa NNW", doc: "Polisa", vat: "zw" },
+                polisa_flota: { name: "Polisa Floty", doc: "Polisa", vat: "zw" },
+                skladka_inna: { name: "Inna składka", doc: "Polisa", vat: "zw" },
+                inne: { name: "Inne", doc: "Polisa", vat: "zw" }
+            },
+            bank: {
+                rata_leasing: { name: "Rata Leasingowa", doc: "FV", vat: "23" }, 
+                rata_kredyt: { name: "Rata Kredytu", doc: "Umowa", vat: "zw" },
+                oplaty_bankowe: { name: "Opłaty Bankowe", doc: "Nota", vat: "zw" },
+                ubezpieczenie_w_umowie: { name: "Ubezpieczenie w umowie", doc: "Polisa", vat: "zw" },
+                inne: { name: "Inne operacje", doc: "Umowa", vat: "zw" }
+            },
+            podwykonawca: {
+                robocizna: { name: "Robocizna", doc: "Rachunek", vat: "23" },
+                materialy: { name: "Materiały podwykonawcy", doc: "FV", vat: "23" },
+                diagnoza: { name: "Diagnoza / Weryfikacja", doc: "Rachunek", vat: "23" },
+                opinia: { name: "Opinia Techniczna", doc: "Rachunek", vat: "23" },
+                kosztorys: { name: "Wykonanie Kosztorysu", doc: "Rachunek", vat: "23" },
+                dojazd: { name: "Dojazd / Transport / Laweta", doc: "FV", vat: "23" },
+                korekta: { name: "Korekta błędu", doc: "Korekta", vat: "23" },
+                inne: { name: "Inne usługi zlecone", doc: "Rachunek", vat: "23" }
+            }
+        };
+
+        const SUBCAT_MAP = {
+            blacharsko_lakiernicze: ['robocizna', 'materialy', 'dojazd', 'korekta', 'inne'],
+            elektroniczne: ['diagnoza', 'robocizna', 'materialy', 'inne'],
+            kosztorysy_opinie: ['kosztorys', 'opinia', 'inne'],
+            mechanika: ['robocizna', 'materialy', 'diagnoza', 'inne']
+        };
+
+        const KEYS = { VER: 'dtd_fin_ver', CP: 'dtd_fin_cp', TX: 'dtd_fin_tx', PAY: 'dtd_fin_pay', SCHED: 'dtd_fin_sch' };
+
+        // GLOBALNY STAN
+        let state = { tab: 'dashboard', txPage: 1, txPageSize: 20, sortCol: 'issueDate', sortAsc: false, currentTxId: null };
+
+        // BAZA DANYCH W LOCAL STORAGE (FUNKCJE OCHRONNE)
+        function uuid() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { let r = Math.random()*16|0, v = c==='x'?r:(r&0x3|0x8); return v.toString(16); }); }
+        function getStore(k) { try { return JSON.parse(localStorage.getItem(k)) || []; } catch(e){ return []; } }
+        function setStore(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){ alert('Błąd przeglądarki - brak pamięci!'); } }
+        function fmtMoney(v) { return new Intl.NumberFormat('pl-PL', {style:'currency', currency:'PLN'}).format(v||0); }
+        function fmtDate(d) { return d ? new Date(d).toLocaleDateString('pl-PL') : '-'; }
+        
+        function toast(msg, type='info') {
+            const c = document.getElementById('toast-container');
+            const t = document.createElement('div'); t.className = `toast ${type}`;
+            t.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check':type==='error'?'fa-triangle-exclamation':'fa-info'}"></i> ${msg}`;
+            c.appendChild(t); setTimeout(() => { t.style.opacity=0; setTimeout(()=>t.remove(), 300); }, 3000);
         }
 
-        // Przełączanie między tabelami Należności (Przychody) i Zobowiązania (Koszty)
-        function switchMainTab(tabId, btnElement) {
-            document.querySelectorAll('.main-tab-btn').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
+        // AUTO-KALKULATOR STATUSÓW (Wg reguł z promptu)
+        function getTxPaid(txId) { return getStore(KEYS.PAY).filter(p => p.transactionId === txId).reduce((s,p) => s + Number(p.amount), 0); }
+        function getTxStatus(tx) {
+            if (tx.status === 'anulowane' || tx.status === 'sporne') return tx.status;
+            let paid = getTxPaid(tx.id);
+            let rem = tx.grossAmount - paid;
+            let today = new Date().toISOString().split('T')[0];
+
+            if (rem <= 0.02) return 'zaplacone'; // 2 grosze marginesu błędu JS
+            if (paid > 0 && rem > 0) return (today > tx.dueDate) ? 'po_terminie' : 'czesciowo';
+            if (paid === 0) {
+                if (today > tx.dueDate) return 'po_terminie';
+                if (tx.issueDate > today) return 'planowane'; // Future harmonogram
+                return 'do_zaplaty';
+            }
+            return 'planowane';
         }
 
-        function toggleViews(viewId) {
+        // NAWIGACJA
+        function switchTab(id, btnElement) {
+            document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
             document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById('view-'+id).classList.add('active');
+            state.tab = id;
+            if(id === 'dashboard') renderDashboard();
+            if(id === 'transactions') renderTransactions();
+            if(id === 'counterparties') renderCounterparties();
+            if(id === 'schedules') renderSchedules();
+            if(id === 'reports') renderReports();
+        }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // --- SEEDER DANYCH ZGODNY Z WYMOGAMI ---
+        function initStorage() {
+            let ver = localStorage.getItem(KEYS.VER);
+            if (!ver) forceSeed();
+        }
+        function forceSeed() {
+            const cps = [
+                { id: uuid(), type: 'poszkodowany', name: 'Marek Kowalski', nip: '81010112345' },
+                { id: uuid(), type: 'ubezpieczyciel', name: 'Warta S.A.', nip: '5210420047' },
+                { id: uuid(), type: 'dystrybutor_czesci', name: 'AutoPartner', nip: '1112223344' },
+                { id: uuid(), type: 'podwykonawca', subcategory: 'blacharsko_lakiernicze', name: 'Lakiernia Auto-Błysk', nip: '9998887766' },
+                { id: uuid(), type: 'bank', name: 'mLeasing', nip: '5554443322' }
+            ];
+            
+            const now = new Date();
+            const dPast = new Date(now.getTime() - 5*86400000).toISOString().split('T')[0];
+            const dFuture = new Date(now.getTime() + 10*86400000).toISOString().split('T')[0];
+
+            let txs = [
+                { id: uuid(), direction: 'PRZYCHOD', counterpartyId: cps[0].id, claimId: 'CLM-01', category: 'udzial_wlasny', docType: 'Nota', docNo: 'NO/1/26', issueDate: dPast, dueDate: dFuture, grossAmount: 1000, vatRate: 'zw', netAmount: 1000, vatAmount: 0 },
+                { id: uuid(), direction: 'PRZYCHOD', counterpartyId: cps[1].id, claimId: 'CLM-01', category: 'doplata', docType: 'FV', docNo: 'FV/01/26', issueDate: dPast, dueDate: dPast, grossAmount: 4500, vatRate: '23', netAmount: 3658.54, vatAmount: 841.46 },
+                { id: uuid(), direction: 'KOSZT', counterpartyId: cps[2].id, category: 'czesci_karoseryjne', docType: 'FV', docNo: 'F/Z/1', issueDate: dPast, dueDate: dPast, grossAmount: 2000, vatRate: '23', netAmount: 1626.02, vatAmount: 373.98 },
+                { id: uuid(), direction: 'KOSZT', counterpartyId: cps[3].id, category: 'robocizna', docType: 'Rachunek', docNo: 'R/01/B', issueDate: dPast, dueDate: dFuture, grossAmount: 1500, vatRate: '23', netAmount: 1219.51, vatAmount: 280.49 }
+            ];
+            
+            txs.forEach(t => t.status = getTxStatus(t)); // Auto eval initial
+            let pays = [ { id: uuid(), transactionId: txs[1].id, paidDate: dPast, amount: 4500, method: 'przelew' } ];
+            txs[1].status = 'zaplacone'; // Po opłaceniu
+            txs[2].status = 'po_terminie'; // Specjalnie przeterminowany koszt
+
+            setStore(KEYS.VER, 1); setStore(KEYS.CP, cps); setStore(KEYS.TX, txs); setStore(KEYS.PAY, pays); setStore(KEYS.SCHED, []);
+            toast('Zbudowano środowisko testowe (Zgodnie ze specyfikacją)', 'success');
+            setTimeout(()=>location.reload(), 1000);
+        }
+        function clearStorage() {
+            if(confirm('Bezpowrotnie usunąć wszystkie dane z pamięci?')) {
+                Object.values(KEYS).forEach(k => localStorage.removeItem(k));
+                location.reload();
+            }
         }
 
-        function showFinanceDetails(nr) {
-            document.getElementById('detail-nr').innerText = nr;
-            toggleViews('view-details');
+        // --- RENDEROWANIE WIDOKÓW ---
+        function handleGlobalSearch() {
+            if(state.tab === 'transactions') renderTransactions();
+            else switchTab('transactions', document.querySelectorAll('.main-tab-btn')[1]);
         }
 
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
+        function renderDashboard() {
+            const txs = getStore(KEYS.TX);
+            const cps = getStore(KEYS.CP);
+            let inc=0, exp=0, outInc=0, outExp=0, over=0, urgentTxs=[];
+            let today = new Date().toISOString().split('T')[0];
+            let nxt7 = new Date(Date.now() + 7*86400000).toISOString().split('T')[0];
+
+            txs.forEach(t => {
+                let st = getTxStatus(t);
+                let paid = getTxPaid(t.id);
+                let rem = t.grossAmount - paid;
+
+                if(t.direction === 'PRZYCHOD') { inc += t.grossAmount; if(rem>0) outInc += rem; }
+                if(t.direction === 'KOSZT') { exp += t.grossAmount; if(rem>0) outExp += rem; }
+                if(st === 'po_terminie') over += rem;
+
+                if(rem > 0 && t.dueDate <= nxt7 && st !== 'anulowane' && st !== 'sporne') {
+                    urgentTxs.push({...t, rem: rem, st: st});
+                }
+            });
+
+            document.getElementById('kpi-saldo').innerText = fmtMoney(inc - exp);
+            document.getElementById('kpi-naleznosci').innerText = fmtMoney(outInc);
+            document.getElementById('kpi-zobowiazania').innerText = fmtMoney(outExp);
+            document.getElementById('kpi-overdue').innerText = fmtMoney(over);
+
+            const tbody = document.getElementById('dash-urgent-table');
+            tbody.innerHTML = '';
+            urgentTxs.sort((a,b)=>a.dueDate.localeCompare(b.dueDate)).slice(0,10).forEach(t => {
+                let cp = cps.find(c=>c.id===t.counterpartyId);
+                let badge = t.st==='po_terminie' ? '<span class="badge badge-red">Zaległe</span>' : '<span class="badge badge-warning">Wkrótce</span>';
+                let dirHtml = t.direction==='PRZYCHOD' ? '<span class="text-green"><i class="fa-solid fa-arrow-down"></i> P</span>' : '<span class="text-red"><i class="fa-solid fa-arrow-up"></i> K</span>';
+                tbody.innerHTML += `
+                    <tr class="clickable" onclick="showTxDetails('${t.id}')">
+                        <td class="${t.st==='po_terminie'?'text-red':''}">${fmtDate(t.dueDate)}</td>
+                        <td>${cp?cp.name:'-'}</td>
+                        <td>${dirHtml}</td>
+                        <td>${t.docNo||t.category}</td>
+                        <td style="font-weight:800;">${fmtMoney(t.rem)}</td>
+                        <td>${badge}</td>
+                    </tr>`;
+            });
         }
 
-        // Formularze i Modale
-        function openPrivateMatterModal() {
-            document.getElementById('privateMatterModal').style.display = 'flex';
+        function renderTransactions() {
+            let txs = getStore(KEYS.TX);
+            let cps = getStore(KEYS.CP);
+
+            const fDir = document.getElementById('f-dir').value;
+            const fStatus = document.getElementById('f-status').value;
+            const fCpType = document.getElementById('f-cp-type').value;
+            const search = document.getElementById('globalSearch').value.toLowerCase();
+
+            if(fDir) txs = txs.filter(t => t.direction === fDir);
+            if(fCpType) {
+                let allowed = cps.filter(c => c.type === fCpType).map(c=>c.id);
+                txs = txs.filter(t => allowed.includes(t.counterpartyId));
+            }
+
+            txs.forEach(t => t.st = getTxStatus(t));
+            if(fStatus) txs = txs.filter(t => t.st === fStatus);
+            if(search) {
+                txs = txs.filter(t => {
+                    let cp = cps.find(c=>c.id===t.counterpartyId);
+                    return (t.docNo && t.docNo.toLowerCase().includes(search)) || 
+                           (t.claimId && t.claimId.toLowerCase().includes(search)) || 
+                           (cp && cp.name.toLowerCase().includes(search));
+                });
+            }
+
+            txs.sort((a,b) => {
+                let vA = a[state.sortCol], vB = b[state.sortCol];
+                if(vA < vB) return state.sortAsc ? -1 : 1;
+                if(vA > vB) return state.sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            const totalP = Math.ceil(txs.length / state.txPageSize) || 1;
+            if(state.txPage > totalP) state.txPage = totalP;
+            document.getElementById('txPageInfo').innerText = `Str. ${state.txPage} / ${totalP}`;
+
+            const paged = txs.slice((state.txPage-1)*state.txPageSize, state.txPage*state.txPageSize);
+            const tbody = document.getElementById('txTableBody');
+            tbody.innerHTML = '';
+            
+            paged.forEach(t => {
+                let cp = cps.find(c=>c.id===t.counterpartyId);
+                let clsDir = t.direction === 'PRZYCHOD' ? 'text-green' : 'text-red';
+                let sign = t.direction === 'PRZYCHOD' ? '+' : '-';
+                tbody.innerHTML += `
+                    <tr class="clickable" onclick="showTxDetails('${t.id}')">
+                        <td>${fmtDate(t.issueDate)}</td>
+                        <td class="${t.st==='po_terminie'?'text-red':''}">${fmtDate(t.dueDate)}</td>
+                        <td><strong>${t.docNo || 'Brak'}</strong><br><span class="text-muted">${t.claimId || ''}</span></td>
+                        <td>${cp?cp.name:'-'}</td>
+                        <td style="text-align:right" class="${clsDir}">${sign}${fmtMoney(t.grossAmount)}</td>
+                        <td><span class="badge badge-${t.st}">${t.st.replace('_',' ')}</span></td>
+                        <td style="text-align:right"><button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); showTxDetails('${t.id}')">Otwórz</button></td>
+                    </tr>`;
+            });
         }
 
-        function openClaimModal() {
-            document.getElementById('addClaimModal').style.display = 'flex';
+        function changeTxPage(dir) { state.txPage += dir; if(state.txPage < 1) state.txPage = 1; renderTransactions(); }
+        function sortTx(col) { if(state.sortCol === col) state.sortAsc = !state.sortAsc; else { state.sortCol = col; state.sortAsc = true; } renderTransactions(); }
+
+        // --- DETALE TRANSAKCJI ---
+        function showTxDetails(id) {
+            state.currentTxId = id;
+            const tx = getStore(KEYS.TX).find(t => t.id === id);
+            const cp = getStore(KEYS.CP).find(c => c.id === tx.counterpartyId);
+
+            document.getElementById('det-tx-dir').innerHTML = tx.direction === 'PRZYCHOD' ? '<span class="text-green">PRZYCHÓD NALEŻNY</span>' : '<span class="text-red">KOSZT / WYDATEK</span>';
+            document.getElementById('det-tx-cp').innerText = cp ? cp.name : '-';
+            document.getElementById('det-tx-cat').innerText = tx.category.replace('_',' ').toUpperCase();
+            document.getElementById('det-tx-docno').innerText = `${tx.docType}: ${tx.docNo||'-'}`;
+            document.getElementById('det-tx-claim').innerText = tx.claimId || 'Brak powiązania';
+            document.getElementById('det-tx-desc').innerText = tx.description || '-';
+            
+            document.getElementById('det-tx-issuedate').innerText = fmtDate(tx.issueDate);
+            document.getElementById('det-tx-duedate').innerText = fmtDate(tx.dueDate);
+            document.getElementById('det-tx-net').innerText = fmtMoney(tx.netAmount);
+            document.getElementById('det-tx-vat').innerText = fmtMoney(tx.vatAmount) + ` (${tx.vatRate}%)`;
+            document.getElementById('det-tx-gross').innerText = fmtMoney(tx.grossAmount);
+
+            renderTxPayments(id);
+            switchTab('transaction-details', document.querySelectorAll('.main-tab-btn')[1]);
         }
 
-        function openPaymentModal(docName) {
-            document.getElementById('pay_doc_name').value = docName;
-            document.getElementById('pay_amount').value = '';
-            document.getElementById('paymentModal').style.display = 'flex';
+        function renderTxPayments(id) {
+            const tx = getStore(KEYS.TX).find(t => t.id === id);
+            const pays = getStore(KEYS.PAY).filter(p => p.transactionId === id);
+            const tbody = document.getElementById('det-tx-payments');
+            tbody.innerHTML = '';
+            
+            let paid = 0;
+            pays.forEach(p => {
+                paid += Number(p.amount);
+                tbody.innerHTML += `<tr><td>${fmtDate(p.paidDate)}</td><td>${p.method.toUpperCase()}</td><td style="text-align:right; font-weight:800;">${fmtMoney(p.amount)}</td><td style="text-align:right"><button class="btn btn-danger btn-small" onclick="delPayment('${p.id}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            });
+
+            let rem = tx.grossAmount - paid;
+            document.getElementById('det-tx-paid').innerText = fmtMoney(paid);
+            document.getElementById('det-tx-rem').innerText = fmtMoney(rem);
+            document.getElementById('det-tx-progress').style.width = Math.min((paid/tx.grossAmount)*100, 100) + '%';
+            
+            document.getElementById('pay_max_lbl').innerText = fmtMoney(rem);
+            document.getElementById('pay_amount').max = rem;
+            document.getElementById('pay_amount').value = rem.toFixed(2);
         }
 
-        function openStatusModal(docName) {
-            document.getElementById('status_doc_name').value = docName;
-            document.getElementById('statusModal').style.display = 'flex';
+        // --- FORMULARZ TRANSAKCJI (LOGIKA SŁOWNIKÓW Z PROMPTU) ---
+        function openTxModal() {
+            document.getElementById('txForm').reset();
+            document.getElementById('tx_id').value = '';
+            document.getElementById('tx_issueDate').value = new Date().toISOString().split('T')[0];
+            let d = new Date(); d.setDate(d.getDate()+7);
+            document.getElementById('tx_dueDate').value = d.toISOString().split('T')[0];
+            handleCpTypeChange(); // Initialize defaults
+            document.getElementById('txModalTitle').innerHTML = 'Szybkie Dodanie Transakcji';
+            openModal('txModal');
         }
 
-        function openCostModal() {
-            document.getElementById('costModal').style.display = 'flex';
+        function editCurrentTx() {
+            const tx = getStore(KEYS.TX).find(t => t.id === state.currentTxId);
+            const cp = getStore(KEYS.CP).find(c => c.id === tx.counterpartyId);
+            document.getElementById('tx_id').value = tx.id;
+            document.getElementById('tx_dir').value = tx.direction;
+            document.getElementById('tx_cp_type').value = cp.type;
+            
+            handleCpTypeChange(); 
+            document.getElementById('tx_cp_id').value = tx.counterpartyId;
+            
+            if(cp.type === 'podwykonawca') {
+                document.getElementById('tx_cp_subcat').value = cp.subcategory;
+                handleSubcatChange();
+            } else handleCategoryChange();
+            
+            document.getElementById('tx_category').value = tx.category;
+            document.getElementById('tx_docType').value = tx.docType;
+            document.getElementById('tx_docNo').value = tx.docNo || '';
+            document.getElementById('tx_claimId').value = tx.claimId || '';
+            document.getElementById('tx_gross').value = tx.grossAmount;
+            document.getElementById('tx_vatRate').value = tx.vatRate;
+            document.getElementById('tx_issueDate').value = tx.issueDate;
+            document.getElementById('tx_dueDate').value = tx.dueDate;
+            document.getElementById('tx_status_override').value = (tx.status==='sporne'||tx.status==='anulowane')?tx.status:'';
+            calcVat();
+            document.getElementById('txModalTitle').innerHTML = 'Edycja Transakcji';
+            openModal('txModal');
         }
 
-        function calcDifference() {
-            // Tutaj w prawdziwym JS obliczamy saldo (oczekiwane - wpisane)
-            // Wizualnie robione przez style i HTML
+        function handleCpTypeChange() {
+            const type = document.getElementById('tx_cp_type').value;
+            const cpSel = document.getElementById('tx_cp_id');
+            cpSel.innerHTML = '<option value="">-- Wybierz z bazy --</option>';
+            getStore(KEYS.CP).filter(c => c.type === type).forEach(c => {
+                cpSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+
+            if(type === 'podwykonawca') {
+                document.getElementById('tx_subcat_group').style.display = 'grid';
+                handleSubcatChange();
+            } else {
+                document.getElementById('tx_subcat_group').style.display = 'none';
+                populateCategories(DICT[type]);
+            }
         }
 
-        // Submits
-        document.getElementById('privateMatterForm').addEventListener('submit', function(e) {
+        function handleSubcatChange() {
+            const sub = document.getElementById('tx_cp_subcat').value;
+            if(!sub) return;
+            const dict = {};
+            SUBCAT_MAP[sub].forEach(k => { if(DICT.podwykonawca[k]) dict[k] = DICT.podwykonawca[k]; });
+            populateCategories(dict);
+        }
+
+        function populateCategories(dict) {
+            const catSel = document.getElementById('tx_category');
+            catSel.innerHTML = '<option value="">-- Wybierz by ustawić VAT --</option>';
+            if(dict) {
+                Object.keys(dict).forEach(k => {
+                    catSel.innerHTML += `<option value="${k}" data-doc="${dict[k].doc}" data-vat="${dict[k].vat}">${dict[k].name}</option>`;
+                });
+            }
+        }
+
+        function handleCategoryChange() {
+            const catSel = document.getElementById('tx_category');
+            const opt = catSel.options[catSel.selectedIndex];
+            if(opt && opt.dataset.doc) {
+                document.getElementById('tx_docType').value = opt.dataset.doc;
+                document.getElementById('tx_vatRate').value = opt.dataset.vat;
+                calcVat();
+            }
+        }
+
+        function calcVat() {
+            let gross = Number(document.getElementById('tx_gross').value) || 0;
+            let rateV = document.getElementById('tx_vatRate').value;
+            let net=0, vat=0;
+            if(rateV === 'zw' || rateV === '0') { net = gross; vat = 0; } 
+            else {
+                let rate = Number(rateV)/100;
+                net = gross / (1 + rate);
+                vat = gross - net;
+            }
+            document.getElementById('tx_net').value = net.toFixed(2);
+            document.getElementById('tx_vatAmt').value = vat.toFixed(2);
+        }
+
+        document.getElementById('txForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Nowa sprawa prywatna dodana do rejestru. Utworzono teczkę rozliczeniową.');
-            closeModal('privateMatterModal');
-            this.reset();
+            let txs = getStore(KEYS.TX);
+            let id = document.getElementById('tx_id').value;
+            let gross = Number(document.getElementById('tx_gross').value);
+            if(gross <= 0) { alert('Wartość nie może wynosić 0!'); return; }
+
+            let tx = {
+                id: id || uuid(),
+                direction: document.getElementById('tx_dir').value,
+                counterpartyId: document.getElementById('tx_cp_id').value,
+                category: document.getElementById('tx_category').value,
+                docType: document.getElementById('tx_docType').value,
+                docNo: document.getElementById('tx_docNo').value,
+                claimId: document.getElementById('tx_claimId').value,
+                grossAmount: gross,
+                vatRate: document.getElementById('tx_vatRate').value,
+                netAmount: Number(document.getElementById('tx_net').value),
+                vatAmount: Number(document.getElementById('tx_vatAmt').value),
+                issueDate: document.getElementById('tx_issueDate').value,
+                dueDate: document.getElementById('tx_dueDate').value,
+                status: document.getElementById('tx_status_override').value
+            };
+            if(!tx.status) tx.status = getTxStatus(tx);
+
+            if(id) {
+                let idx = txs.findIndex(t => t.id === id);
+                txs[idx] = {...txs[idx], ...tx};
+                txs[idx].status = getTxStatus(txs[idx]); 
+            } else { txs.push(tx); }
+
+            setStore(KEYS.TX, txs);
+            toast('Dokument księgowy zewidencjonowany', 'success');
+            closeModal('txModal');
+            if(state.tab === 'transaction-details') showTxDetails(tx.id); else renderTransactions();
         });
 
-        document.getElementById('addClaimForm').addEventListener('submit', function(e) {
+        // --- PŁATNOŚCI MODAL ---
+        function openPaymentModal() {
+            document.getElementById('payForm').reset();
+            document.getElementById('pay_date').value = new Date().toISOString().split('T')[0];
+            openModal('paymentModal');
+        }
+        document.getElementById('payForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Dokument dodany. Oczekujemy na płatność lub decyzję ubezpieczyciela.');
-            closeModal('addClaimModal');
-            this.reset();
-        });
+            let amt = Number(document.getElementById('pay_amount').value);
+            let max = Number(document.getElementById('pay_amount').max);
+            if(amt <= 0 || amt > max+0.05) { alert(`Kwota przewyższa wymagane saldo (${max})`); return; }
 
-        document.getElementById('paymentForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Wpłata została zaksięgowana. Brakujące saldo zostanie zaktualizowane i wykazane w wezwaniu/pozwie.');
+            let pays = getStore(KEYS.PAY);
+            pays.push({ id: uuid(), transactionId: state.currentTxId, paidDate: document.getElementById('pay_date').value, amount: amt, method: document.getElementById('pay_method').value, reference: document.getElementById('pay_ref').value });
+            setStore(KEYS.PAY, pays);
+
+            let txs = getStore(KEYS.TX);
+            let tx = txs.find(t=>t.id===state.currentTxId);
+            tx.status = getTxStatus(tx); // Wymuszone przeliczenie po wpłacie
+            setStore(KEYS.TX, txs);
+
+            toast('Płatność dodana. Saldo zaktualizowane.', 'success');
             closeModal('paymentModal');
-            this.reset();
+            renderTxPayments(state.currentTxId);
         });
 
-        document.getElementById('statusForm').addEventListener('submit', function(e) {
+        function delPayment(id) {
+            if(!confirm('Odpinać tę wpłatę z dokumentu?')) return;
+            let pays = getStore(KEYS.PAY).filter(p => p.id !== id);
+            setStore(KEYS.PAY, pays);
+            let txs = getStore(KEYS.TX);
+            let tx = txs.find(t=>t.id===state.currentTxId);
+            tx.status = getTxStatus(tx);
+            setStore(KEYS.TX, txs);
+            renderTxPayments(state.currentTxId);
+        }
+        function deleteCurrentTx() {
+            if(!confirm("KRYTYCZNE: Trwale usunąć transakcję?")) return;
+            setStore(KEYS.TX, getStore(KEYS.TX).filter(t => t.id !== state.currentTxId));
+            setStore(KEYS.PAY, getStore(KEYS.PAY).filter(p => p.transactionId !== state.currentTxId));
+            toast('Rozliczenie usunięte w całości', 'error');
+            switchTab('transactions', document.querySelectorAll('.main-tab-btn')[1]);
+        }
+
+        // --- KONTRAHENCI MODAL I RENDER ---
+        function renderCounterparties() {
+            let cps = getStore(KEYS.CP);
+            const fType = document.getElementById('f-cp-list-type').value;
+            const search = document.getElementById('f-cp-search').value.toLowerCase();
+            if(fType) cps = cps.filter(c => c.type === fType);
+            if(search) cps = cps.filter(c => c.name.toLowerCase().includes(search) || (c.nip && c.nip.includes(search)));
+
+            const tbody = document.getElementById('cpTableBody');
+            tbody.innerHTML = '';
+            cps.forEach(c => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${c.name}</strong><br><span class="text-muted">NIP/ID: ${c.nip||'-'}</span></td>
+                        <td><span class="badge badge-dark">${c.type.replace('_',' ')}</span> ${c.subcategory?`<span class="badge badge-blue">${c.subcategory.replace('_',' ')}</span>`:''}</td>
+                        <td>${c.phone||'-'}</td>
+                        <td style="text-align:right"><button class="btn btn-secondary btn-small" onclick="editCp('${c.id}')"><i class="fa-solid fa-pen"></i></button></td>
+                    </tr>`;
+            });
+        }
+        function openCpModal() { document.getElementById('cpForm').reset(); document.getElementById('cp_id').value = ''; document.getElementById('cp_subcat_group').style.display='none'; openModal('cpModal'); }
+        function editCp(id) {
+            const cp = getStore(KEYS.CP).find(c => c.id === id);
+            document.getElementById('cp_id').value = cp.id;
+            document.getElementById('cp_type').value = cp.type;
+            document.getElementById('cp_subcat').value = cp.subcategory || '';
+            document.getElementById('cp_subcat_group').style.display = cp.type==='podwykonawca'?'flex':'none';
+            document.getElementById('cp_name').value = cp.name;
+            document.getElementById('cp_nip').value = cp.nip || '';
+            document.getElementById('cp_phone').value = cp.phone || '';
+            openModal('cpModal');
+        }
+        document.getElementById('cpForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Status prawny zmieniony. Załączniki dodane do repozytorium dokumentów finansowych.');
-            closeModal('statusModal');
-            this.reset();
+            let cps = getStore(KEYS.CP);
+            let id = document.getElementById('cp_id').value;
+            let cp = { id: id||uuid(), type: document.getElementById('cp_type').value, subcategory: document.getElementById('cp_type').value==='podwykonawca'?document.getElementById('cp_subcat').value:null, name: document.getElementById('cp_name').value, nip: document.getElementById('cp_nip').value, phone: document.getElementById('cp_phone').value };
+            if(id) { let idx = cps.findIndex(c=>c.id===id); cps[idx] = {...cps[idx], ...cp}; } else cps.push(cp);
+            setStore(KEYS.CP, cps); toast('Baza kontrahentów zaktualizowana', 'success'); closeModal('cpModal'); renderCounterparties();
         });
 
-        document.getElementById('costForm').addEventListener('submit', function(e) {
+        // --- HARMONOGRAMY MODAL I RENDER ---
+        function renderSchedules() {
+            const scheds = getStore(KEYS.SCHED);
+            const cps = getStore(KEYS.CP);
+            const tbody = document.getElementById('schedTableBody');
+            tbody.innerHTML = '';
+            scheds.forEach(s => {
+                let cp = cps.find(c=>c.id===s.counterpartyId);
+                tbody.innerHTML += `<tr><td><strong>${s.name}</strong><br><span class="badge badge-dark">${s.kind.replace('_',' ')}</span></td><td>${cp?cp.name:'-'}</td><td>Start: ${fmtDate(s.startDate)}<br><span class="text-muted">Cykliczność: ${s.frequency}</span></td><td style="font-weight:800;">${fmtMoney(s.installmentAmount)} <small>(${s.installmentCount} rat)</small></td><td><span class="badge badge-green">Aktywny</span></td></tr>`;
+            });
+        }
+        function openSchedModal() {
+            document.getElementById('schedForm').reset();
+            const sel = document.getElementById('sch_cp_id');
+            sel.innerHTML = '';
+            getStore(KEYS.CP).filter(c => c.type==='bank' || c.type==='ubezpieczyciel').forEach(c => { sel.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
+            openModal('schedModal');
+        }
+        document.getElementById('schedForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Faktura podwykonawcy dodana do Zobowiązań. Koszty pomniejszają ogólny zysk ze sprawy.');
-            closeModal('costModal');
-            this.reset();
+            let s = { id: uuid(), kind: document.getElementById('sch_kind').value, counterpartyId: document.getElementById('sch_cp_id').value, name: document.getElementById('sch_name').value, startDate: document.getElementById('sch_start').value, frequency: document.getElementById('sch_freq').value, installmentCount: Number(document.getElementById('sch_count').value), installmentAmount: Number(document.getElementById('sch_amount').value) };
+            let scheds = getStore(KEYS.SCHED); scheds.push(s); setStore(KEYS.SCHED, scheds);
+
+            let txs = getStore(KEYS.TX);
+            let d = new Date(s.startDate);
+            let isPolisa = s.kind === 'polisa';
+            for(let i=0; i<s.installmentCount; i++) {
+                let tx = { id: uuid(), direction: 'KOSZT', counterpartyId: s.counterpartyId, category: isPolisa ? 'polisa_OC' : 'rata_leasing', docType: isPolisa ? 'Polisa' : 'FV', docNo: `Rata ${i+1}/${s.installmentCount} (${s.name})`, claimId: '', grossAmount: s.installmentAmount, vatRate: isPolisa?'zw':'23', netAmount: isPolisa ? s.installmentAmount : s.installmentAmount/1.23, vatAmount: isPolisa ? 0 : s.installmentAmount-(s.installmentAmount/1.23), issueDate: new Date().toISOString().split('T')[0], dueDate: d.toISOString().split('T')[0], description: `Z harmonogramu: ${s.name}`, status: 'planowane' };
+                tx.status = getTxStatus(tx);
+                txs.push(tx);
+                
+                if(s.frequency==='monthly') d.setMonth(d.getMonth()+1);
+                if(s.frequency==='quarterly') d.setMonth(d.getMonth()+3);
+                if(s.frequency==='yearly') d.setFullYear(d.getFullYear()+1);
+            }
+            setStore(KEYS.TX, txs);
+            toast('Raty wdrożone do Księgi Transakcji', 'success'); closeModal('schedModal'); renderSchedules();
         });
+
+        // --- RAPORTY ---
+        function renderReports() {
+            const txs = getStore(KEYS.TX);
+            const months = {};
+            txs.forEach(t => {
+                let m = t.issueDate.substring(0,7);
+                if(!months[m]) months[m] = {inc:0, exp:0};
+                if(t.direction==='PRZYCHOD') months[m].inc += Number(t.grossAmount);
+                if(t.direction==='KOSZT') months[m].exp += Number(t.grossAmount);
+            });
+            const tbody = document.getElementById('rep-monthly-body');
+            tbody.innerHTML = '';
+            Object.keys(months).sort().reverse().forEach(m => {
+                let v = months[m]; let saldo = v.inc - v.exp;
+                tbody.innerHTML += `<tr><td><strong>${m}</strong></td><td class="text-green">+ ${fmtMoney(v.inc)}</td><td class="text-red">- ${fmtMoney(v.exp)}</td><td style="font-weight:800; color:${saldo>=0?'var(--success)':'var(--danger)'}">${fmtMoney(saldo)}</td></tr>`;
+            });
+        }
+        function exportCSV() {
+            let txs = getStore(KEYS.TX); let cps = getStore(KEYS.CP);
+            let csv = "DataWystawienia;DataPlatnosci;TypDokumentu;NumerDokumentu;NazwaKontrahenta;Kierunek;KwotaBrutto;Status\n";
+            txs.forEach(t => {
+                let cp = cps.find(c=>c.id===t.counterpartyId);
+                csv += `${t.issueDate};${t.dueDate};${t.docType};${t.docNo||''};${cp?cp.name:'-'};${t.direction};${t.grossAmount};${t.status}\n`;
+            });
+            let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            let link = document.createElement("a");
+            link.setAttribute("href", URL.createObjectURL(blob));
+            link.setAttribute("download", "DTD_Finanse_Raport.csv");
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        // --- URUCHOMIENIE ---
+        window.onload = () => {
+            initStorage();
+            switchTab('dashboard', document.querySelector('.main-tab-btn'));
+        };
     </script>
 </body>
 </html>
