@@ -1,0 +1,665 @@
+0) Zasady twarde (nie wolno ich łamać)
+
+Wygeneruj TYLKO JEDEN PLIK: pełna treść sprawy_sadowe.html (z <!DOCTYPE html>).
+
+W pliku umieść:
+
+<style> z całym CSS,
+
+<script> z całym JS.
+
+Nie używaj frameworków (React/Vue/Angular), bundlerów ani bibliotek do tabel.
+
+Nie używaj backendu. Jedynym magazynem danych jest localStorage.
+
+UI ma być spójne ze szkicem: ciemny sidebar, jasna topbar, karty, tabela z hover, badge statusów, ikonki dokumentów, styl „panel DMS” 
+
+Moduł sprawy sądowe
+
+.
+
+Kod ma być produkcyjnie czytelny: podział na moduły/funkcje, komentarze, walidacje, try/catch dla storage, brak TODO.
+
+Wszystko opisane ma działać od razu po otwarciu pliku.
+
+Odpowiedź ma być: jeden blok kodu zawierający sprawy_sadowe.html, bez dodatkowych opisów.
+
+1) Cel modułu (dla prawnika)
+
+Moduł służy do prowadzenia spraw:
+
+od etapu cesji / przygotowania do procesu (przedsądowe, kompletowanie dokumentów),
+
+przez proces w toku (sygnatura, sąd, terminy, zobowiązania, pisma, koszty),
+
+aż po zakończenie (wyrok/ugoda, prawomocność, rozliczenie zasądzeń, egzekucja).
+
+Ma to być narzędzie „codziennej pracy”: szybkie dodawanie, terminy, braki formalne, dokumenty, lista zadań na dziś/7 dni, raport skuteczności.
+
+2) Struktura widoków (tabs)
+
+Zrób zakładki (tabs) w treści + podświetlenie w sidebarze (jak w inspiracji):
+
+Cesje (Przyszły Proces)
+
+Procesy w trakcie
+
+Procesy zakończone (Archiwum)
+
+Kalendarz / Terminy
+
+Raporty / Skuteczność
+
+Słowniki / Ustawienia (opcjonalnie w MVP, ale mile widziane)
+
+W topbar dodaj szybkie przyciski:
+
+„+ Nowa sprawa”
+
+„+ Dodaj pismo”
+
+„+ Dodaj termin”
+
+pole wyszukiwania globalnego (sygnatura/klient/pojazd/TU)
+
+3) Najważniejsza zasada danych: jedna „Sprawa” + zdarzenia
+
+Każda sprawa to rekord Case, a wszystko co się dzieje wokół to powiązane elementy:
+
+Documents (pismo/dowód/załącznik)
+
+Deadlines (terminy i zobowiązania, z przypomnieniem)
+
+Events (czynności: wysłano wezwanie, złożono pozew, wpłynęła odpowiedź, postanowienie, biegły, rozprawa itd.)
+
+Costs (koszty procesu: opłata sądowa, zaliczki biegłych, pełnomocnictwa, koszty zastępstwa, koszty komornicze)
+
+Receipts (wpływy: zasądzone kwoty, zwroty kosztów, odsetki, ugody, spływy)
+
+W UI sprawa ma mieć kartę szczegółów: podsumowanie + zakładki „Oś czasu / Terminy / Dokumenty / Koszty / Rozliczenie / Notatki”.
+
+4) Funkcje MVP (wszystkie muszą działać)
+4.1 Lista spraw w każdym tabie (tabele)
+
+Każda tabela:
+
+wyszukiwanie tekstowe
+
+filtry:
+
+TU (ubezpieczyciel)
+
+etap (cesja / w toku / zakończona)
+
+status sprawy (lista statusów poniżej)
+
+sąd (w toku/archiwum)
+
+sygnatura (w toku/archiwum)
+
+„tylko po terminie” (deadline overdue)
+
+„tylko braki formalne”
+
+zakres dat: data szkody / data pozwu / data zakończenia
+
+sortowanie po kolumnach
+
+paginacja 20/50/100
+
+Wiersz w tabeli ma mieć akcje:
+
+Podgląd (otwiera szczegóły sprawy)
+
+Edytuj
+
+Zmień etap (np. „Złóż pozew” przenosi z cesji do w toku)
+
+Archiwizuj/Przywróć
+
+Usuń (tylko jeśli brak powiązań albo po potwierdzeniu „usuń wszystko”)
+
+4.2 Szczegóły sprawy (panel/ modal pełnoekranowy)
+
+W szczegółach:
+
+Nagłówek: klient + pojazd + TU + sygnatura + etap
+
+KPI sprawy:
+
+WPS (wartość przedmiotu sporu)
+
+koszty poniesione
+
+zasądzone / ugoda
+
+spływy (ile faktycznie wpłynęło)
+
+saldo „do odzyskania”
+
+zakładki:
+
+Oś czasu (Events) – dodawanie zdarzenia
+
+Terminy (Deadlines) – dodawanie terminu, status, przypomnienia
+
+Dokumenty (Documents) – checklista + załączniki (bez uploadu: nazwa/link)
+
+Koszty (Costs) – pozycje kosztowe
+
+Rozliczenie (Receipts) – wpływy, odsetki, zwrot kosztów
+
+Notatki (prywatne notatki prawnika)
+
+4.3 Dokumenty: checklista + brak/ok + typy
+
+Dokument ma status: posiadamy / brak / do_uzupelnienia / wyslane / otrzymane
+
+Widok dokumentów ma:
+
+listę wymaganych dokumentów zależnie od typu sprawy (słowniki poniżej)
+
+szybkie oznaczanie „ok/brak”
+
+pole „link/nazwa pliku”
+
+data wpływu/wysłania
+
+możliwość przypięcia dokumentu do zdarzenia lub terminu
+
+4.4 Terminy i zobowiązania
+
+Termin ma: data, opis, odpowiedzialny (np. prawnik/sekretariat), priorytet, status (planowany / wykonany / po terminie)
+
+Automatycznie wyliczaj „po terminie”
+
+Widok „Kalendarz/Terminy”:
+
+lista terminów na dziś, 7 dni, 30 dni
+
+filtr po odpowiedzialnym, statusie, sprawie
+
+przycisk „oznacz wykonane”
+
+W każdej sprawie baner ostrzegawczy, jeśli są terminy po terminie.
+
+4.5 Koszty procesu i wpływy (rozliczenie)
+
+Koszty: opłata sądowa, zaliczka biegłego, pełnomocnictwo, koszty komornicze, inne
+
+Wpływy: zasądzone (kapitał), odsetki, zwrot kosztów, ugoda, wpłata po egzekucji
+
+Możliwe wiele pozycji kosztów i wpływów
+
+Podsumowanie w sprawie: koszty poniesione, zasądzone, spłacone, saldo
+
+Możliwość oznaczenia „prawomocne” i daty prawomocności
+
+Jeśli brak spływu po X dniach od prawomocności → sugeruj termin „wezwanie do zapłaty / egzekucja”
+
+4.6 Raporty / skuteczność
+
+Raport miesięczny i roczny:
+
+liczba spraw rozpoczętych, zakończonych
+
+% wygranych / ugód / przegranych / umorzonych
+
+suma WPS, suma zasądzona, suma spływów
+
+koszty poniesione
+
+średni czas trwania sprawy (dni)
+
+TOP 5 TU wg liczby spraw i skuteczności
+
+Eksport CSV:
+
+lista spraw (wg filtrów)
+
+lista terminów (wg filtrów)
+
+5) Model danych (wymagany, dokładny)
+
+Zaimplementuj i konsekwentnie używaj takich encji:
+
+Case
+
+id (uuid)
+
+stage: [cesja, w_toku, zakonczona]
+
+caseType: [naprawa, najem, szkoda_calkowita, osobowa, inne]
+
+clientType: [osoba, firma]
+
+clientName
+
+clientIdNo (PESEL/NIP opcjonalnie)
+
+clientContact (tel/email opcjonalnie)
+
+vehicleMakeModel (string)
+
+vehiclePlate (string)
+
+insurer (TU) (string)
+
+claimId (id szkody z systemu, opcjonalnie)
+
+internalRef (wewnętrzny numer sprawy, string, unikalny)
+
+wpsAmount (number)
+
+purchasedCessionAmount (number|null) // jeśli cesja kupiona
+
+cessionSettlementNote (string|null) // np. „rozliczenie w ciężar FV”
+
+preCourt: { demandSentDate?, demandDueDate?, demandResult? } (opcjonalnie)
+
+court: { courtName?, judge?, department?, signature?, filingDate?, hearingDates[] } (opcjonalnie)
+
+status: [braki_formalne, komplet_dokumentow, przedsadowe, pozew_w_przygotowaniu, pozew_zlozony, oczekuje_na_odpowiedz, replika, dowody, biegly, rozprawa, wyrok, apelacja, ugoda, prawomocne, egzekucja, umorzone, przegrana, wygrana]
+
+outcome: [nieznany, wygrana, przegrana, czesciowa, ugoda, umorzone] // dla zakonczonych
+
+closedDate? (YYYY-MM-DD)
+
+notes (string)
+
+tags (array string)
+
+createdAt (ISO)
+
+updatedAt (ISO)
+
+archived (boolean)
+
+Document
+
+id (uuid)
+
+caseId
+
+docType (string, słownik poniżej)
+
+title (string)
+
+status: [posiadamy, brak, do_uzupelnienia, wyslane, otrzymane]
+
+date (YYYY-MM-DD|null)
+
+ref (string|null) // nazwa pliku/link
+
+required (boolean)
+
+createdAt (ISO)
+
+Deadline
+
+id (uuid)
+
+caseId
+
+dueDate (YYYY-MM-DD)
+
+description
+
+owner: [prawnik, sekretariat, klient] // proste role
+
+priority: [niski, normalny, wysoki, krytyczny]
+
+status: [planowany, wykonany, po_terminie]
+
+completedDate? (YYYY-MM-DD)
+
+createdAt (ISO)
+
+Event
+
+id (uuid)
+
+caseId
+
+eventDate (YYYY-MM-DD)
+
+type (string, słownik poniżej)
+
+description
+
+relatedDocumentIds (array uuid)
+
+createdAt (ISO)
+
+Cost
+
+id (uuid)
+
+caseId
+
+costType: [oplata_sadowa, zaliczka_biegly, pelnomocnictwo, koszty_zastepstwa, oplaty_pocztowe, komornik, inne]
+
+amount (number)
+
+date (YYYY-MM-DD)
+
+paidBy: [firma, klient]
+
+ref (string|null)
+
+createdAt (ISO)
+
+Receipt
+
+id (uuid)
+
+caseId
+
+receiptType: [kapital, odsetki, zwrot_kosztow, ugoda, egzekucja, inne]
+
+amount (number)
+
+date (YYYY-MM-DD)
+
+payer (string|null) // TU/komornik/inny
+
+ref (string|null)
+
+createdAt (ISO)
+
+6) LocalStorage – klucze i migracje
+
+Użyj kluczy:
+
+dtd_legal_storage_version (number)
+
+dtd_legal_cases (array)
+
+dtd_legal_documents (array)
+
+dtd_legal_deadlines (array)
+
+dtd_legal_events (array)
+
+dtd_legal_costs (array)
+
+dtd_legal_receipts (array)
+
+dtd_legal_user_prefs (object)
+
+Migracje:
+
+brak wersji → seed + wersja=1
+
+niższa wersja → funkcja migracji (przygotowana)
+
+7) Seed danych (musi być bogaty)
+
+Jeśli storage pusty, wygeneruj:
+
+min. 20 spraw w „cesja”
+
+min. 20 spraw w „w_toku”
+
+min. 20 spraw w „zakonczona”
+
+min. 200 dokumentów łącznie (w tym braki i komplet)
+
+min. 120 terminów (część po terminie, część na 7/30 dni)
+
+min. 150 zdarzeń
+
+min. 120 kosztów + min. 80 wpływów
+
+min. 15 spraw powiązanych z claimId (np. CLM-2026-xxx)
+
+Dane mają być realistyczne (sygnatury, sądy, daty, TU: PZU/Warta/Uniqa/Link4/Allianz itd.).
+
+8) Słowniki i automatyzacje (musi być)
+8.1 Słownik dokumentów wymaganych (checklisty)
+
+Zaimplementuj checklisty zależne od caseType i stage. Przykładowo:
+
+Naprawa (kosztorys / zaniżenie)
+
+Umowa cesji (w cesja wymagane)
+
+Pełnomocnictwo
+
+Dowód rejestracyjny / upoważnienie
+
+Decyzja TU / kosztorys TU
+
+Faktura naprawy / kalkulacja
+
+Zdjęcia szkody (opcjonalnie)
+
+Wezwanie przedsądowe + potwierdzenie nadania
+
+Pozew + załączniki
+
+Odpowiedź na pozew
+
+Postanowienia sądu
+
+Opinia biegłego (jeśli wystąpi)
+
+Najem
+
+Umowa najmu
+
+Cennik / stawki
+
+Zlecenie najmu / protokół wydania-zwrotu
+
+Decyzja TU (odmowa/skrót)
+
+Wezwanie przedsądowe
+
+Pozew / odpowiedź / postanowienia
+
+Szkoda całkowita
+
+Wycena TU
+
+Wycena niezależna (opcjonalnie)
+
+Dokumenty pojazdu
+
+Wezwanie / pozew / odpowiedź
+
+Dla stage=cesja pokaż checklistę „przedsądową”, dla w_toku „procesową”, dla zakonczona „wyrok/ugoda/prawomocność/rozliczenie”.
+
+8.2 Słownik typów zdarzeń (Event.type)
+
+wezwanie_przedsadowe_wyslane
+
+wezwanie_przedsadowe_odpowiedz
+
+pozew_przygotowanie
+
+pozew_zlozony
+
+nakaz_zaplaty
+
+odpowiedz_na_pozew
+
+replika
+
+wezwanie_braki_formalne
+
+uzupelniono_braki
+
+postanowienie
+
+rozprawa
+
+biegly_powołany
+
+opinia_bieglego
+
+wyrok
+
+apelacja
+
+ugoda
+
+prawomocnosc
+
+egzekucja_wniosek
+
+egzekucja_wplyw
+
+umorzenie
+
+8.3 Automatyczne flagi w UI
+
+„Braki formalne” jeśli:
+
+status sprawy = braki_formalne ORAZ istnieje deadline krytyczny nie wykonany
+
+„Komplet dokumentów” jeśli:
+
+wszystkie required=true dokumenty mają status posiadamy lub wyslane/otrzymane (dla procesu)
+
+„Po terminie” jeśli:
+
+istnieje deadline z dueDate < today i status != wykonany
+
+8.4 Szybkie akcje (konkret)
+
+W zakładce CESJE: przycisk „Złóż pozew”:
+
+ustawia stage = w_toku
+
+tworzy Event pozew_zlozony z datą dziś (lub wyborem)
+
+tworzy Deadline „Oczekuj na sygnaturę” (+14 dni)
+
+uzupełnia filingDate
+
+W W TOKU: „Zakończ (Wyrok/Ugoda)”:
+
+przenosi do zakonczona
+
+wymaga wyboru outcome i daty
+
+dodaje pola prawomocności (opcjonalnie teraz lub później)
+
+9) Plan formularzy (bardzo intuicyjny, „obszerny”) — wymagane
+
+Zrób 3 tryby pracy:
+
+9.1 Szybkie dodanie sprawy (30–60 sekund)
+
+Modal „+ Nowa sprawa (szybko)”:
+
+klient: osoba/firma + nazwa*
+
+pojazd: marka/model + rejestracja*
+
+TU*
+
+typ sprawy*
+
+etap: domyślnie „cesja”
+
+WPS (opcjonalnie na start)
+
+tagi (opcjonalnie)
+Po zapisie:
+
+tworzysz sprawę
+
+generujesz checklistę dokumentów wg typu i etapu
+
+proponujesz pierwszy termin: „Wezwanie przedsądowe” (+7 dni) (można odznaczyć)
+
+9.2 Pełny formularz sprawy (sekcje/accordion)
+
+Sekcje:
+A) Dane podstawowe (klient/pojazd/TU/claimId/wewnętrzny numer)
+B) Finanse roszczenia (WPS, kwota cesji, notatka rozliczenia)
+C) Przedsądowe (wezwanie: daty, wynik)
+D) Sąd (nazwa sądu, sędzia, wydział, sygnatura, data złożenia, daty rozpraw)
+E) Status i tagi (status, outcome dla zakończonych)
+F) Notatki prawnika
+
+9.3 Kreatory (wizard)
+
+Wizard „Pozew” (dla cesji → w_toku)
+
+krok 1: wybierz datę złożenia pozwu
+
+krok 2: wprowadź WPS i opłatę sądową (jeśli znana) + opcja dodania kosztu
+
+krok 3: dokumenty: oznacz „Pozew” jako posiadamy i wpisz ref
+
+krok 4: utwórz terminy: „sygnatura”, „odpisy/załączniki”, „odpowiedź TU” (konfigurowalne)
+
+Wizard „Braki formalne”
+
+wybierz pismo z sądu (dokument)
+
+utwórz deadline krytyczny (data + opis)
+
+ustaw status sprawy = braki_formalne
+
+Wizard „Zakończenie”
+
+outcome: wygrana/przegrana/częściowa/ugoda/umorzone
+
+daty: wyrok/ugoda, prawomocność (opcjonalnie)
+
+zasądzenia: kapitał/odsetki/zwrot kosztów (Receipt)
+
+jeśli brak spływu: utwórz termin „wezwanie do zapłaty” (+14 dni) i opcję „egzekucja” (+30 dni)
+
+9.4 Formularze: dokument, termin, koszt, wpływ
+
+Dodawanie inline w szczegółach sprawy (bez utraty kontekstu)
+
+Walidacje:
+
+kwoty > 0
+
+daty poprawne
+
+sygnatura może być pusta do czasu nadania
+
+„Zapisz i dodaj kolejne” (dla dokumentów i terminów)
+
+10) Wydajność i stabilność
+
+paginacja i render tylko bieżącej strony (żeby 300+ spraw nie lagowało)
+
+bezpieczne usuwanie:
+
+usuń sprawę → usuń powiązane elementy dopiero po potwierdzeniu „usuń wszystko”
+
+domyślnie preferuj archived=true
+
+przywracanie archiwum
+
+obsługa błędów localStorage (quota, parse)
+
+11) UI szczegóły (spójne z inspiracją)
+
+Sidebar z sekcją „Dział prawny” i podmenu:
+
+Cesje / W toku / Zakończone / Terminy / Raporty
+
+Badge’y jak w inspiracji: active/warning/danger/info/neutral + tag TU
+
+Ikony dokumentów jak w inspiracji (done/missing/upload) 
+
+Moduł sprawy sądowe
+
+W tabelach komórki wieloliniowe (bloki: label-tiny + value)
+
+Toasty/alerty: zapisano/usunięto/błąd walidacji
+
+12) Format odpowiedzi (bezwzględny)
+
+Zwróć TYLKO jeden blok kodu zawierający kompletny sprawy_sadowe.html.
+Bez opisu, bez dodatkowych plików, bez komentarza poza komentarzami w kodzie.
