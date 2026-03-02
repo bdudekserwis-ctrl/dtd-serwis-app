@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTD Serwis - Infolinia i Obsługa</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --sidebar-hover: #1e293b;
+            --accent-blue: #0284c7;
+            --accent-hover: #0369a1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+            --dark-panel: #0f1419;
+            --dark-input: #1a1f26;
+            --dark-border: #2a3136;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* =========================================
+           SIDEBAR
+           ========================================= */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); color: white; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; box-shadow: 4px 0 15px rgba(0,0,0,0.15); z-index: 50; }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .sidebar-header { padding: 35px 25px; font-size: 24px; font-weight: 900; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px; }
+        .sidebar-header span { color: var(--accent-blue); }
+        .nav-menu { flex: 1; padding: 20px 0; }
+        .nav-item { padding: 12px 25px; margin: 2px 10px; border-radius: 10px; display: flex; align-items: center; gap: 12px; color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 13px; transition: 0.2s; cursor: pointer; border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: var(--sidebar-hover); color: white; }
+        .nav-item.active { background-color: rgba(2, 132, 199, 0.15); color: white; border-left-color: var(--accent-blue); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; }
+        .has-submenu { justify-content: space-between; }
+        .submenu { background-color: rgba(0,0,0,0.2); margin-bottom: 5px; padding: 5px 0; display: none; }
+        .submenu-label { padding: 12px 25px 5px 55px; font-size: 10px; text-transform: uppercase; color: #475569; font-weight: 800; letter-spacing: 1px; }
+        .submenu-item { padding: 8px 25px 8px 55px; display: block; color: #94a3b8; text-decoration: none; font-size: 13px; transition: 0.2s; border-left: 3px solid transparent;}
+        .submenu-item:hover { color: white; background-color: var(--sidebar-hover); }
+        .submenu-item.active { color: white; font-weight: 700; border-left-color: var(--accent-blue); }
+        .menu-label { padding: 15px 25px 5px 25px; font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 1px;}
+
+        /* =========================================
+           TOPBAR & WRAPPER
+           ========================================= */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { background: white; padding: 0 40px; height: 80px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); z-index: 10; }
+        .search-bar { background: #f1f5f9; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; width: 350px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; font-weight: 500; color: var(--text-main); }
+        .content-area { padding: 40px; overflow-y: auto; flex: 1; position: relative; }
+        .view-panel { display: none; animation: fadeIn 0.3s ease; }
+        .view-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           KOMPONENTY
+           ========================================= */
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        .card { background: white; border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 25px; }
+        .card-header { padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: #fcfcfd; font-size: 14px; font-weight: 800; color: var(--accent-blue); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+        .card-body { padding: 25px; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; justify-content: center; text-decoration: none;}
+        .btn-primary { background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.2); }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-secondary { background: white; border: 1px solid var(--border-color); color: var(--text-main); }
+        .btn-secondary:hover { background: #f1f5f9; }
+        .btn-small { padding: 6px 12px; font-size: 11px; }
+
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; display: inline-block; white-space: nowrap; }
+        .badge-info { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .badge-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .badge-gray { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { padding: 15px 20px; background-color: #f8fafc; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid var(--border-color); cursor: pointer; user-select: none; }
+        th:hover { background-color: #f1f5f9; }
+        td { padding: 15px 20px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+        tr.clickable:hover td { background-color: #f8fafc; cursor: pointer; }
+
+        .main-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); overflow-x: auto;}
+        .main-tab-btn { padding: 15px 25px; border: none; background: none; font-size: 14px; font-weight: 800; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;}
+        .main-tab-btn:hover { color: var(--text-main); }
+        .main-tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+
+        .table-tools { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #f8fafc; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 15px;}
+        .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center;}
+        .filter-input { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; outline: none; background: white;}
+
+        .alert-banner { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 15px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.1); }
+
+        /* =========================================
+           SPLIT SCREEN MODAL (AKTYWNE POŁĄCZENIE)
+           ========================================= */
+        .split-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .split-container { display: flex; width: 100%; height: 100%; max-height: 900px; max-width: 1600px; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .split-left { width: 35%; background: #f8fafc; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto;}
+        .split-right { width: 65%; background: var(--dark-panel); display: flex; flex-direction: column; color: #e2e8f0; overflow-y: auto;}
+        
+        .split-header { padding: 20px 25px; border-bottom: 1px solid var(--border-color); font-weight: 800; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 5;}
+        .split-right .split-header { border-color: #2a3136; background: #1a1f26; }
+        .split-left .split-header { background: #f8fafc; }
+        .split-content { padding: 25px; flex: 1; }
+        .split-footer { padding: 20px 25px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; position: sticky; bottom:0;}
+        .split-right .split-footer { border-color: #2a3136; background: #1a1f26; }
+
+        .call-timer { font-family: 'Courier New', monospace; font-size: 24px; font-weight: 900; color: var(--success); }
+        
+        .info-row { display: flex; justify-content: space-between; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px dashed #e2e8f0; font-size: 13px; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: var(--text-muted); font-weight: 600; width: 40%; }
+        .info-value { font-weight: 700; color: var(--text-main); text-align: right; }
+
+        .history-item { background: white; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 12px; }
+        .history-item-header { display: flex; justify-content: space-between; margin-bottom: 5px; color: var(--text-muted); }
+        .history-item-body { font-weight: 500; color: var(--text-main); }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .creator-label { font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .creator-input { padding: 12px 14px; border: 1px solid #2a3136; border-radius: 8px; font-size: 14px; color: white; background: #1a1f26; outline: none; transition: 0.2s; width: 100%; }
+        .creator-input:focus { border-color: var(--accent-blue); }
+        textarea.creator-input { resize: vertical; min-height: 80px; }
+        
+        .dark-card { background: #1a1f26; border: 1px solid #2a3136; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .dark-card-title { font-size: 13px; font-weight: 800; color: var(--accent-blue); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        
+        .radio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+        .radio-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: #1a1f26; border: 1px solid #2a3136; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; color: #94a3b8; transition: 0.2s; text-align: center; }
+        .radio-btn input { display: none; }
+        .radio-btn:hover { border-color: var(--accent-blue); color: white; }
+        .radio-btn:has(input:checked) { background: rgba(2, 132, 199, 0.2); border-color: var(--accent-blue); color: var(--accent-blue); }
+        .radio-btn.danger:has(input:checked) { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); color: var(--danger); }
+
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: #e2e8f0; }
+        .checkbox-wrapper input { width: 16px; height: 16px; accent-color: var(--accent-blue); }
+
+        .hidden-section { display: none; }
+
+        /* =========================================
+           MODAL - CENTRUM DOWODZENIA ZADANIEM
+           ========================================= */
+        .task-action-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
+        .tam-content { background: white; width: 650px; max-width: 95vw; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; animation: fadeIn 0.2s ease; }
+        .tam-header { padding: 25px 30px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: flex-start; }
+        .tam-title { font-size: 20px; font-weight: 800; color: var(--text-dark); margin-bottom: 8px;}
+        .tam-subtitle { font-size: 13px; color: var(--text-muted); font-weight: 500;}
+        .tam-body { padding: 30px; }
+        
+        .tam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;}
+        .tam-btn-big { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px; border-radius: 12px; border: 2px solid var(--border-color); font-size: 14px; font-weight: 700; color: var(--text-main); cursor: pointer; transition: 0.2s; text-decoration: none; text-align: center;}
+        .tam-btn-big i { font-size: 28px; }
+        .tam-btn-big:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        
+        .tam-primary { border-color: var(--success); color: var(--success); background: #ecfdf5;}
+        .tam-primary:hover { background: var(--success); color: white; }
+        
+        .tam-secondary { border-color: var(--accent-blue); color: var(--accent-blue); background: #f0f9ff;}
+        .tam-secondary:hover { background: var(--accent-blue); color: white; }
+
+        /* =========================================
+           ZWYKŁE MODALE
+           ========================================= */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 40px 20px; }
+        .modal-card { background: white; width: 600px; max-width: 100%; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden; animation: fadeIn 0.3s ease; }
+        .modal-header { padding: 20px 30px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 800; color: var(--text-dark); }
+        .modal-body { padding: 30px; max-height: 80vh; overflow-y: auto;}
+        .modal-card .creator-input { background: white; color: var(--text-main); border-color: #cbd5e1; }
+        .modal-card .creator-label { color: var(--text-muted); }
+
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; border-left: 4px solid var(--accent-blue); padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; animation: slideInRight 0.3s ease forwards; }
+        .toast.success { border-color: var(--success); color: var(--success); }
+        .toast.error { border-color: var(--danger); color: var(--danger); }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR KOMPLETNY (Z INNYCH MODUŁÓW) -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span>DTD</span> Serwis
+        </div>
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+            
+            <a href="szkody.html" class="nav-item"><i class="fa-solid fa-clipboard-list"></i> Lista szkód</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-samochody')">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-car"></i> Samochody
+                </div>
+                <i class="fa-solid fa-chevron-down" id="icon-samochody" style="font-size: 10px; transition: transform 0.3s;"></i>
+            </div>
+            
+            <div class="submenu" id="submenu-samochody" style="display: none;">
+                <div class="submenu-label">Najmy</div>
+                <a href="najmy_trwajace.html" class="submenu-item">Najmy w trakcie</a>
+                <a href="najmy_zaplanowane.html" class="submenu-item">Najmy zaplanowane</a>
+                <a href="najmy_archiwum.html" class="submenu-item">Najmy zakończone (Archiwum)</a>
+                
+                <div class="submenu-label">Flota własna</div>
+                <a href="flota_jezdzace.html" class="submenu-item">Pojazdy jeżdżące</a>
+                <a href="flota_sprzedane.html" class="submenu-item">Sprzedane / Zezłom.</a>
+                <a href="flota_podnajete.html" class="submenu-item">Pojazdy podnajęte</a>
+                <a href="flota_podnajete_arch.html" class="submenu-item">Podnajęte - Archiwum</a>
+            </div>
+
+            <a href="holowania.html" class="nav-item"><i class="fa-solid fa-truck-pickup"></i> Holowania</a>
+            <a href="ogledziny.html" class="nav-item"><i class="fa-solid fa-camera"></i> Oględziny</a>
+            <a href="dane.html" class="nav-item"><i class="fa-solid fa-database"></i> Dane</a>
+            <a href="czesci.html" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Magazyn i części</a>
+            <a href="rozliczenia.html" class="nav-item"><i class="fa-solid fa-file-invoice-dollar"></i> Rozliczenia</a>
+            <a href="dzial_prawny.html" class="nav-item"><i class="fa-solid fa-scale-balanced"></i> Dział prawny</a>
+            
+            <div class="nav-item has-submenu" onclick="toggleSubmenu('submenu-naprawy')">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <i class="fa-solid fa-wrench"></i> Naprawy
+                </div>
+                <i class="fa-solid fa-chevron-down" id="icon-naprawy" style="font-size: 10px; transition: transform 0.3s;"></i>
+            </div>
+            
+            <div class="submenu" id="submenu-naprawy" style="display: none;">
+                <a href="naprawy_blacharnia.html" class="submenu-item">Warsztat blacharsko-lakierniczy</a>
+                <a href="naprawy_elektronika.html" class="submenu-item">Warsztat elektroniki pojazdowej</a>
+                <a href="naprawy_mechanika.html" class="submenu-item">Warsztat mechaniczny</a>
+                <a href="naprawy_inne.html" class="submenu-item">Inne naprawy</a>
+            </div>
+
+            <a href="dokumenty.html" class="nav-item"><i class="fa-solid fa-file-pdf"></i> Generator Dokumentów</a>
+            
+            <div class="menu-label">Komunikacja</div>
+            <a href="infolinia.html" class="nav-item active"><i class="fa-solid fa-headset"></i> Infolinia / SLA</a>
+        </div>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <div class="topbar">
+            <div class="search-bar">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="globalSearch" placeholder="Szukaj szkody, zadania, TU..." oninput="renderTasks()">
+            </div>
+            <div class="user-info">
+                <button class="btn btn-secondary" onclick="openTaskModal()"><i class="fa-solid fa-calendar-plus"></i> Zaplanuj Kontakt</button>
+                <button class="btn btn-primary" onclick="openCallModalDirect()"><i class="fa-solid fa-phone"></i> Szybki Telefon (Ad-hoc)</button>
+            </div>
+        </div>
+
+        <div class="content-area">
+
+            <!-- ZAKŁADKI -->
+            <div class="main-tabs">
+                <button class="main-tab-btn active" onclick="switchTab('tasks', this)"><i class="fa-solid fa-list-check"></i> Kolejka Zadań</button>
+                <button class="main-tab-btn" onclick="switchTab('sla', this)"><i class="fa-solid fa-stopwatch"></i> SLA i Reklamacje</button>
+                <button class="main-tab-btn" onclick="switchTab('history', this)"><i class="fa-solid fa-history"></i> Historia Połączeń</button>
+                <button class="main-tab-btn" onclick="switchTab('reports', this)"><i class="fa-solid fa-chart-line"></i> Raporty</button>
+                <div style="margin-left: auto; display: flex; gap: 10px;">
+                    <button class="btn btn-danger btn-small" onclick="resetDB()"><i class="fa-solid fa-trash"></i> Reset Systemu</button>
+                </div>
+            </div>
+
+            <!-- ALERT SLA -->
+            <div id="slaAlertsContainer"></div>
+
+            <!-- WIDOK: KOLEJKA ZADAŃ -->
+            <div id="view-tasks" class="view-panel active">
+                <div class="card">
+                    <div class="table-tools">
+                        <div class="filters">
+                            <select class="filter-input" id="f-task-prio" onchange="renderTasks()">
+                                <option value="">Każdy priorytet</option>
+                                <option value="krytyczny">Krytyczny</option>
+                                <option value="wysoki">Wysoki</option>
+                                <option value="normalny">Normalny</option>
+                            </select>
+                            <select class="filter-input" id="f-task-status" onchange="renderTasks()">
+                                <option value="">Każdy status</option>
+                                <option value="zaplanowane" selected>Zaplanowane (Aktywne)</option>
+                                <option value="nie_udalo_sie">Nieudana próba (Do poprawki)</option>
+                                <option value="wykonane">Wykonane</option>
+                            </select>
+                            <select class="filter-input" id="f-task-tu" onchange="renderTasks()">
+                                <option value="">Wszystkie TU</option>
+                            </select>
+                            <select class="filter-input" id="f-task-team" onchange="renderTasks()">
+                                <option value="">Wszystkie działy</option>
+                                <option value="biuro">Biuro</option>
+                                <option value="likwidacja">Likwidacja</option>
+                                <option value="prawny">Prawny</option>
+                            </select>
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" onclick="changeTaskPage(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                            <span id="taskPageInfo" style="font-size:12px; font-weight:700;">Str. 1</span>
+                            <button class="page-btn" onclick="changeTaskPage(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th onclick="sortTasks('priority')">Priorytet <i class="fa-solid fa-sort"></i></th>
+                                <th onclick="sortTasks('deadlineAt')">Termin <i class="fa-solid fa-sort"></i></th>
+                                <th>Towarzystwo (TU)</th>
+                                <th>Powiązana Sprawa</th>
+                                <th>Temat i Cel Zadania</th>
+                                <th>Status</th>
+                                <th style="text-align:right">Opcje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasksTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WIDOK: SLA I REKLAMACJE -->
+            <div id="view-sla" class="view-panel">
+                <div class="card">
+                    <div class="table-tools">
+                        <select class="filter-input" id="f-sla-type" onchange="renderSLA()">
+                            <option value="">Wszystkie typy timerów</option>
+                            <option value="reklamacja_30dni">Reklamacja (30 dni)</option>
+                            <option value="brak_decyzji">Brak decyzji (Monit)</option>
+                        </select>
+                        <select class="filter-input" id="f-sla-status" onchange="renderSLA()">
+                            <option value="aktywny" selected>Tylko aktywne</option>
+                            <option value="zamkniety">Zamknięte</option>
+                            <option value="">Wszystkie</option>
+                        </select>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Typ Zegara</th>
+                                <th>Data startu</th>
+                                <th>Termin końcowy (Deadline)</th>
+                                <th>TU / Sprawa</th>
+                                <th>Pozostało dni</th>
+                                <th>Status</th>
+                                <th style="text-align:right">Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="slaTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WIDOK: HISTORIA (CALL LOG) -->
+            <div id="view-history" class="view-panel">
+                <div class="card">
+                    <div class="table-tools">
+                        <select class="filter-input" id="f-hist-status" onchange="renderHistory()">
+                            <option value="">Wszystkie wyniki</option>
+                            <option value="success">Odebrane (Sukces)</option>
+                            <option value="no_answer">Brak odbioru</option>
+                            <option value="rejected">Odrzucone</option>
+                            <option value="waiting">Kolejka (Zbyt długa)</option>
+                        </select>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data i czas trwania</th>
+                                <th>TU / Numer</th>
+                                <th>Sprawa</th>
+                                <th>Temat</th>
+                                <th>Wynik połączenia</th>
+                                <th>Notatka</th>
+                                <th>Konsultant</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- WIDOK: RAPORTY -->
+            <div id="view-reports" class="view-panel">
+                <div class="header-actions">
+                    <h3 class="page-title">Statystyki Infolinii</h3>
+                    <button class="btn btn-secondary" onclick="exportCSV()"><i class="fa-solid fa-file-csv"></i> Pobierz Raport CSV</button>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                    <div class="card"><div class="card-header">Skuteczność połączeń</div><div class="card-body" id="rep-success"></div></div>
+                    <div class="card"><div class="card-header">TOP Ubezpieczyciele (Ilość kontaktów)</div><div class="card-body" id="rep-tu"></div></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- =========================================
+         MODAL: CENTRUM DOWODZENIA ZADANIEM (ACTION MODAL)
+         ========================================= -->
+    <div class="task-action-modal" id="taskActionModal">
+        <div class="tam-content">
+            <div class="tam-header">
+                <div>
+                    <div class="tam-title" id="tam-title-text">Zadanie: Brak Decyzji</div>
+                    <div class="tam-subtitle" id="tam-subtitle-text">Sprawa: DTD-2026-001 | Klient Testowy 1 (WA 101)</div>
+                </div>
+                <i class="fa-solid fa-xmark" style="cursor:pointer; font-size:20px;" onclick="closeModal('taskActionModal')"></i>
+            </div>
+            <div class="tam-body">
+                
+                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed var(--border-color); margin-bottom: 25px; font-size:13px; color: var(--text-dark);">
+                    <strong>Cel kontaktu:</strong> <span id="tam-checklist-text">Zadzwoń i dowiedz się dlaczego nie ma decyzji.</span><br>
+                    <span style="color:var(--danger); font-weight:700; margin-top:5px; display:inline-block;" id="tam-deadline-text"></span>
+                </div>
+
+                <div class="tam-grid">
+                    <a href="#" class="tam-btn-big tam-primary" id="btn-start-call">
+                        <i class="fa-solid fa-headset"></i>
+                        Zadzwoń (Split-Screen)
+                    </a>
+                    
+                    <a href="#" class="tam-btn-big tam-secondary" id="btn-goto-claim">
+                        <i class="fa-solid fa-folder-open"></i>
+                        Otwórz Akta Szkody
+                    </a>
+
+                    <a href="#" class="tam-btn-big tam-secondary" id="btn-goto-docs">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        Wygeneruj Dokument
+                    </a>
+
+                    <div class="tam-btn-big" style="border-color:#cbd5e1; color:var(--text-muted);" onclick="alert('Edycja zadania (w przygotowaniu)')">
+                        <i class="fa-solid fa-pen"></i>
+                        Edytuj Termin / Zmień Status
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================
+         SPLIT SCREEN MODAL (AKTYWNE POŁĄCZENIE)
+         ========================================= -->
+    <div class="split-modal" id="callModal">
+        <div class="split-container">
+            <!-- LEWA STRONA: WIEDZA O SPRAWIE -->
+            <div class="split-left">
+                <div class="split-header">
+                    <span><i class="fa-solid fa-folder-open text-accent-blue"></i> Akta Sprawy</span>
+                    <span class="badge badge-info" id="sc-claim-status">Ładowanie...</span>
+                </div>
+                <div class="split-content" id="split-left-content">
+                    <div id="sc-no-claim" style="display:none; text-align:center; padding: 40px; color:var(--text-muted);">
+                        <i class="fa-solid fa-circle-question" style="font-size:40px; margin-bottom:15px;"></i>
+                        <p>Zadanie nie jest powiązane z konkretną szkodą.</p>
+                    </div>
+                    <div id="sc-has-claim">
+                        <div style="background:white; border:1px solid var(--border-color); border-radius:10px; padding:20px; margin-bottom:20px;">
+                            <div class="info-row"><div class="info-label">Nr Szkody DTD:</div><div class="info-value" id="sc-claim-id"></div></div>
+                            <div class="info-row"><div class="info-label">Nr Szkody w TU:</div><div class="info-value" id="sc-claim-tu-no" style="color:var(--accent-blue);"></div></div>
+                            <div class="info-row"><div class="info-label">Ubezpieczyciel:</div><div class="info-value" id="sc-claim-tu"></div></div>
+                            <div style="border-top:1px solid var(--border-color); margin:10px 0;"></div>
+                            <div class="info-row"><div class="info-label">Klient:</div><div class="info-value" id="sc-claim-client"></div></div>
+                            <div class="info-row"><div class="info-label">Pojazd (Rej):</div><div class="info-value" id="sc-claim-reg"></div></div>
+                        </div>
+
+                        <h4 style="font-size:13px; margin-bottom:10px; color:var(--text-main);">Ostatnie kontakty w tej sprawie</h4>
+                        <div id="sc-history-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRAWA STRONA: FORMULARZ RAPORTU Z POŁĄCZENIA -->
+            <div class="split-right">
+                <div class="split-header">
+                    <div><i class="fa-solid fa-headset" style="color:var(--success)"></i> Raport z połączenia</div>
+                    <div class="call-timer" id="call-timer-display">00:00</div>
+                </div>
+                <div class="split-content">
+                    <form id="callLogForm">
+                        <input type="hidden" id="cl_taskId">
+                        <input type="hidden" id="cl_claimId">
+                        
+                        <div class="dark-card" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <div style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Temat rozmowy (Z zadania):</div>
+                                <div style="font-size:16px; font-weight:800; color:white;" id="cl_topic_display">-</div>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-small" id="cl_btn_timer" onclick="toggleTimer()">Start / Stop</button>
+                        </div>
+
+                        <div class="dark-card">
+                            <div class="dark-card-title">1. Status Połączenia</div>
+                            <div class="radio-grid">
+                                <label class="radio-btn"><input type="radio" name="cl_status" value="success" onchange="toggleCallSections()" required> <i class="fa-solid fa-check"></i> Odebrane</label>
+                                <label class="radio-btn danger"><input type="radio" name="cl_status" value="no_answer" onchange="toggleCallSections()"> <i class="fa-solid fa-phone-slash"></i> Brak odbioru</label>
+                                <label class="radio-btn danger"><input type="radio" name="cl_status" value="rejected" onchange="toggleCallSections()"> <i class="fa-solid fa-phone-xmark"></i> Odrzucone</label>
+                                <label class="radio-btn danger"><input type="radio" name="cl_status" value="waiting" onchange="toggleCallSections()"> <i class="fa-solid fa-hourglass"></i> Kolejka >15min</label>
+                            </div>
+                        </div>
+
+                        <div id="section-success" class="hidden-section">
+                            <div class="dark-card">
+                                <div class="dark-card-title">2. Notatka z ustaleń</div>
+                                <textarea id="cl_notes" class="creator-input" placeholder="Opisz dokładnie co zostało ustalone z konsultantem TU..." style="min-height:120px;"></textarea>
+                            </div>
+
+                            <div class="dark-card">
+                                <div class="dark-card-title">3. Aktualizacja statusów finansowych (Opcjonalnie)</div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label class="creator-label">Przyznana kwota bezsporna (PLN)</label>
+                                        <input type="number" id="cl_money_undisputed" class="creator-input" step="0.01" placeholder="0.00">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="creator-label">Zaakceptowane dni najmu</label>
+                                        <input type="number" id="cl_money_rentdays" class="creator-input" placeholder="Ilość dni">
+                                    </div>
+                                    <div class="form-group" style="grid-column: 1 / -1;">
+                                        <label class="creator-label">Status stawki najmu</label>
+                                        <select id="cl_money_rentstatus" class="creator-input">
+                                            <option value="">Brak ustaleń</option>
+                                            <option value="akceptacja">Akceptacja pełnej stawki DTD</option>
+                                            <option value="weryfikacja">Weryfikacja do stawki z cennika TU</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="section-actions" class="hidden-section dark-card">
+                            <div class="dark-card-title">4. Akcje następcze (Follow-up)</div>
+                            
+                            <label class="checkbox-wrapper" style="margin-bottom:15px;">
+                                <input type="checkbox" id="cl_chk_reklamacja" onchange="document.getElementById('reklamacja-box').style.display = this.checked ? 'block' : 'none';">
+                                Złóż Oficjalną Reklamację (Uruchamia zegar SLA 30 dni)
+                            </label>
+                            <div id="reklamacja-box" style="display:none; padding:15px; background:rgba(255, 255, 255, 0.05); border-radius:8px; margin-bottom:15px;">
+                                <div class="form-group">
+                                    <label class="creator-label required">Oczekiwana data odpowiedzi od TU (Standard 30 dni)</label>
+                                    <input type="date" id="cl_reklamacja_date" class="creator-input">
+                                </div>
+                            </div>
+
+                            <label class="checkbox-wrapper" style="margin-bottom:15px;">
+                                <input type="checkbox" id="cl_chk_prawny">
+                                Eskaluj do Działu Prawnego (Przenosi sprawę do obsługi sądowej)
+                            </label>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="split-footer">
+                    <button class="btn btn-secondary" onclick="closeCallModal()">Anuluj (Usuń wpis)</button>
+                    <button class="btn btn-warning" onclick="saveCallLog('w_trakcie')">Zapisz i utwórz Follow-Up (Zadanie trwa)</button>
+                    <button class="btn btn-success" onclick="saveCallLog('wykonane')">Zapisz Raport i Zamknij Zadanie</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PLANOWANIA ZADANIA -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal-card">
+            <div class="modal-header"><span><i class="fa-solid fa-calendar-plus text-accent-blue"></i> Zaplanuj Kontakt (Zadanie)</span><i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeModal('taskModal')"></i></div>
+            <div class="modal-body">
+                <form id="taskForm">
+                    <input type="hidden" id="tf_id">
+                    <div class="form-group">
+                        <label class="creator-label required">Powiązanie ze szkodą</label>
+                        <select id="tf_claim" class="creator-input" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="creator-label required">Instytucja docelowa (TU)</label>
+                        <select id="tf_tu" class="creator-input" required></select>
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="creator-label required">Termin wykonania (Deadline)</label>
+                            <input type="datetime-local" id="tf_deadline" class="creator-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="creator-label required">Priorytet</label>
+                            <select id="tf_prio" class="creator-input" required>
+                                <option value="normalny">Normalny</option>
+                                <option value="wysoki">Wysoki</option>
+                                <option value="krytyczny" style="color:var(--danger)">Krytyczny</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="creator-label required">Dział odpowiedzialny</label>
+                            <select id="tf_team" class="creator-input" required>
+                                <option value="biuro">Biuro Obsługi</option>
+                                <option value="likwidacja">Dział Likwidacji</option>
+                                <option value="prawny">Dział Prawny</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="creator-label required">Kategoria kontaktu</label>
+                            <select id="tf_cat" class="creator-input" required>
+                                <option value="Brak Kosztorysu">Brak Kosztorysu</option>
+                                <option value="Brak Decyzji">Brak Decyzji</option>
+                                <option value="Brak Płatności">Brak Płatności</option>
+                                <option value="Weryfikacja Najmu">Weryfikacja Najmu</option>
+                                <option value="Reklamacja">Złożenie Reklamacji</option>
+                                <option value="Inny">Inny temat</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:10px;">
+                        <label class="creator-label">Szczegóły / Checklista dla dzwoniącego</label>
+                        <textarea id="tf_checklist" class="creator-input" placeholder="Np. Zapytaj czy wpłynęła notatka policyjna..."></textarea>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">Zapisz do kolejki</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOASTY KONTENER -->
+    <div id="toast-container"></div>
+
+    <script>
+        // -- GLOBALNE FUNKCJE NAWIGACYJNE I TOASTY --
+
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id.replace('submenu-', ''));
+            const isHidden = submenu.style.display === "none" || submenu.style.display === "";
+            submenu.style.display = isHidden ? "block" : "none";
+            if(icon) icon.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        }
+
+        function switchTab(id, btn=null) {
+            document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active'); else document.querySelector(`.main-tab-btn[onclick*="'${id}'"]`)?.classList.add('active');
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('view-'+id).classList.add('active');
+            app.state.tab = id;
+
+            if(id==='tasks') renderTasks();
+            if(id==='sla') renderSLA();
+            if(id==='history') renderHistory();
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+
+        // Bezpieczny Toast - tworzy kontener jeśli nie istnieje
+        function toast(msg, type='info') {
+            let c = document.getElementById('toast-container');
+            if(!c) {
+                c = document.createElement('div');
+                c.id = 'toast-container';
+                document.body.appendChild(c);
+            }
+            const t = document.createElement('div'); 
+            t.className = `toast ${type}`;
+            t.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check':type==='error'?'fa-triangle-exclamation':'fa-info'}"></i> ${msg}`;
+            c.appendChild(t); 
+            setTimeout(() => { t.style.opacity=0; setTimeout(()=>t.remove(), 300); }, 3000);
+        }
+
+        // ==========================================
+        // ACTION MODAL (CENTRUM ZADANIA)
+        // ==========================================
+        function openTaskActionModal(taskId, claimId) {
+            const t = getStore(KEYS.TASKS).find(x => x.id === taskId);
+            const c = getStore(KEYS.CLAIMS).find(x => x.id === claimId);
+            
+            if(!t) return;
+
+            document.getElementById('tam-title-text').innerText = `Zadanie: ${t.topicCategory}`;
+            document.getElementById('tam-subtitle-text').innerText = c ? `Sprawa: ${c.id} | ${c.clientName} (${c.vehiclePlate})` : `Brak powiązanej szkody`;
+            document.getElementById('tam-checklist-text').innerText = t.checklist || "Brak szczegółów.";
+            
+            const isOverdue = t.deadlineAt < new Date().toISOString() && t.status !== 'wykonane';
+            document.getElementById('tam-deadline-text').innerText = isOverdue ? `Termin minął: ${fmtDate(t.deadlineAt)}` : `Termin: ${fmtDate(t.deadlineAt)}`;
+
+            // Podpinanie akcji pod przyciski w modalu
+            const btnStartCall = document.getElementById('btn-start-call');
+            btnStartCall.onclick = function() {
+                closeModal('taskActionModal');
+                openCallModal(taskId, claimId);
+            };
+
+            const btnGotoClaim = document.getElementById('btn-goto-claim');
+            if(c) {
+                btnGotoClaim.href = `szkody.html?id=${c.id}`; // Symulacja linku
+                btnGotoClaim.style.display = 'flex';
+            } else {
+                btnGotoClaim.style.display = 'none';
+            }
+
+            const btnGotoDocs = document.getElementById('btn-goto-docs');
+            if(c) {
+                btnGotoDocs.href = `dokumenty.html?claimId=${c.id}`; // Symulacja linku
+                btnGotoDocs.style.display = 'flex';
+            } else {
+                btnGotoDocs.style.display = 'none';
+            }
+
+            openModal('taskActionModal');
+        }
+
+
+        // ==========================================
+        // INNE MODALE I LOGIKA
+        // ==========================================
+        function openTaskModal() {
+            document.getElementById('taskForm').reset();
+            document.getElementById('tf_id').value = '';
+            document.getElementById('tf_deadline').value = new Date(Date.now() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+            openModal('taskModal');
+        }
+
+        function openCallModalDirect() {
+            app.state.activeTaskId = null;
+            app.state.activeClaimId = null;
+            document.getElementById('cl_topic_display').innerText = "Połączenie spontaniczne (Brak zadania)";
+            initCallModalUI();
+            document.getElementById('callModal').style.display = 'flex';
+        }
+
+        function openCallModal(taskId, claimId) {
+            app.state.activeTaskId = taskId;
+            app.state.activeClaimId = claimId;
+            const t = getStore(KEYS.TASKS).find(x=>x.id===taskId);
+            document.getElementById('cl_topic_display').innerText = t ? `${t.topicCategory} - ${t.checklist}` : 'Brak tematu';
+            initCallModalUI();
+            document.getElementById('callModal').style.display = 'flex';
+        }
+
+        function closeCallModal() {
+            stopTimer(); 
+            document.getElementById('callModal').style.display = 'none'; 
+        }
+
+        function toggleCallSections() {
+            const stat = document.querySelector('input[name="cl_status"]:checked')?.value;
+            const secSucc = document.getElementById('section-success');
+            const secAct = document.getElementById('section-actions');
+            
+            if(stat === 'success') {
+                secSucc.classList.remove('hidden-section');
+                secAct.classList.remove('hidden-section');
+            } else if(stat) {
+                secSucc.classList.add('hidden-section');
+                secAct.classList.remove('hidden-section'); 
+            } else {
+                secSucc.classList.add('hidden-section');
+                secAct.classList.add('hidden-section');
+            }
+        }
+
+        function initCallModalUI() {
+            document.getElementById('callLogForm').reset();
+            stopTimer(); 
+            app.state.timerSeconds = 0; 
+            updateTimerDisplay();
+            
+            if(app.state.activeClaimId) {
+                const c = getStore(KEYS.CLAIMS).find(x=>x.id===app.state.activeClaimId);
+                document.getElementById('sc-no-claim').style.display = 'none';
+                document.getElementById('sc-has-claim').style.display = 'block';
+                document.getElementById('sc-claim-status').innerText = 'Aktywna';
+                document.getElementById('sc-claim-id').innerText = c.id;
+                document.getElementById('sc-claim-tu-no').innerText = c.claimNoTU || 'Brak';
+                document.getElementById('sc-claim-tu').innerText = c.insurer;
+                document.getElementById('sc-claim-client').innerText = c.clientName;
+                document.getElementById('sc-claim-reg').innerText = c.vehiclePlate;
+
+                const calls = getStore(KEYS.CALLS).filter(x=>x.claimId === c.id).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,3);
+                const hl = document.getElementById('sc-history-list');
+                hl.innerHTML = '';
+                calls.forEach(cl => {
+                    hl.innerHTML += `<div class="history-item"><div class="history-item-header"><span>${fmtDate(cl.createdAt)}</span><span class="badge ${cl.callStatus==='success'?'badge-success':'badge-danger'}">${cl.callStatus}</span></div><div class="history-item-body">${cl.notes||'Brak notatki'}</div></div>`;
+                });
+            } else {
+                document.getElementById('sc-no-claim').style.display = 'block';
+                document.getElementById('sc-has-claim').style.display = 'none';
+                document.getElementById('sc-claim-status').innerText = 'Ogólne';
+            }
+
+            toggleCallSections();
+            toggleTimer(); // Auto start
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('cl_btn_timer');
+            if(app.state.timerInterval) {
+                stopTimer();
+                btn.innerText = 'Wznów timer'; btn.className = 'btn btn-secondary btn-small';
+            } else {
+                app.state.timerInterval = setInterval(() => { app.state.timerSeconds++; updateTimerDisplay(); }, 1000);
+                btn.innerText = 'Zatrzymaj'; btn.className = 'btn btn-danger btn-small';
+            }
+        }
+        function stopTimer() { clearInterval(app.state.timerInterval); app.state.timerInterval = null; }
+        function updateTimerDisplay() { document.getElementById('call-timer-display').innerText = fmtTime(app.state.timerSeconds); }
+
+        function saveCallLog(taskResolutionStatus) {
+            stopTimer();
+            const stat = document.querySelector('input[name="cl_status"]:checked')?.value;
+            if(!stat) { alert('Wybierz status połączenia!'); return; }
+
+            const calls = getStore(KEYS.CALLS);
+            let cId = app.state.activeClaimId;
+            let tId = app.state.activeTaskId;
+            let cTU = cId ? getStore(KEYS.CLAIMS).find(x=>x.id===cId)?.insurer : 'Ogólny';
+
+            let callLog = {
+                id: uuid(), taskId: tId, claimId: cId, insurer: cTU,
+                callStatus: stat, durationSec: app.state.timerSeconds,
+                notes: document.getElementById('cl_notes').value,
+                createdAt: new Date().toISOString()
+            };
+            calls.push(callLog); setStore(KEYS.CALLS, calls);
+
+            if(tId) {
+                let tasks = getStore(KEYS.TASKS);
+                let tIdx = tasks.findIndex(x=>x.id===tId);
+                if(tIdx > -1) {
+                    tasks[tIdx].status = stat === 'success' ? taskResolutionStatus : 'nie_udalo_sie';
+                    tasks[tIdx].updatedAt = new Date().toISOString();
+                    
+                    if(taskResolutionStatus === 'w_trakcie') {
+                        let d = new Date(); d.setDate(d.getDate()+1);
+                        tasks[tIdx].deadlineAt = d.toISOString(); 
+                    }
+                    setStore(KEYS.TASKS, tasks);
+                }
+            }
+
+            if(document.getElementById('cl_chk_reklamacja').checked && cId) {
+                let slas = getStore(KEYS.SLA);
+                slas.push({
+                    id: uuid(), claimId: cId, insurer: cTU, type: 'reklamacja_30dni',
+                    deadlineDate: document.getElementById('cl_reklamacja_date').value,
+                    status: 'aktywny', createdAt: new Date().toISOString()
+                });
+                setStore(KEYS.SLA, slas);
+                toast('Wystartowano zegar SLA Reklamacji (30 dni).', 'warning');
+            }
+
+            toast('Raport z połączenia zapisany.', 'success');
+            closeCallModal();
+            renderTasks();
+            checkSLA();
+        }
+
+        function saveTask(e) {
+            e.preventDefault();
+            let tasks = getStore(KEYS.TASKS);
+            let t = {
+                id: uuid(), claimId: document.getElementById('tf_claim').value || null,
+                insurer: document.getElementById('tf_tu').value, deadlineAt: new Date(document.getElementById('tf_deadline').value).toISOString(),
+                priority: document.getElementById('tf_prio').value, ownerTeam: document.getElementById('tf_team').value,
+                topicCategory: document.getElementById('tf_cat').value, checklist: document.getElementById('tf_checklist').value,
+                status: 'zaplanowane', createdAt: new Date().toISOString()
+            };
+            tasks.push(t); setStore(KEYS.TASKS, tasks);
+            toast('Zadanie dodane do kolejki.', 'success');
+            closeModal('taskModal');
+            renderTasks();
+        }
+
+        function renderTasks() {
+            let tasks = getStore(KEYS.TASKS).filter(t => t.status !== 'anulowane');
+            const claims = getStore(KEYS.CLAIMS);
+            const now = new Date().toISOString();
+
+            const fPrio = document.getElementById('f-task-prio').value;
+            const fStatus = document.getElementById('f-task-status').value;
+            const fTu = document.getElementById('f-task-tu').value;
+            const fTeam = document.getElementById('f-task-team').value;
+            const search = document.getElementById('globalSearch').value.toLowerCase();
+
+            if(fPrio) tasks = tasks.filter(t => t.priority === fPrio);
+            if(fStatus) tasks = tasks.filter(t => t.status === fStatus);
+            if(fTu) tasks = tasks.filter(t => t.insurer === fTu);
+            if(fTeam) tasks = tasks.filter(t => t.ownerTeam === fTeam);
+            if(search) tasks = tasks.filter(t => t.claimId?.toLowerCase().includes(search) || t.insurer.toLowerCase().includes(search));
+
+            tasks.sort((a,b) => {
+                let vA = a[app.state.sortCol], vB = b[app.state.sortCol];
+                if(vA < vB) return app.state.sortAsc ? -1 : 1;
+                if(vA > vB) return app.state.sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            const totalP = Math.ceil(tasks.length / app.state.taskPageSize) || 1;
+            if(app.state.taskPage > totalP) app.state.taskPage = totalP;
+            document.getElementById('taskPageInfo').innerText = `Str. ${app.state.taskPage} / ${totalP}`;
+
+            const paged = tasks.slice((app.state.taskPage-1)*app.state.taskPageSize, app.state.taskPage*app.state.taskPageSize);
+            const tbody = document.getElementById('tasksTbody');
+            tbody.innerHTML = '';
+
+            paged.forEach(t => {
+                let c = claims.find(x => x.id === t.claimId);
+                let isOverdue = t.deadlineAt < now && t.status !== 'wykonany';
+                let trClass = isOverdue ? 'style="background: #fef2f2;"' : '';
+                let badgeCls = t.priority === 'krytyczny' ? 'badge-danger' : t.priority === 'wysoki' ? 'badge-warning' : 'badge-gray';
+                let statCls = t.status === 'wykonane' ? 'badge-success' : 'badge-info';
+
+                // Usunięto animację pulse z tabeli i dodano otwieranie modalu z akcjami po kliknięciu
+                tbody.innerHTML += `
+                    <tr ${trClass} onclick="openTaskActionModal('${t.id}', '${t.claimId}')">
+                        <td><span class="badge ${badgeCls}">${t.priority}</span></td>
+                        <td style="color:${isOverdue?'var(--danger)':'inherit'}; font-weight:${isOverdue?'800':'normal'}">${fmtDate(t.deadlineAt)}</td>
+                        <td><strong>${t.insurer}</strong></td>
+                        <td>${c ? `<strong>${c.id}</strong><br><small class="text-muted">${c.vehiclePlate}</small>` : 'Ogólne'}</td>
+                        <td><strong>${t.topicCategory}</strong><br><small class="text-muted">${t.checklist.substring(0,30)}...</small></td>
+                        <td><span class="badge badge-gray">${t.ownerTeam}</span></td>
+                        <td><span class="badge ${statCls}">${t.status.replace(/_/g,' ')}</span></td>
+                        <td style="text-align:right">
+                            <!-- Bezpośrednie linki do akt jeśli kliknięto w opcje z prawej -->
+                            ${c ? `<a href="szkody.html?id=${c.id}" class="btn btn-secondary btn-small" onclick="event.stopPropagation();" title="Przejdź do akt sprawy"><i class="fa-solid fa-folder-open"></i></a>` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function changeTaskPage(dir) { app.state.taskPage += dir; if(app.state.taskPage<1) app.state.taskPage=1; renderTasks(); }
+        function sortTasks(col) { if(app.state.sortCol===col) app.state.sortAsc=!app.state.sortAsc; else { app.state.sortCol=col; app.state.sortAsc=true; } renderTasks(); }
+
+        function renderSLA() {
+            const slas = getStore(KEYS.SLA);
+            const claims = getStore(KEYS.CLAIMS);
+            const tbody = document.getElementById('slaTbody');
+            tbody.innerHTML = '';
+            const today = new Date().toISOString().split('T')[0];
+
+            const fType = document.getElementById('f-sla-type').value;
+            const fStat = document.getElementById('f-sla-status').value;
+
+            let filtered = slas;
+            if(fType) filtered = filtered.filter(s => s.type === fType);
+            if(fStat) filtered = filtered.filter(s => s.status === fStat);
+
+            filtered.sort((a,b) => a.deadlineDate.localeCompare(b.deadlineDate)).forEach(s => {
+                const diffTime = new Date(s.deadlineDate) - new Date(today);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                let dayHtml = diffDays < 0 ? `<span class="badge badge-danger">Po terminie (${Math.abs(diffDays)}d)</span>` 
+                            : diffDays <= 3 ? `<span class="badge badge-warning">${diffDays} dni</span>` 
+                            : `<span class="badge badge-info">${diffDays} dni</span>`;
+                            
+                if(s.status === 'zamkniety') dayHtml = '-';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${s.type.replace('_',' ').toUpperCase()}</strong></td>
+                        <td>${fmtDate(s.createdAt)}</td>
+                        <td><strong style="color:${diffDays<0 && s.status==='aktywny'?'var(--danger)':'inherit'}">${s.deadlineDate}</strong></td>
+                        <td>${s.insurer}<br><small class="text-muted">${s.claimId}</small></td>
+                        <td>${dayHtml}</td>
+                        <td><span class="badge ${s.status==='aktywny'?'badge-warning':'badge-success'}">${s.status}</span></td>
+                        <td style="text-align:right">
+                            ${s.status==='aktywny' ? `<button class="btn btn-success btn-small" onclick="closeSla('${s.id}')"><i class="fa-solid fa-check"></i> Zamknij</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function closeSla(id) {
+            let slas = getStore(KEYS.SLA);
+            let idx = slas.findIndex(s=>s.id===id);
+            if(idx > -1) { slas[idx].status = 'zamkniety'; setStore(KEYS.SLA, slas); renderSLA(); checkSLA(); }
+        }
+
+        function checkSLA() {
+            const slas = getStore(KEYS.SLA).filter(s => s.status === 'aktywny');
+            const today = new Date().toISOString().split('T')[0];
+            const overdue = slas.filter(s => s.deadlineDate < today);
+            
+            const container = document.getElementById('slaAlertsContainer');
+            container.innerHTML = '';
+            if(overdue.length > 0) {
+                container.innerHTML = `
+                    <div class="alert-banner">
+                        <div><i class="fa-solid fa-triangle-exclamation"></i> <strong>ALARM SLA:</strong> Masz ${overdue.length} przeterminowanych procesów ustawowych (np. brak odpowiedzi na reklamację po 30 dniach)! Sprawy wymagają pilnej interwencji prawnej.</div>
+                        <button class="btn btn-danger btn-small" onclick="switchTab('sla')">Przejdź &rarr;</button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderHistory() {
+            const calls = getStore(KEYS.CALLS);
+            const fStat = document.getElementById('f-hist-status').value;
+            const tbody = document.getElementById('historyTbody');
+            tbody.innerHTML = '';
+
+            let filtered = calls.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+            if(fStat) filtered = filtered.filter(c => c.callStatus === fStat);
+
+            filtered.slice(0, 50).forEach(c => {
+                let statBadge = c.callStatus === 'success' ? '<span class="badge badge-success">Odebrane</span>' : `<span class="badge badge-danger">${c.callStatus}</span>`;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${fmtDate(c.createdAt)}<br><small class="text-muted"><i class="fa-solid fa-stopwatch"></i> ${fmtTime(c.durationSec)}</small></td>
+                        <td><strong>${c.insurer}</strong></td>
+                        <td>${c.claimId||'-'}</td>
+                        <td>Kontakt ws. sprawy</td>
+                        <td>${statBadge}</td>
+                        <td>${c.notes ? c.notes.substring(0,40)+'...' : '-'}</td>
+                        <td><span class="badge badge-gray">Biuro DTD</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function exportCSV() {
+            let tasks = getStore(KEYS.TASKS);
+            let csv = "Priorytet;Deadline;TU;Sprawa;Status;Zespol\n";
+            tasks.forEach(t => { csv += `${t.priority};${t.deadlineAt};${t.insurer};${t.claimId};${t.status};${t.ownerTeam}\n`; });
+            let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            let link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Infolinia_Raport.csv";
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        // Reduced seed to 1 item per entity
+        function seedData() {
+            const claims = []; const tasks = []; const slas = [];
+            const now = new Date();
+
+            let claimId = `DTD-2026-001`;
+            let tu = TUs[0];
+            claims.push({ id: claimId, insurer: tu, claimNoTU: `PL/1/26`, clientName: `Jan Kowalski`, vehiclePlate: `WA 101` });
+
+            let d = new Date(now); d.setHours(d.getHours() - 1); // Past -> Overdue
+            
+            tasks.push({
+                id: uuid(), claimId: claimId, insurer: tu, priority: 'wysoki',
+                topicCategory: 'Brak Decyzji', checklist: 'Zadzwoń i dowiedz się dlaczego nie ma decyzji w sprawie zderzaka.',
+                ownerTeam: 'likwidacja', deadlineAt: d.toISOString(), status: 'zaplanowane'
+            });
+
+            let slaD = new Date(now); slaD.setDate(slaD.getDate() - 1); // Past -> Overdue SLA
+            slas.push({ id: uuid(), claimId: claimId, insurer: tu, type: 'reklamacja_30dni', deadlineDate: slaD.toISOString().split('T')[0], status: 'aktywny' });
+            
+            setStore(KEYS.CLAIMS, claims); setStore(KEYS.TASKS, tasks); setStore(KEYS.SLA, slas);
+            setStore(KEYS.CALLS, []); setStore(KEYS.AUDIT, []);
+            toast('Załadowano pojedynczy zestaw danych testowych', 'success');
+            setTimeout(()=>location.reload(), 500);
+        }
+
+        function resetDB() { 
+            if(confirm('Usunąć wszystko?')) { Object.values(KEYS).forEach(k => localStorage.removeItem(k)); location.reload(); } 
+        }
+
+        function populateDropdowns() {
+            const selTu = document.getElementById('tf_tu');
+            const fTu = document.getElementById('f-task-tu');
+            selTu.innerHTML = '<option value="">-- Wybierz TU --</option>';
+            fTu.innerHTML = '<option value="">Wszystkie TU</option>';
+            TUs.forEach(tu => { selTu.innerHTML += `<option value="${tu}">${tu}</option>`; fTu.innerHTML += `<option value="${tu}">${tu}</option>`; });
+
+            const selCl = document.getElementById('tf_claim');
+            selCl.innerHTML = '<option value="">-- Powiąż ze szkodą (Opcjonalnie) --</option>';
+            getStore(KEYS.CLAIMS).forEach(c => { selCl.innerHTML += `<option value="${c.id}">${c.id} | ${c.clientName} (${c.vehiclePlate})</option>`; });
+        }
+
+        // --- HELPERS AND CONSTANTS ---
+        const KEYS = {
+            VER: 'dtd_callcenter_storage_version',
+            CLAIMS: 'dtd_callcenter_claims',
+            TASKS: 'dtd_callcenter_tasks',
+            CALLS: 'dtd_callcenter_calls',
+            SLA: 'dtd_callcenter_sla',
+            AUDIT: 'dtd_callcenter_audit'
+        };
+
+        const TUs = ["PZU S.A.", "Warta", "Hestia", "Compensa", "Link4", "Allianz", "Uniqa"];
+
+        const app = {
+            state: {
+                tab: 'tasks',
+                taskPage: 1, taskPageSize: 15, sortCol: 'deadlineAt', sortAsc: true,
+                timerInterval: null, timerSeconds: 0,
+                activeTaskId: null, activeClaimId: null
+            }
+        };
+
+        function uuid() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { let r=Math.random()*16|0, v=c==='x'?r:(r&0x3|0x8); return v.toString(16); }); }
+        function getStore(k) { try { return JSON.parse(localStorage.getItem(k)) || []; } catch(e){ return []; } }
+        function setStore(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+        function fmtDate(d) { if(!d) return '-'; return d.replace('T', ' ').substring(0,16); }
+        function fmtTime(sec) { let m = Math.floor(sec/60); let s = sec%60; return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
+        
+        // EVENT LISTENERS
+        document.getElementById('taskForm').addEventListener('submit', saveTask);
+        
+        document.getElementById('cl_chk_reklamacja').addEventListener('change', function() {
+            if(this.checked) {
+                let d = new Date(); d.setDate(d.getDate()+30);
+                document.getElementById('cl_reklamacja_date').value = d.toISOString().split('T')[0];
+            }
+        });
+
+        window.onload = () => { 
+            let ver = localStorage.getItem(KEYS.VER);
+            if(!ver) { seedData(); setStore(KEYS.VER, 1); }
+            populateDropdowns();
+            checkSLA();
+            switchTab('tasks'); 
+        };
+    </script>
+</body>
+</html>
